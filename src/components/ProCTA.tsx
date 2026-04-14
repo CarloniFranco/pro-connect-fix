@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
 import { Briefcase, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const ProCTA = () => {
+  const navigate = useNavigate();
   return (
     <section className="px-4 pb-16 md:pb-24">
       <div className="container mx-auto max-w-4xl">
@@ -29,6 +31,7 @@ const ProCTA = () => {
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
+              onClick={() => navigate("/dashboard")}
               className="inline-flex items-center gap-2 rounded-xl bg-accent px-6 py-3 font-display text-sm font-bold text-accent-foreground shadow-lg transition-colors hover:bg-accent/90 md:px-8 md:py-4 md:text-base"
             >
               Soy Profesional: Quiero Digitalizar mi Negocio
