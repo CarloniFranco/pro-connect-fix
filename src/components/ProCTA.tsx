@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
 import { Briefcase, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const ProCTA = () => {
+  const navigate = useNavigate();
   return (
     <section className="px-4 pb-16 md:pb-24">
       <div className="container mx-auto max-w-4xl">
