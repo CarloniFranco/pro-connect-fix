@@ -28,7 +28,15 @@ const HeroSection = () => {
           </div>
 
           <h1 className="mb-3 font-display text-5xl font-bold tracking-tight text-primary-foreground md:text-7xl">
-            FI<motion.span initial={{ rotate: -180, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} transition={{ duration: 0.7, ease: "easeOut", delay: 0.3 }} className="inline-block">X</motion.span>
+            FI
+            <motion.span
+              initial={{ rotate: -360, opacity: 0, scale: 0.5 }}
+              animate={{ rotate: 0, opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
+              className="inline-block origin-center"
+            >
+              X
+            </motion.span>
           </h1>
           <p className="mx-auto mb-12 max-w-md text-lg font-medium text-primary-foreground/70 md:text-xl">
             ¿Qué tipo de servicio necesitás?
