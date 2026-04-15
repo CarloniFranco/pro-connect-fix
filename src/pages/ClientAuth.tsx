@@ -6,14 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Wrench, Mail, Lock, User, ArrowLeft } from "lucide-react";
+import { Wrench, Mail, Lock, User, Briefcase, ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
+type AuthMode = "login" | "register";
+type UserRole = "client" | "professional";
+
 const ClientAuth = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [isLogin, setIsLogin] = useState(true);
+  const { user, loading: authLoading } = useAuth();
+  const [mode, setMode] = useState<AuthMode>("login");
+  const [role, setRole] = useState<UserRole>("client");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -22,39 +26,82 @@ const ClientAuth = () => {
 
   useEffect(() => {
     if (!user) return;
+    redirectUser(user.id);
+  }, [user]);
+
+  const redirectUser = async (userId: string) => {
+    // Check if professional profile exists
+    const { data: proProfile } = await supabase
+      .from("professional_profiles")
+      .select("id, rubro")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (proProfile) {
+      if (proProfile.rubro) {
+        navigate("/dashboard");
+      } else {
+        navigate("/perfil-profesional");
+      }
+      return;
+    }
+
     // Check if client profile exists
-    supabase
+    const { data: clientProfile } = await supabase
       .from("client_profiles")
       .select("id")
-      .eq("user_id", user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data) {
-          navigate("/");
-        } else {
-          navigate("/completar-perfil");
-        }
-      });
-  }, [user, navigate]);
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (clientProfile) {
+      navigate("/");
+    } else {
+      // Check user metadata for role
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      const userRole = currentUser?.user_metadata?.role;
+      if (userRole === "professional") {
+        navigate("/perfil-profesional");
+      } else {
+        navigate("/completar-perfil");
+      }
+    }
+  };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email || !password) return;
     setLoading(true);
+
     try {
-      if (isLogin) {
+      if (mode === "login") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        if (error) {
+          if (error.message.includes("Invalid login")) {
+            throw new Error("Email o contraseña incorrectos");
+          }
+          throw error;
+        }
         toast.success("¡Bienvenido!");
       } else {
+        if (!fullName.trim()) {
+          toast.error("Ingresá tu nombre completo");
+          setLoading(false);
+          return;
+        }
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            data: { full_name: fullName },
+            data: { full_name: fullName, role },
             emailRedirectTo: window.location.origin,
           },
         });
-        if (error) throw error;
+        if (error) {
+          if (error.message.includes("already registered")) {
+            throw new Error("Este email ya está registrado. Intentá iniciar sesión.");
+          }
+          throw error;
+        }
         toast.success("¡Cuenta creada! Revisá tu email para confirmar.");
       }
     } catch (error: any) {
@@ -80,6 +127,14 @@ const ClientAuth = () => {
     }
   };
 
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-md">
@@ -92,18 +147,62 @@ const ClientAuth = () => {
         </button>
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-lg md:p-8">
+          {/* Header */}
           <div className="mb-6 text-center">
             <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary">
-              <User className="h-8 w-8 text-primary-foreground" />
+              <Wrench className="h-8 w-8 text-primary-foreground" />
             </div>
             <h1 className="font-display text-2xl font-bold text-foreground">
-              {isLogin ? "Ingresá a tu cuenta" : "Creá tu cuenta"}
+              {mode === "login" ? "Ingresá a FIX" : "Creá tu cuenta"}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Para solicitar servicios en FIX
+              {mode === "login"
+                ? "Accedé a tu cuenta de cliente o profesional"
+                : "Registrate para empezar a usar FIX"}
             </p>
           </div>
 
+          {/* Role selector (only for register) */}
+          {mode === "register" && (
+            <div className="mb-5 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setRole("client")}
+                className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all ${
+                  role === "client"
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-muted-foreground/30"
+                }`}
+              >
+                <User className={`h-6 w-6 ${role === "client" ? "text-primary" : "text-muted-foreground"}`} />
+                <span className={`text-sm font-semibold ${role === "client" ? "text-primary" : "text-muted-foreground"}`}>
+                  Soy Cliente
+                </span>
+                <span className="text-xs text-muted-foreground text-center">
+                  Busco servicios
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole("professional")}
+                className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all ${
+                  role === "professional"
+                    ? "border-accent bg-accent/5"
+                    : "border-border hover:border-muted-foreground/30"
+                }`}
+              >
+                <Briefcase className={`h-6 w-6 ${role === "professional" ? "text-accent-foreground" : "text-muted-foreground"}`} />
+                <span className={`text-sm font-semibold ${role === "professional" ? "text-accent-foreground" : "text-muted-foreground"}`}>
+                  Soy Profesional
+                </span>
+                <span className="text-xs text-muted-foreground text-center">
+                  Ofrezco servicios
+                </span>
+              </button>
+            </div>
+          )}
+
+          {/* Google */}
           <Button
             onClick={handleGoogleLogin}
             disabled={loading}
@@ -128,8 +227,9 @@ const ClientAuth = () => {
             </div>
           </div>
 
+          {/* Form */}
           <form onSubmit={handleEmailAuth} className="space-y-4">
-            {!isLogin && (
+            {mode === "register" && (
               <div className="space-y-2">
                 <Label htmlFor="fullName">Nombre completo</Label>
                 <div className="relative">
@@ -140,7 +240,7 @@ const ClientAuth = () => {
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Juan Pérez"
                     className="pl-10"
-                    required={!isLogin}
+                    required
                   />
                 </div>
               </div>
@@ -177,7 +277,7 @@ const ClientAuth = () => {
               </div>
             </div>
 
-            {!isLogin && (
+            {mode === "register" && (
               <div className="flex items-start gap-2">
                 <Checkbox
                   id="terms"
@@ -193,18 +293,34 @@ const ClientAuth = () => {
               </div>
             )}
 
-            <Button type="submit" disabled={loading || (!isLogin && !acceptedTerms)} className="w-full">
-              {loading ? "Cargando..." : isLogin ? "Ingresar" : "Crear cuenta"}
+            <Button
+              type="submit"
+              disabled={loading || (mode === "register" && !acceptedTerms)}
+              className="w-full bg-primary hover:bg-primary/90"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Cargando...
+                </>
+              ) : mode === "login" ? (
+                "Ingresar"
+              ) : (
+                "Crear cuenta"
+              )}
             </Button>
           </form>
 
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            {isLogin ? "¿No tenés cuenta?" : "¿Ya tenés cuenta?"}{" "}
+            {mode === "login" ? "¿No tenés cuenta?" : "¿Ya tenés cuenta?"}{" "}
             <button
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setMode(mode === "login" ? "register" : "login");
+                setAcceptedTerms(false);
+              }}
               className="font-semibold text-primary hover:underline"
             >
-              {isLogin ? "Registrate" : "Ingresá"}
+              {mode === "login" ? "Registrate" : "Ingresá"}
             </button>
           </p>
         </div>

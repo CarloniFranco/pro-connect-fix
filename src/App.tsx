@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
+import PrivateRoute from "@/components/PrivateRoute";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
@@ -28,19 +29,22 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/ingresar" element={<ClientAuth />} />
-            <Route path="/completar-perfil" element={<ClientProfileSetup />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/terminos" element={<TermsAndConditions />} />
             <Route path="/servicios/hogar" element={<HomeServices />} />
             <Route path="/servicios/personal" element={<PersonalServices />} />
             <Route path="/profesionales/:category" element={<ProfessionalsList />} />
             <Route path="/profesional/:userId" element={<ProfessionalPublicProfile />} />
-            <Route path="/terminos" element={<TermsAndConditions />} />
-            <Route path="/seleccionar-plan" element={<PlanSelection />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/perfil-profesional" element={<ProfessionalProfile />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
+            {/* Protected routes */}
+            <Route path="/completar-perfil" element={<PrivateRoute><ClientProfileSetup /></PrivateRoute>} />
+            <Route path="/perfil-profesional" element={<PrivateRoute><ProfessionalProfile /></PrivateRoute>} />
+            <Route path="/seleccionar-plan" element={<PrivateRoute><PlanSelection /></PrivateRoute>} />
+            <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
