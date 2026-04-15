@@ -6,33 +6,33 @@
 
 @layer base {
   :root {
-    --background: 40 33% 96%;
-    --foreground: 220 20% 20%;
+    --background: 45 100% 96%;
+    --foreground: 220 25% 12%;
 
-    --card: 40 30% 98%;
-    --card-foreground: 220 20% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 25% 12%;
 
-    --popover: 40 30% 98%;
-    --popover-foreground: 220 20% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 25% 12%;
 
-    --primary: 210 45% 45%;
-    --primary-foreground: 40 33% 96%;
+    --primary: 0 80% 50%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 8 55% 55%;
-    --secondary-foreground: 40 33% 96%;
+    --secondary: 210 90% 48%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 40 20% 90%;
-    --muted-foreground: 220 10% 50%;
+    --muted: 45 30% 90%;
+    --muted-foreground: 220 10% 45%;
 
-    --accent: 42 65% 58%;
-    --accent-foreground: 220 20% 15%;
+    --accent: 45 100% 50%;
+    --accent-foreground: 220 25% 12%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 40 20% 85%;
-    --input: 40 20% 85%;
-    --ring: 210 45% 45%;
+    --border: 45 20% 82%;
+    --input: 45 20% 82%;
+    --ring: 0 80% 50%;
 
     --radius: 0.75rem;
 
@@ -45,32 +45,39 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Custom tokens */
-    --hero-gradient: linear-gradient(135deg, hsl(210 45% 45%), hsl(210 50% 55%));
-    --card-hover-shadow: 0 8px 30px -8px hsl(210 45% 45% / 0.2);
-    --warm-surface: 40 25% 93%;
-    --pipe-green: 142 40% 42%;
-    --coin-gold: 42 75% 55%;
+    /* Mario Bros tokens */
+    --mario-red: 0 80% 50%;
+    --mario-blue: 210 90% 48%;
+    --mario-green: 120 65% 40%;
+    --mario-yellow: 45 100% 50%;
+    --mario-brown: 30 50% 35%;
+    --pipe-green: 120 65% 40%;
+    --coin-gold: 45 100% 50%;
+    --brick: 20 55% 50%;
+    --sky: 200 80% 70%;
+    --warm-surface: 45 30% 93%;
+    --hero-gradient: linear-gradient(135deg, hsl(200 80% 65%), hsl(200 85% 55%));
+    --card-hover-shadow: 0 8px 30px -8px hsl(0 80% 50% / 0.25);
   }
 
   .dark {
-    --background: 220 20% 12%;
-    --foreground: 40 33% 96%;
-    --card: 220 20% 16%;
-    --card-foreground: 40 33% 96%;
-    --popover: 220 20% 16%;
-    --popover-foreground: 40 33% 96%;
-    --primary: 210 50% 55%;
-    --primary-foreground: 40 33% 96%;
-    --secondary: 8 55% 55%;
-    --secondary-foreground: 40 33% 96%;
+    --background: 220 25% 10%;
+    --foreground: 45 100% 96%;
+    --card: 220 25% 14%;
+    --card-foreground: 45 100% 96%;
+    --popover: 220 25% 14%;
+    --popover-foreground: 45 100% 96%;
+    --primary: 0 80% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 90% 55%;
+    --secondary-foreground: 0 0% 100%;
     --muted: 220 15% 22%;
-    --muted-foreground: 40 15% 65%;
-    --accent: 42 65% 58%;
-    --accent-foreground: 220 20% 12%;
+    --muted-foreground: 45 15% 65%;
+    --accent: 45 100% 55%;
+    --accent-foreground: 220 25% 10%;
     --border: 220 15% 25%;
     --input: 220 15% 25%;
-    --ring: 210 50% 55%;
+    --ring: 0 80% 55%;
   }
 }
 

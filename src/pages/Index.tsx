@@ -1,6 +1,5 @@
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
-import ServiceCategories from "@/components/ServiceCategories";
 import ProCTA from "@/components/ProCTA";
 
 const Index = () => {
@@ -8,7 +7,6 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <HeroSection />
-      <ServiceCategories />
       <ProCTA />
       <footer className="border-t border-border px-4 py-8 text-center">
         <p className="font-display text-lg font-bold text-foreground">FIX</p>
