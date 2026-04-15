@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Wrench, Upload, ShieldCheck, Loader2 } from "lucide-react";
+import { Wrench, Upload, ShieldCheck, Loader2, Camera, User } from "lucide-react";
 import { toast } from "sonner";
 
 const RUBROS = [
@@ -31,9 +31,12 @@ const ProfessionalProfile = () => {
   const [rubro, setRubro] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [matriculaFile, setMatriculaFile] = useState<File | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [existingProfile, setExistingProfile] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -56,16 +59,30 @@ const ProfessionalProfile = () => {
       setFullName(data.full_name);
       setRubro(data.rubro);
       setDescripcion(data.descripcion);
-      // If profile is already completed, go to dashboard
+      if (data.photo_url) setPhotoPreview(data.photo_url);
       if (data.rubro && data.descripcion) {
         navigate("/dashboard");
         return;
       }
     } else {
-      // Pre-fill name from auth metadata
       setFullName(user.user_metadata?.full_name || "");
     }
     setLoadingProfile(false);
+  };
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Por favor seleccioná una imagen");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("La imagen no puede superar los 5MB");
+      return;
+    }
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -75,6 +92,7 @@ const ProfessionalProfile = () => {
 
     try {
       let matriculaUrl: string | null = null;
+      let photoUrl: string | null = null;
 
       // Upload matrícula if provided
       if (matriculaFile) {
@@ -84,11 +102,20 @@ const ProfessionalProfile = () => {
           .from("matriculas")
           .upload(path, matriculaFile, { upsert: true });
         if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabase.storage
-          .from("matriculas")
-          .getPublicUrl(path);
+        const { data: urlData } = supabase.storage.from("matriculas").getPublicUrl(path);
         matriculaUrl = urlData.publicUrl;
+      }
+
+      // Upload profile photo if provided
+      if (photoFile) {
+        const ext = photoFile.name.split(".").pop();
+        const path = `${user.id}/photo.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("profile-photos")
+          .upload(path, photoFile, { upsert: true });
+        if (uploadError) throw uploadError;
+        const { data: urlData } = supabase.storage.from("profile-photos").getPublicUrl(path);
+        photoUrl = urlData.publicUrl;
       }
 
       const profileData = {
@@ -96,6 +123,7 @@ const ProfessionalProfile = () => {
         rubro,
         descripcion,
         ...(matriculaUrl && { matricula_url: matriculaUrl }),
+        ...(photoUrl && { photo_url: photoUrl }),
       };
 
       if (existingProfile) {
@@ -142,6 +170,40 @@ const ProfessionalProfile = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-border bg-card p-6 shadow-lg">
+          {/* Profile Photo */}
+          <div className="flex flex-col items-center gap-3">
+            <Label className="text-sm font-medium">Foto de perfil</Label>
+            <div
+              onClick={() => photoInputRef.current?.click()}
+              className="relative cursor-pointer group"
+            >
+              <div className="h-24 w-24 overflow-hidden rounded-full border-2 border-dashed border-border bg-muted/50 flex items-center justify-center transition-colors group-hover:border-primary">
+                {photoPreview ? (
+                  <img
+                    src={photoPreview}
+                    alt="Foto de perfil"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <User className="h-10 w-10 text-muted-foreground" />
+                )}
+              </div>
+              <div className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md">
+                <Camera className="h-4 w-4" />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Subí una foto de tu cara para generar confianza
+            </p>
+            <input
+              ref={photoInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handlePhotoSelect}
+            />
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="fullName">Nombre completo</Label>
             <Input
