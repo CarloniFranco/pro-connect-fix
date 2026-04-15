@@ -13,6 +13,7 @@ interface ProfessionalWithScore {
   rubro: string;
   descripcion: string;
   verified: boolean;
+  photo_url: string | null;
   score: {
     total_score: number;
     velocity: number;
@@ -128,7 +129,15 @@ const ProfessionalsList = () => {
                 className="group cursor-pointer rounded-2xl border-2 border-border bg-card p-5 shadow-sm transition-all hover:shadow-lg hover:border-primary"
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex-1">
+                  <div className="flex gap-4 flex-1">
+                    <div className="h-12 w-12 overflow-hidden rounded-full border-2 border-border bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      {pro.photo_url ? (
+                        <img src={pro.photo_url} alt={pro.full_name} className="h-full w-full object-cover" />
+                      ) : (
+                        <User className="h-6 w-6 text-primary" />
+                      )}
+                    </div>
+                    <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-lg font-bold text-card-foreground">
                         {pro.full_name}
