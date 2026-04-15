@@ -206,6 +206,13 @@ const ClientOrders = () => {
 
   const handleRejectQuote = async (req: ServiceRequest) => {
     setRejectingId(req.id);
+    
+    // Release blocked slots for this request
+    await supabase
+      .from("blocked_slots")
+      .delete()
+      .eq("service_request_id", req.id);
+
     const { error } = await supabase
       .from("service_requests")
       .update({ status: "rechazada_cliente" as any })
