@@ -105,7 +105,13 @@ const ClientAuth = () => {
         toast.success("¡Cuenta creada! Revisá tu email para confirmar.");
       }
     } catch (error: any) {
-      toast.error(error.message || "Error de autenticación");
+      console.error("Auth error:", error);
+      const safeMessages = [
+        "Este email ya está registrado. Intentá iniciar sesión.",
+        "Credenciales incorrectas. Verificá tu email y contraseña.",
+      ];
+      const msg = safeMessages.find((m) => error.message?.includes(m.substring(0, 20)));
+      toast.error(msg || "Error de autenticación. Intentá nuevamente.");
     } finally {
       setLoading(false);
     }
