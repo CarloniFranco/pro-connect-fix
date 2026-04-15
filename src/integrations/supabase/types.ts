@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      blocked_slots: {
+        Row: {
+          created_at: string
+          id: string
+          professional_id: string
+          service_request_id: string | null
+          slot_date: string
+          slot_time: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          professional_id: string
+          service_request_id?: string | null
+          slot_date: string
+          slot_time: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          professional_id?: string
+          service_request_id?: string | null
+          slot_date?: string
+          slot_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blocked_slots_service_request_id_fkey"
+            columns: ["service_request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_profiles: {
         Row: {
           address: string
@@ -47,6 +82,39 @@ export type Database = {
           phone?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      professional_availability: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_active: boolean
+          professional_id: string
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_active?: boolean
+          professional_id: string
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          professional_id?: string
+          start_time?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -133,6 +201,8 @@ export type Database = {
           client_user_id: string | null
           completed_at: string | null
           created_at: string
+          deposit_amount: number | null
+          deposit_paid: boolean | null
           description: string
           id: string
           professional_id: string
@@ -153,6 +223,8 @@ export type Database = {
           client_user_id?: string | null
           completed_at?: string | null
           created_at?: string
+          deposit_amount?: number | null
+          deposit_paid?: boolean | null
           description?: string
           id?: string
           professional_id: string
@@ -173,6 +245,8 @@ export type Database = {
           client_user_id?: string | null
           completed_at?: string | null
           created_at?: string
+          deposit_amount?: number | null
+          deposit_paid?: boolean | null
           description?: string
           id?: string
           professional_id?: string
@@ -243,6 +317,8 @@ export type Database = {
         | "aceptada"
         | "en_servicio"
         | "finalizada"
+        | "rechazada_profesional"
+        | "rechazada_cliente"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -376,6 +452,8 @@ export const Constants = {
         "aceptada",
         "en_servicio",
         "finalizada",
+        "rechazada_profesional",
+        "rechazada_cliente",
       ],
     },
   },
