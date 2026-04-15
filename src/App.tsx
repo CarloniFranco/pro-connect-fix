@@ -18,6 +18,7 @@ import ProfessionalsList from "./pages/ProfessionalsList.tsx";
 import ProfessionalPublicProfile from "./pages/ProfessionalPublicProfile.tsx";
 import TermsAndConditions from "./pages/TermsAndConditions.tsx";
 import PlanSelection from "./pages/PlanSelection.tsx";
+import PaymentSetup from "./pages/PaymentSetup.tsx";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/completar-perfil" element={<PrivateRoute><ClientProfileSetup /></PrivateRoute>} />
             <Route path="/perfil-profesional" element={<PrivateRoute><ProfessionalProfile /></PrivateRoute>} />
             <Route path="/seleccionar-plan" element={<PrivateRoute><PlanSelection /></PrivateRoute>} />
+            <Route path="/configurar-pago" element={<PrivateRoute><PaymentSetup /></PrivateRoute>} />
             <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
 
             <Route path="*" element={<NotFound />} />
