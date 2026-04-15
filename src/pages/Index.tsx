@@ -12,7 +12,9 @@ const Index = () => {
       <HowItWorks />
       <ProCTA />
       <footer className="border-t border-border px-4 py-8 text-center">
-        <p className="font-display text-lg font-bold text-foreground">FIX</p>
+        <p className="font-display text-lg font-bold text-foreground">
+          FI<span className="inline-block animate-[spin_0.7s_ease-out_0.3s_both]">X</span>
+        </p>
         <p className="mt-1 text-xs text-muted-foreground">
           © 2026 FIX. Todos los derechos reservados.
         </p>
