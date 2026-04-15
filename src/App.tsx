@@ -25,6 +25,7 @@ import TermsAndConditions from "./pages/TermsAndConditions.tsx";
 import PlanSelection from "./pages/PlanSelection.tsx";
 import PaymentSetup from "./pages/PaymentSetup.tsx";
 import CheckoutReturn from "./pages/CheckoutReturn.tsx";
+import ResetPassword from "./pages/ResetPassword.tsx";
 import LegacyRedirect from "./pages/Auth.tsx";
 
 const queryClient = new QueryClient();
