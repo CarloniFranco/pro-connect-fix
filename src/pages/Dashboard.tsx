@@ -1,18 +1,21 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, User, LogOut, Loader2 } from "lucide-react";
+import { ArrowLeft, User, LogOut, Loader2, Power } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import MonthlyKPI from "@/components/dashboard/MonthlyKPI";
 import DayAgenda from "@/components/dashboard/DayAgenda";
-import WorkOrders from "@/components/dashboard/WorkOrders";
+import AgendaOrders from "@/components/dashboard/AgendaOrders";
 import BudgetGenerator from "@/components/dashboard/BudgetGenerator";
-import SubscriptionManager from "@/components/dashboard/SubscriptionManager";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, loading, signOut } = useAuth();
   const [profileName, setProfileName] = useState("");
+  const [available, setAvailable] = useState(true);
+  const [togglingAvailable, setTogglingAvailable] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
@@ -22,13 +25,31 @@ const Dashboard = () => {
     if (!user) return;
     supabase
       .from("professional_profiles")
-      .select("full_name")
+      .select("full_name, available")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         if (data?.full_name) setProfileName(data.full_name);
+        if (data?.available !== undefined && data?.available !== null) setAvailable(data.available);
       });
   }, [user]);
+
+  const toggleAvailable = async (checked: boolean) => {
+    if (!user) return;
+    setTogglingAvailable(true);
+    setAvailable(checked);
+    const { error } = await supabase
+      .from("professional_profiles")
+      .update({ available: checked } as any)
+      .eq("user_id", user.id);
+    setTogglingAvailable(false);
+    if (error) {
+      setAvailable(!checked);
+      toast.error("Error al cambiar disponibilidad");
+    } else {
+      toast.success(checked ? "Ahora aparecés en búsquedas" : "Ya no aparecés en búsquedas");
+    }
+  };
 
   if (loading) {
     return (
@@ -59,13 +80,29 @@ const Dashboard = () => {
       </header>
 
       <main className="container mx-auto max-w-4xl space-y-6 px-4 py-6">
-        {profileName && (
-          <p className="text-sm text-muted-foreground">Hola, <span className="font-semibold text-foreground">{profileName}</span> 👋</p>
-        )}
+        {/* Greeting + Availability Toggle */}
+        <div className="flex items-center justify-between">
+          <div>
+            {profileName && (
+              <p className="text-sm text-muted-foreground">Hola, <span className="font-semibold text-foreground">{profileName}</span> 👋</p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Power className={`h-4 w-4 ${available ? "text-green-500" : "text-muted-foreground"}`} />
+            <span className={`text-xs font-semibold ${available ? "text-green-600" : "text-muted-foreground"}`}>
+              {available ? "Disponible" : "No disponible"}
+            </span>
+            <Switch
+              checked={available}
+              onCheckedChange={toggleAvailable}
+              disabled={togglingAvailable}
+            />
+          </div>
+        </div>
+
         <MonthlyKPI />
         <DayAgenda />
-        <WorkOrders />
-        <SubscriptionManager />
+        <AgendaOrders />
       </main>
 
       <BudgetGenerator />

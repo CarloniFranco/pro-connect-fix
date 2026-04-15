@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Wrench, Mail, Lock, User, Briefcase, ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { getRedirectPath } from "@/lib/redirectUser";
 
 type UserRole = "client" | "professional";
 
@@ -24,35 +25,8 @@ const Register = () => {
 
   useEffect(() => {
     if (!user) return;
-    redirectUser(user.id);
+    getRedirectPath(user.id).then((path) => navigate(path));
   }, [user]);
-
-  const redirectUser = async (userId: string) => {
-    const { data: proProfile } = await supabase
-      .from("professional_profiles")
-      .select("id, rubro")
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    if (proProfile) {
-      navigate(proProfile.rubro ? "/dashboard" : "/perfil-profesional");
-      return;
-    }
-
-    const { data: clientProfile } = await supabase
-      .from("client_profiles")
-      .select("id")
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    if (clientProfile) {
-      navigate("/");
-    } else {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      const userRole = currentUser?.user_metadata?.role;
-      navigate(userRole === "professional" ? "/perfil-profesional" : "/completar-perfil");
-    }
-  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();

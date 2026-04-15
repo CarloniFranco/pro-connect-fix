@@ -52,6 +52,7 @@ export type Database = {
       }
       professional_profiles: {
         Row: {
+          available: boolean
           created_at: string
           descripcion: string
           full_name: string
@@ -65,6 +66,7 @@ export type Database = {
           verified: boolean
         }
         Insert: {
+          available?: boolean
           created_at?: string
           descripcion?: string
           full_name?: string
@@ -78,6 +80,7 @@ export type Database = {
           verified?: boolean
         }
         Update: {
+          available?: boolean
           created_at?: string
           descripcion?: string
           full_name?: string
