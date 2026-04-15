@@ -46,7 +46,8 @@ const ClientProfileSetup = () => {
       toast.success("¡Perfil creado correctamente!");
       navigate("/");
     } catch (error: any) {
-      toast.error(error.message || "Error al guardar el perfil");
+      console.error("Profile save error:", error);
+      toast.error("Error inesperado al guardar el perfil. Intentá nuevamente.");
     } finally {
       setLoading(false);
     }

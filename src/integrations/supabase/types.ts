@@ -187,7 +187,45 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      professional_profiles_public: {
+        Row: {
+          created_at: string | null
+          descripcion: string | null
+          full_name: string | null
+          id: string | null
+          photo_url: string | null
+          plan: string | null
+          rubro: string | null
+          updated_at: string | null
+          user_id: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          descripcion?: string | null
+          full_name?: string | null
+          id?: string | null
+          photo_url?: string | null
+          plan?: string | null
+          rubro?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          descripcion?: string | null
+          full_name?: string | null
+          id?: string | null
+          photo_url?: string | null
+          plan?: string | null
+          rubro?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_professional_score: {

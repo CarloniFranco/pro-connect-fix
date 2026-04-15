@@ -102,8 +102,11 @@ const ProfessionalProfile = () => {
           .from("matriculas")
           .upload(path, matriculaFile, { upsert: true });
         if (uploadError) throw uploadError;
-        const { data: urlData } = supabase.storage.from("matriculas").getPublicUrl(path);
-        matriculaUrl = urlData.publicUrl;
+        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+          .from("matriculas")
+          .createSignedUrl(path, 3600);
+        if (signedUrlError) throw signedUrlError;
+        matriculaUrl = signedUrlData.signedUrl;
       }
 
       // Upload profile photo if provided
@@ -142,7 +145,8 @@ const ProfessionalProfile = () => {
       toast.success("¡Perfil guardado! Tu verificación está en proceso.");
       navigate("/seleccionar-plan");
     } catch (error: any) {
-      toast.error(error.message || "Error al guardar el perfil");
+      console.error("Profile save error:", error);
+      toast.error("Error inesperado al guardar el perfil. Intentá nuevamente.");
     } finally {
       setSaving(false);
     }

@@ -34,7 +34,7 @@ const ProfessionalsList = () => {
       setLoading(true);
       const { data: profiles, error } = await supabase
         .from("professional_profiles")
-        .select("*")
+        .select("id, user_id, full_name, rubro, descripcion, photo_url, verified, plan, created_at")
         .eq("rubro", category || "");
 
       if (error || !profiles) {
