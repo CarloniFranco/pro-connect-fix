@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { sendNotification } from "@/lib/notifications";
 import {
   Dialog,
   DialogContent,
@@ -153,6 +154,15 @@ export default function ServiceRequestForm({
       toast.error("Error al enviar la solicitud");
       return;
     }
+
+    // Notify professional about new request
+    sendNotification({
+      userId: professionalId,
+      type: "nueva_solicitud",
+      title: "¡Nuevo pedido de trabajo!",
+      message: `${clientProfile?.full_name || "Un cliente"} necesita ${serviceType || rubro}. Revisá tu agenda para responder.`,
+      link: "/dashboard",
+    });
 
     toast.success("¡Solicitud enviada! El profesional te responderá pronto.");
     onOpenChange(false);
