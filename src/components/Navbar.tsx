@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Wrench, User, LogOut, ChevronDown } from "lucide-react";
+import { Wrench, User, LogOut, ChevronDown, ClipboardList } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,7 +23,6 @@ const Navbar = () => {
       setIsPro(false);
       return;
     }
-    // Check for professional profile
     supabase
       .from("professional_profiles")
       .select("full_name")
@@ -35,7 +34,6 @@ const Navbar = () => {
           setIsPro(true);
           return;
         }
-        // Check client profile
         supabase
           .from("client_profiles")
           .select("full_name")
@@ -82,14 +80,25 @@ const Navbar = () => {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              {isPro && (
-                <DropdownMenuItem onClick={() => navigate("/dashboard")}>
-                  Mi Panel
-                </DropdownMenuItem>
+              {isPro ? (
+                <>
+                  <DropdownMenuItem onClick={() => navigate("/dashboard")}>
+                    <Wrench className="mr-2 h-4 w-4" />
+                    Mi Panel
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <>
+                  <DropdownMenuItem onClick={() => navigate("/mi-perfil")}>
+                    <User className="mr-2 h-4 w-4" />
+                    Mi Perfil
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/mis-pedidos")}>
+                    <ClipboardList className="mr-2 h-4 w-4" />
+                    Mis Pedidos
+                  </DropdownMenuItem>
+                </>
               )}
-              <DropdownMenuItem onClick={() => navigate(isPro ? "/dashboard" : "/")}>
-                {isPro ? "Mi Perfil" : "Inicio"}
-              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
