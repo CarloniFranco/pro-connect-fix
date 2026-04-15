@@ -58,6 +58,7 @@ export type Database = {
           id: string
           matricula_url: string | null
           photo_url: string | null
+          plan: string
           rubro: string
           updated_at: string
           user_id: string
@@ -70,6 +71,7 @@ export type Database = {
           id?: string
           matricula_url?: string | null
           photo_url?: string | null
+          plan?: string
           rubro?: string
           updated_at?: string
           user_id: string
@@ -82,6 +84,7 @@ export type Database = {
           id?: string
           matricula_url?: string | null
           photo_url?: string | null
+          plan?: string
           rubro?: string
           updated_at?: string
           user_id?: string
