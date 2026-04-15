@@ -11,6 +11,8 @@ import Dashboard from "./pages/Dashboard.tsx";
 import Login from "./pages/Login.tsx";
 import Register from "./pages/Register.tsx";
 import ClientProfileSetup from "./pages/ClientProfileSetup.tsx";
+import ClientProfile from "./pages/ClientProfile.tsx";
+import ClientOrders from "./pages/ClientOrders.tsx";
 import ProfessionalProfile from "./pages/ProfessionalProfile.tsx";
 import HomeServices from "./pages/HomeServices.tsx";
 import PersonalServices from "./pages/PersonalServices.tsx";
@@ -46,6 +48,8 @@ const App = () => (
 
             {/* Protected routes */}
             <Route path="/completar-perfil" element={<PrivateRoute><ClientProfileSetup /></PrivateRoute>} />
+            <Route path="/mi-perfil" element={<PrivateRoute><ClientProfile /></PrivateRoute>} />
+            <Route path="/mis-pedidos" element={<PrivateRoute><ClientOrders /></PrivateRoute>} />
             <Route path="/perfil-profesional" element={<PrivateRoute><ProfessionalProfile /></PrivateRoute>} />
             <Route path="/seleccionar-plan" element={<PrivateRoute><PlanSelection /></PrivateRoute>} />
             <Route path="/configurar-pago" element={<PrivateRoute><PaymentSetup /></PrivateRoute>} />
