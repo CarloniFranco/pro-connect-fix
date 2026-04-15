@@ -19,7 +19,7 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
   }
 
   if (!user) {
-    return <Navigate to="/ingresar" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;
