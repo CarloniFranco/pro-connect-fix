@@ -5,8 +5,8 @@ import { useState } from "react";
 const clientSteps = [
   {
     icon: Wrench,
-    title: "Contanos qué necesitás",
-    text: "Elegí al profesional que más se ajuste a lo que buscás, seleccioná un día disponible y describí el trabajo. Nosotros nos encargamos de contactarlo.",
+    title: "Elegí servicio y profesional",
+    text: "Buscá el rubro que necesitás, elegí al profesional que más te convenza y seleccioná un día disponible. Nosotros nos encargamos del resto.",
   },
   {
     icon: Sparkles,
