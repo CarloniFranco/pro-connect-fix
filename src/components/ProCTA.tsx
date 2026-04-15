@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 const ProCTA = () => {
   const navigate = useNavigate();
   return (
-    <section className="px-4 pb-16 md:pb-24">
+    <section className="px-4 pb-16 pt-8 md:pb-24 md:pt-12">
       <div className="container mx-auto max-w-4xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -14,21 +14,6 @@ const ProCTA = () => {
           transition={{ duration: 0.5 }}
           className="relative overflow-hidden rounded-2xl border-4 border-accent bg-primary p-6 text-center shadow-xl md:p-10"
         >
-          {/* Decorative coins */}
-          <motion.div
-            animate={{ y: [0, -6, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="absolute -right-2 -top-2 flex h-10 w-10 items-center justify-center rounded-full bg-accent text-accent-foreground font-bold shadow-lg"
-          >
-            ⭐
-          </motion.div>
-          <motion.div
-            animate={{ y: [0, -4, 0] }}
-            transition={{ duration: 2.5, repeat: Infinity, delay: 0.3 }}
-            className="absolute -bottom-1 -left-1 flex h-8 w-8 items-center justify-center rounded-full bg-accent text-accent-foreground font-bold shadow-lg text-xs"
-          >
-            ⭐
-          </motion.div>
 
           <div className="relative z-10">
             <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-white/20">
