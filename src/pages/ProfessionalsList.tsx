@@ -173,6 +173,7 @@ const ProfessionalsList = () => {
                         Excelencia: {pro.score.excellence}/5
                       </span>
                     </div>
+                    </div>
                   </div>
                   <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors mt-2" />
                 </div>
