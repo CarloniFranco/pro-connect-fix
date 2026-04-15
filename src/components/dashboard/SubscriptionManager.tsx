@@ -145,22 +145,25 @@ const SubscriptionManager = () => {
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
+            <AlertDialogTitle className="flex items-center gap-2 text-lg">
               <AlertTriangle className="h-5 w-5 text-destructive" />
-              ¿Estás seguro?
+              ¿Estás seguro de que querés irte?
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción eliminará tu perfil profesional y perderás tu historial,
-              reseñas y posición en el ranking. Esta acción no se puede deshacer.
+            <AlertDialogDescription className="text-sm leading-relaxed">
+              Si te das de baja, perderás toda tu trayectoria, calificaciones y
+              posición en el ranking de meritocracia de FIX. Esta acción no se
+              puede deshacer y empezarás de cero si decidís volver.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel className="font-semibold">
+              Mantenerme en FIX
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeactivate}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Sí, darme de baja
+              Confirmar Baja
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
