@@ -30,7 +30,7 @@ const HeroSection = () => {
           <h1 className="mb-3 font-display text-5xl font-bold tracking-tight text-primary-foreground md:text-7xl">
             FI
             <motion.span
-              initial={{ y: -120, scaleY: 1.3, scaleX: 0.8, opacity: 0 }}
+              initial={{ y: -180, scaleY: 1.3, scaleX: 0.8, opacity: 0 }}
               animate={{
                 y: [null, 0, -18, 0, -6, 0],
                 scaleY: [1.3, 0.7, 1.1, 0.9, 1.05, 1],
@@ -38,12 +38,12 @@ const HeroSection = () => {
                 opacity: 1,
               }}
               transition={{
-                duration: 0.9,
+                duration: 1.4,
                 delay: 0.3,
                 ease: "easeOut",
-                y: { duration: 0.9, times: [0, 0.4, 0.55, 0.7, 0.85, 1] },
-                scaleY: { duration: 0.9, times: [0, 0.4, 0.55, 0.7, 0.85, 1] },
-                scaleX: { duration: 0.9, times: [0, 0.4, 0.55, 0.7, 0.85, 1] },
+                y: { duration: 1.4, times: [0, 0.4, 0.55, 0.7, 0.85, 1] },
+                scaleY: { duration: 1.4, times: [0, 0.4, 0.55, 0.7, 0.85, 1] },
+                scaleX: { duration: 1.4, times: [0, 0.4, 0.55, 0.7, 0.85, 1] },
               }}
               className="inline-block origin-bottom"
               style={{ animation: "spinX 30s ease-in-out 2s infinite" }}
