@@ -50,6 +50,7 @@ const App = () => (
             <Route path="/profesionales/:category" element={<ProfessionalsList />} />
             <Route path="/profesional/:userId" element={<ProfessionalPublicProfile />} />
             <Route path="/checkout/return" element={<CheckoutReturn />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Client protected routes */}
             <Route path="/completar-perfil" element={<PrivateRoute><ClientProfileSetup /></PrivateRoute>} />
