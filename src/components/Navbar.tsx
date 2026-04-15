@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Wrench, User, LogOut, ChevronDown, ClipboardList } from "lucide-react";
+import { Wrench, User, LogOut, ChevronDown, ClipboardList, Briefcase, CreditCard, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -79,12 +79,24 @@ const Navbar = () => {
                 <ChevronDown className="h-3 w-3 text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-52">
               {isPro ? (
                 <>
                   <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                     <Wrench className="mr-2 h-4 w-4" />
                     Mi Panel
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/mi-perfil-pro")}>
+                    <Briefcase className="mr-2 h-4 w-4" />
+                    Mi Perfil Profesional
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/historial-trabajos")}>
+                    <ClipboardList className="mr-2 h-4 w-4" />
+                    Historial de Trabajos
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/mi-suscripcion")}>
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Mi Suscripción
                   </DropdownMenuItem>
                 </>
               ) : (

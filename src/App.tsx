@@ -14,6 +14,9 @@ import ClientProfileSetup from "./pages/ClientProfileSetup.tsx";
 import ClientProfile from "./pages/ClientProfile.tsx";
 import ClientOrders from "./pages/ClientOrders.tsx";
 import ProfessionalProfile from "./pages/ProfessionalProfile.tsx";
+import ProProfileView from "./pages/ProProfileView.tsx";
+import ProWorkHistory from "./pages/ProWorkHistory.tsx";
+import ProSubscription from "./pages/ProSubscription.tsx";
 import HomeServices from "./pages/HomeServices.tsx";
 import PersonalServices from "./pages/PersonalServices.tsx";
 import ProfessionalsList from "./pages/ProfessionalsList.tsx";
@@ -37,7 +40,6 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Register />} />
-            {/* Legacy redirects */}
             <Route path="/ingresar" element={<LegacyRedirect />} />
             <Route path="/auth" element={<LegacyRedirect />} />
             <Route path="/terminos" element={<TermsAndConditions />} />
@@ -46,11 +48,16 @@ const App = () => (
             <Route path="/profesionales/:category" element={<ProfessionalsList />} />
             <Route path="/profesional/:userId" element={<ProfessionalPublicProfile />} />
 
-            {/* Protected routes */}
+            {/* Client protected routes */}
             <Route path="/completar-perfil" element={<PrivateRoute><ClientProfileSetup /></PrivateRoute>} />
             <Route path="/mi-perfil" element={<PrivateRoute><ClientProfile /></PrivateRoute>} />
             <Route path="/mis-pedidos" element={<PrivateRoute><ClientOrders /></PrivateRoute>} />
+
+            {/* Professional protected routes */}
             <Route path="/perfil-profesional" element={<PrivateRoute><ProfessionalProfile /></PrivateRoute>} />
+            <Route path="/mi-perfil-pro" element={<PrivateRoute><ProProfileView /></PrivateRoute>} />
+            <Route path="/historial-trabajos" element={<PrivateRoute><ProWorkHistory /></PrivateRoute>} />
+            <Route path="/mi-suscripcion" element={<PrivateRoute><ProSubscription /></PrivateRoute>} />
             <Route path="/seleccionar-plan" element={<PrivateRoute><PlanSelection /></PrivateRoute>} />
             <Route path="/configurar-pago" element={<PrivateRoute><PaymentSetup /></PrivateRoute>} />
             <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
