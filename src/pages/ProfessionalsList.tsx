@@ -46,10 +46,8 @@ const ProfessionalsList = () => {
           const { data } = await supabase.rpc("get_professional_score", {
             p_professional_id: p.user_id,
           });
-          return {
-            ...p,
-            score: data || { total_score: 3, velocity: 3, reliability: 3, excellence: 3, review_count: 0 },
-          } as ProfessionalWithScore;
+          const scoreData = (data as unknown as ProfessionalWithScore["score"]) || { total_score: 3, velocity: 3, reliability: 3, excellence: 3, review_count: 0 };
+          return { ...p, score: scoreData } as ProfessionalWithScore;
         })
       );
 
