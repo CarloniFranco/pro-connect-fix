@@ -1,10 +1,60 @@
-import { Wrench, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Wrench, User, LogOut, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const [userName, setUserName] = useState("");
+  const [isPro, setIsPro] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      setUserName("");
+      setIsPro(false);
+      return;
+    }
+    // Check for professional profile
+    supabase
+      .from("professional_profiles")
+      .select("full_name")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setUserName(data.full_name);
+          setIsPro(true);
+          return;
+        }
+        // Check client profile
+        supabase
+          .from("client_profiles")
+          .select("full_name")
+          .eq("user_id", user.id)
+          .maybeSingle()
+          .then(({ data: clientData }) => {
+            if (clientData) {
+              setUserName(clientData.full_name);
+            } else {
+              setUserName(user.user_metadata?.full_name || user.email || "");
+            }
+          });
+      });
+  }, [user]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <nav className="fixed left-0 right-0 top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md">
@@ -17,14 +67,36 @@ const Navbar = () => {
             FIX
           </span>
         </button>
+
         {user ? (
-          <button
-            onClick={() => navigate("/")}
-            className="inline-flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted/80"
-          >
-            <User className="h-4 w-4" />
-            Mi cuenta
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="inline-flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted/80">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary">
+                  <User className="h-3 w-3 text-primary-foreground" />
+                </div>
+                <span className="max-w-[120px] truncate hidden sm:inline">
+                  {userName || "Mi cuenta"}
+                </span>
+                <ChevronDown className="h-3 w-3 text-muted-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {isPro && (
+                <DropdownMenuItem onClick={() => navigate("/dashboard")}>
+                  Mi Panel
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onClick={() => navigate(isPro ? "/dashboard" : "/")}>
+                {isPro ? "Mi Perfil" : "Inicio"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                Cerrar sesión
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         ) : (
           <button
             onClick={() => navigate("/ingresar")}
