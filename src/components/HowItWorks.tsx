@@ -5,36 +5,36 @@ import { useState } from "react";
 const clientSteps = [
   {
     icon: Wrench,
-    title: "¡Contanos qué pasa!",
-    text: "Elegí a tu profesional ideal, decinos qué día te queda bien y qué necesitás arreglar. Nosotros nos encargamos de avisarle.",
+    title: "Contanos qué necesitás",
+    text: "Elegí al profesional que más se ajuste a lo que buscás, seleccioná un día disponible y describí el trabajo. Nosotros nos encargamos de contactarlo.",
   },
   {
     icon: Sparkles,
-    title: "Presupuesto al toque.",
-    text: "Tu profesional te va a mandar un presupuesto claro ayudado por nuestra IA. Sin vueltas y con todo detallado para que no haya sorpresas.",
+    title: "Recibí tu presupuesto",
+    text: "El profesional te envía un presupuesto detallado y transparente. Sin sorpresas, con todo claro desde el inicio.",
   },
   {
     icon: HeartHandshake,
-    title: "Seña y Turno Seguro.",
-    text: "Si te cierra, pagás una pequeña seña del 10% por Mercado Pago u otros medios de pago. Con eso el turno ya es tuyo y el profesional te reserva el lugar. ¡Así de fácil!",
+    title: "Confirmá con una seña",
+    text: "Si el presupuesto te convence, abonás una seña del 10% y tu turno queda reservado. Rápido, seguro y sin complicaciones.",
   },
 ];
 
 const proSteps = [
   {
     icon: BellRing,
-    title: "Recibí pedidos reales.",
-    text: "Te avisamos cada vez que alguien necesite tu ayuda en tu zona. Vos manejás tu agenda y decidís qué trabajos tomar.",
+    title: "Recibí solicitudes reales",
+    text: "Te notificamos cada vez que un cliente de tu zona necesite tus servicios. Vos manejás tu agenda y decidís qué trabajos aceptar.",
   },
   {
     icon: Zap,
-    title: "Presupuestá en segundos.",
-    text: "Usá nuestro asistente de IA para armar presupuestos profesionales sin perder tiempo. Mandalo y esperá la confirmación.",
+    title: "Presupuestá en segundos",
+    text: "Utilizá nuestro asistente con inteligencia artificial para armar presupuestos profesionales de forma rápida y sin esfuerzo.",
   },
   {
     icon: Coins,
-    title: "Trabajá con seguridad.",
-    text: "Una vez que el cliente paga la seña, el turno queda firme. Ya podés ir a trabajar sabiendo que tu tiempo está valorado y asegurado.",
+    title: "Trabajá con respaldo",
+    text: "Una vez que el cliente abona la seña, el turno queda confirmado. Trabajá con la tranquilidad de que tu tiempo está asegurado.",
   },
 ];
 
