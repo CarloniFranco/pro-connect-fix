@@ -23,7 +23,7 @@ const clientSteps = [
 const proSteps = [
   {
     icon: BellRing,
-    title: "Recibí solicitudes reales",
+    title: "Ganá un cliente",
     text: "Te notificamos cada vez que un cliente de tu zona necesite tus servicios. Vos manejás tu agenda y decidís qué trabajos aceptar.",
   },
   {
