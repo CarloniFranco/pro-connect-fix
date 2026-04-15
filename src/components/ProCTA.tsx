@@ -12,21 +12,33 @@ const ProCTA = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="relative overflow-hidden rounded-2xl bg-primary p-6 text-center md:p-10"
+          className="relative overflow-hidden rounded-2xl border-4 border-accent bg-primary p-6 text-center shadow-xl md:p-10"
         >
-          {/* Decorative coin */}
-          <div className="absolute -right-3 -top-3 h-12 w-12 animate-float rounded-full bg-coin/30" />
-          <div className="absolute -bottom-2 -left-2 h-8 w-8 rounded-full bg-accent/20" />
+          {/* Decorative coins */}
+          <motion.div
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="absolute -right-2 -top-2 flex h-10 w-10 items-center justify-center rounded-full bg-accent text-accent-foreground font-bold shadow-lg"
+          >
+            ⭐
+          </motion.div>
+          <motion.div
+            animate={{ y: [0, -4, 0] }}
+            transition={{ duration: 2.5, repeat: Infinity, delay: 0.3 }}
+            className="absolute -bottom-1 -left-1 flex h-8 w-8 items-center justify-center rounded-full bg-accent text-accent-foreground font-bold shadow-lg text-xs"
+          >
+            ⭐
+          </motion.div>
 
           <div className="relative z-10">
-            <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-primary-foreground/10">
+            <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-white/20">
               <Briefcase className="h-7 w-7 text-accent" />
             </div>
             <h3 className="mb-2 font-display text-xl font-bold text-primary-foreground md:text-2xl">
               ¿Sos Profesional?
             </h3>
             <p className="mb-6 text-sm text-primary-foreground/70 md:text-base">
-              Digitalizá tu negocio y llegá a más clientes
+              Digitalizá tu negocio y llegá a más clientes 🚀
             </p>
             <motion.button
               whileHover={{ scale: 1.03 }}
@@ -34,7 +46,7 @@ const ProCTA = () => {
               onClick={() => navigate("/auth")}
               className="inline-flex items-center gap-2 rounded-xl bg-accent px-6 py-3 font-display text-sm font-bold text-accent-foreground shadow-lg transition-colors hover:bg-accent/90 md:px-8 md:py-4 md:text-base"
             >
-              Soy Profesional: Quiero Digitalizar mi Negocio
+              Quiero Digitalizar mi Negocio
               <ArrowRight className="h-4 w-4" />
             </motion.button>
           </div>

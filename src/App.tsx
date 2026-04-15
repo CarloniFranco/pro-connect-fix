@@ -9,6 +9,8 @@ import NotFound from "./pages/NotFound.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import Auth from "./pages/Auth.tsx";
 import ProfessionalProfile from "./pages/ProfessionalProfile.tsx";
+import HomeServices from "./pages/HomeServices.tsx";
+import PersonalServices from "./pages/PersonalServices.tsx";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +23,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/servicios/hogar" element={<HomeServices />} />
+            <Route path="/servicios/personal" element={<PersonalServices />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/perfil-profesional" element={<ProfessionalProfile />} />
             <Route path="/dashboard" element={<Dashboard />} />
