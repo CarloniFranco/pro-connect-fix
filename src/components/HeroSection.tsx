@@ -45,25 +45,24 @@ const HeroSection = () => {
                 FIX
               </motion.span>
 
-              {/* Hammer — swings in from above-right, hits, then exits */}
+              {/* Mouse cursor — slides in, clicks on FIX, then exits */}
               <motion.span
-                initial={{ opacity: 0, rotate: -60, x: 30, y: -60 }}
+                initial={{ opacity: 0, x: 40, y: -50 }}
                 animate={{
                   opacity: [0, 1, 1, 1, 1, 0],
-                  rotate: [-60, -60, 15, -5, 0, -30],
-                  x: [30, 10, -5, 0, 0, 20],
-                  y: [-60, -50, 5, 0, 0, -40],
+                  x: [40, 20, 2, 2, 2, 30],
+                  y: [-50, -30, 2, 2, 2, -30],
+                  scale: [1, 1, 1, 0.85, 1, 1],
                 }}
                 transition={{
                   duration: 1.8,
                   delay: 0.6,
-                  times: [0, 0.2, 0.5, 0.65, 0.75, 1],
+                  times: [0, 0.25, 0.45, 0.55, 0.65, 1],
                   ease: "easeInOut",
                 }}
-                className="absolute -right-10 -top-8 text-3xl md:-right-14 md:-top-10 md:text-5xl"
-                style={{ transformOrigin: "bottom right" }}
+                className="absolute -right-8 -top-4 text-3xl md:-right-12 md:-top-6 md:text-4xl pointer-events-none"
               >
-                🔨
+                🖱️
               </motion.span>
 
               {/* Sparkle burst on impact */}
