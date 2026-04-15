@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
-import { ClipboardList, Loader2, ChevronRight, Phone, MapPin, CheckCircle2, XCircle, Clock, Send, FileText, ArrowLeft } from "lucide-react";
+import { ClipboardList, Loader2, ChevronRight, Phone, MapPin, CheckCircle2, XCircle, Clock, Send, FileText, ArrowLeft, Brain, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
-type OrderStatus = "nueva" | "cotizada" | "aceptada" | "en_servicio" | "finalizada";
+type OrderStatus = "nueva" | "cotizada" | "aceptada" | "en_servicio" | "finalizada" | "rechazada_profesional" | "rechazada_cliente";
 
 interface ServiceRequest {
   id: string;
@@ -23,6 +22,8 @@ interface ServiceRequest {
   scheduled_date: string | null;
   scheduled_time: string | null;
   created_at: string;
+  deposit_amount: number | null;
+  deposit_paid: boolean;
 }
 
 type TabKey = "pendientes" | "espera" | "confirmados" | "finalizados";
@@ -40,6 +41,8 @@ const statusToTab: Record<OrderStatus, TabKey> = {
   aceptada: "confirmados",
   en_servicio: "confirmados",
   finalizada: "finalizados",
+  rechazada_profesional: "finalizados",
+  rechazada_cliente: "finalizados",
 };
 
 const AgendaOrders = () => {
@@ -48,6 +51,7 @@ const AgendaOrders = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabKey>("pendientes");
   const [selectedOrder, setSelectedOrder] = useState<ServiceRequest | null>(null);
+  const [proProfile, setProProfile] = useState<{ full_name: string; rubro: string } | null>(null);
 
   // Quote form state
   const [quoteAmount, setQuoteAmount] = useState("");
@@ -55,12 +59,13 @@ const AgendaOrders = () => {
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
   const [saving, setSaving] = useState(false);
+  const [generatingBudget, setGeneratingBudget] = useState(false);
 
   const fetchOrders = async () => {
     if (!user) return;
     const { data } = await supabase
       .from("service_requests")
-      .select("id, client_name, client_phone, client_address, client_user_id, service_type, description, status, quoted_amount, quoted_details, scheduled_date, scheduled_time, created_at")
+      .select("id, client_name, client_phone, client_address, client_user_id, service_type, description, status, quoted_amount, quoted_details, scheduled_date, scheduled_time, created_at, deposit_amount, deposit_paid")
       .eq("professional_id", user.id)
       .order("created_at", { ascending: false });
     setOrders((data as ServiceRequest[]) || []);
@@ -70,6 +75,9 @@ const AgendaOrders = () => {
   useEffect(() => {
     if (!user) return;
     fetchOrders();
+    // Fetch pro profile for AI budget
+    supabase.from("professional_profiles").select("full_name, rubro").eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => setProProfile(data));
     const channel = supabase
       .channel("agenda-orders")
       .on("postgres_changes", { event: "*", schema: "public", table: "service_requests", filter: `professional_id=eq.${user.id}` }, () => fetchOrders())
@@ -79,19 +87,45 @@ const AgendaOrders = () => {
 
   const filtered = orders.filter((o) => statusToTab[o.status] === activeTab);
 
-  const handleReject = async (order: ServiceRequest) => {
+  const handleDecline = async (order: ServiceRequest) => {
     setSaving(true);
-    // We don't have a "rechazada" status in enum, so we'll just delete the request
-    // Actually let's just mark as finalizada with a note
     const { error } = await supabase
       .from("service_requests")
-      .update({ status: "finalizada" as any, completed_at: new Date().toISOString(), quoted_details: "Rechazado por el profesional" } as any)
+      .update({ status: "rechazada_profesional" as any, responded_at: new Date().toISOString() })
       .eq("id", order.id);
     setSaving(false);
     if (error) { toast.error("Error al rechazar"); return; }
-    toast.success("Pedido rechazado");
+    toast.success("Solicitud declinada. Esto afecta tu ranking de confiabilidad.");
     setSelectedOrder(null);
     fetchOrders();
+  };
+
+  const handleGenerateBudget = async (order: ServiceRequest) => {
+    setGeneratingBudget(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-budget", {
+        body: {
+          serviceType: order.service_type,
+          description: order.description,
+          professionalName: proProfile?.full_name || "",
+          rubro: proProfile?.rubro || "",
+        },
+      });
+      if (error) throw error;
+      if (data?.budget) {
+        setQuoteDetails(data.budget);
+        // Try to extract total from AI response
+        const totalMatch = data.budget.match(/total[:\s]*\$?\s*([\d.,]+)/i);
+        if (totalMatch) {
+          const amount = totalMatch[1].replace(/\./g, "").replace(",", ".");
+          setQuoteAmount(amount);
+        }
+        toast.success("Presupuesto generado por IA");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Error al generar presupuesto");
+    }
+    setGeneratingBudget(false);
   };
 
   const handleSendQuote = async (order: ServiceRequest) => {
@@ -99,21 +133,25 @@ const AgendaOrders = () => {
       toast.error("Completá monto y detalle");
       return;
     }
+    const amount = Number(quoteAmount);
+    const depositAmount = Math.round(amount * 0.1);
+
     setSaving(true);
     const { error } = await supabase
       .from("service_requests")
       .update({
         status: "cotizada" as any,
-        quoted_amount: Number(quoteAmount),
+        quoted_amount: amount,
         quoted_details: quoteDetails,
-        scheduled_date: scheduledDate || null,
-        scheduled_time: scheduledTime ? scheduledTime + ":00" : null,
+        deposit_amount: depositAmount,
+        scheduled_date: scheduledDate || order.scheduled_date || null,
+        scheduled_time: scheduledTime ? scheduledTime + ":00" : order.scheduled_time || null,
         responded_at: new Date().toISOString(),
       })
       .eq("id", order.id);
     setSaving(false);
     if (error) { toast.error("Error al cotizar"); return; }
-    toast.success("Cotización enviada al cliente");
+    toast.success("Cotización enviada. El cliente debe pagar una seña del 10% para confirmar.");
     setSelectedOrder(null);
     setQuoteAmount(""); setQuoteDetails(""); setScheduledDate(""); setScheduledTime("");
     fetchOrders();
@@ -201,17 +239,34 @@ const AgendaOrders = () => {
           {/* Nueva: Quote form + reject */}
           {o.status === "nueva" && (
             <div className="space-y-3 rounded-lg border border-border p-3">
-              <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <FileText className="h-4 w-4 text-accent" /> Cotización
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <FileText className="h-4 w-4 text-accent" /> Cotización
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleGenerateBudget(o)}
+                  disabled={generatingBudget}
+                  className="gap-1 text-xs"
+                >
+                  {generatingBudget ? <Loader2 className="h-3 w-3 animate-spin" /> : <Brain className="h-3 w-3" />}
+                  {generatingBudget ? "Generando..." : "IA Presupuesto"}
+                </Button>
+              </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold text-muted-foreground">Monto ($)</label>
                 <input type="number" value={quoteAmount} onChange={(e) => setQuoteAmount(e.target.value)} placeholder="25000"
                   className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+                {quoteAmount && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Seña (10%): <span className="font-semibold text-primary">${Math.round(Number(quoteAmount) * 0.1).toLocaleString("es-AR")}</span>
+                  </p>
+                )}
               </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold text-muted-foreground">Detalle</label>
-                <textarea value={quoteDetails} onChange={(e) => setQuoteDetails(e.target.value)} placeholder="Materiales, mano de obra..." rows={3}
+                <textarea value={quoteDetails} onChange={(e) => setQuoteDetails(e.target.value)} placeholder="Materiales, mano de obra..." rows={5}
                   className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -227,35 +282,47 @@ const AgendaOrders = () => {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button onClick={() => handleReject(o)} disabled={saving} variant="outline" className="flex-1 gap-1 text-destructive border-destructive/30 hover:bg-destructive/10">
-                  <XCircle className="h-4 w-4" /> Rechazar
+                <Button onClick={() => handleDecline(o)} disabled={saving} variant="outline" className="flex-1 gap-1 text-destructive border-destructive/30 hover:bg-destructive/10">
+                  <XCircle className="h-4 w-4" /> Declinar
                 </Button>
                 <Button onClick={() => handleSendQuote(o)} disabled={saving} className="flex-1 gap-1">
                   <Send className="h-4 w-4" /> {saving ? "Enviando..." : "Cotizar"}
                 </Button>
               </div>
+              <p className="text-[10px] text-muted-foreground text-center">
+                ⚠️ Declinar solicitudes reduce tu ranking de confiabilidad
+              </p>
             </div>
           )}
 
-          {/* Cotizada: waiting */}
+          {/* Cotizada: waiting for deposit */}
           {o.status === "cotizada" && o.quoted_amount && (
             <div className="space-y-2">
               <div className="rounded-lg border border-border p-3">
                 <p className="text-xs font-semibold text-muted-foreground mb-1">Tu cotización</p>
                 <p className="text-lg font-display font-bold text-foreground">${Number(o.quoted_amount).toLocaleString("es-AR")}</p>
-                {o.quoted_details && <p className="text-xs text-muted-foreground mt-1">{o.quoted_details}</p>}
+                {o.quoted_details && <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{o.quoted_details}</p>}
               </div>
               <div className="rounded-lg bg-blue-500/10 p-3 text-center">
-                <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">⏳ Esperando seña del cliente</p>
+                <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">
+                  ⏳ Esperando seña del 10% (${Math.round(Number(o.quoted_amount) * 0.1).toLocaleString("es-AR")})
+                </p>
               </div>
             </div>
           )}
 
           {/* Aceptada: start service */}
           {o.status === "aceptada" && (
-            <Button onClick={() => handleStartService(o)} disabled={saving} className="w-full gap-2">
-              <CheckCircle2 className="h-4 w-4" /> Iniciar Servicio
-            </Button>
+            <div className="space-y-2">
+              <div className="rounded-lg bg-green-500/10 p-3 text-center">
+                <p className="text-sm font-semibold text-green-700 dark:text-green-300">
+                  ✅ Seña pagada — Turno Confirmado
+                </p>
+              </div>
+              <Button onClick={() => handleStartService(o)} disabled={saving} className="w-full gap-2">
+                <CheckCircle2 className="h-4 w-4" /> Iniciar Servicio
+              </Button>
+            </div>
           )}
 
           {/* En servicio: finalize */}
@@ -271,6 +338,20 @@ const AgendaOrders = () => {
               <p className="text-sm font-semibold text-green-700 dark:text-green-300">✅ Trabajo finalizado</p>
             </div>
           )}
+
+          {/* Rechazada profesional */}
+          {o.status === "rechazada_profesional" && (
+            <div className="rounded-lg bg-destructive/10 p-3 text-center">
+              <p className="text-sm font-semibold text-destructive">❌ Declinada por vos</p>
+            </div>
+          )}
+
+          {/* Rechazada cliente */}
+          {o.status === "rechazada_cliente" && (
+            <div className="rounded-lg bg-muted p-3 text-center">
+              <p className="text-sm font-semibold text-muted-foreground">Rechazada por el cliente</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     );
@@ -283,7 +364,6 @@ const AgendaOrders = () => {
           <ClipboardList className="h-5 w-5 text-secondary" />
           Agenda de Pedidos
         </CardTitle>
-        {/* Status tabs with colored dots */}
         <div className="flex gap-2 pt-2 overflow-x-auto">
           {tabs.map((t) => {
             const count = orders.filter((o) => statusToTab[o.status] === t.key).length;
@@ -363,12 +443,14 @@ const AgendaOrders = () => {
 const StatusBadge = ({ status }: { status: OrderStatus }) => {
   const config: Record<OrderStatus, { label: string; className: string }> = {
     nueva: { label: "Pendiente", className: "bg-yellow-500/20 text-yellow-700 dark:text-yellow-300" },
-    cotizada: { label: "Espera Seña", className: "bg-blue-500/20 text-blue-700 dark:text-blue-300" },
-    aceptada: { label: "Confirmado", className: "bg-green-500/20 text-green-700 dark:text-green-300" },
+    cotizada: { label: "Presupuestado", className: "bg-blue-500/20 text-blue-700 dark:text-blue-300" },
+    aceptada: { label: "Señado ✓", className: "bg-green-500/20 text-green-700 dark:text-green-300" },
     en_servicio: { label: "En Servicio", className: "bg-green-600/20 text-green-800 dark:text-green-200" },
     finalizada: { label: "Finalizado", className: "bg-muted text-muted-foreground" },
+    rechazada_profesional: { label: "Declinada", className: "bg-destructive/20 text-destructive" },
+    rechazada_cliente: { label: "Rechazada", className: "bg-muted text-muted-foreground" },
   };
-  const c = config[status];
+  const c = config[status] || { label: status, className: "bg-muted text-muted-foreground" };
   return <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${c.className}`}>{c.label}</span>;
 };
 
