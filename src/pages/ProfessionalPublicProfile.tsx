@@ -36,7 +36,7 @@ const ProfessionalPublicProfile = () => {
       setLoading(true);
 
       const [profileRes, scoreRes, reviewsRes] = await Promise.all([
-        supabase.from("professional_profiles").select("*").eq("user_id", userId).single(),
+        supabase.from("professional_profiles").select("id, user_id, full_name, rubro, descripcion, photo_url, verified, plan, created_at").eq("user_id", userId).single(),
         supabase.rpc("get_professional_score", { p_professional_id: userId }),
         supabase.from("reviews").select("*").eq("professional_id", userId).order("created_at", { ascending: false }),
       ]);
