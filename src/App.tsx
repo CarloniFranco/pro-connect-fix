@@ -8,8 +8,8 @@ import PrivateRoute from "@/components/PrivateRoute";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
-import Auth from "./pages/Auth.tsx";
-import ClientAuth from "./pages/ClientAuth.tsx";
+import Login from "./pages/Login.tsx";
+import Register from "./pages/Register.tsx";
 import ClientProfileSetup from "./pages/ClientProfileSetup.tsx";
 import ProfessionalProfile from "./pages/ProfessionalProfile.tsx";
 import HomeServices from "./pages/HomeServices.tsx";
@@ -19,6 +19,7 @@ import ProfessionalPublicProfile from "./pages/ProfessionalPublicProfile.tsx";
 import TermsAndConditions from "./pages/TermsAndConditions.tsx";
 import PlanSelection from "./pages/PlanSelection.tsx";
 import PaymentSetup from "./pages/PaymentSetup.tsx";
+import LegacyRedirect from "./pages/Auth.tsx";
 
 const queryClient = new QueryClient();
 
@@ -32,8 +33,11 @@ const App = () => (
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
-            <Route path="/ingresar" element={<ClientAuth />} />
-            <Route path="/auth" element={<Auth />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/registro" element={<Register />} />
+            {/* Legacy redirects */}
+            <Route path="/ingresar" element={<LegacyRedirect />} />
+            <Route path="/auth" element={<LegacyRedirect />} />
             <Route path="/terminos" element={<TermsAndConditions />} />
             <Route path="/servicios/hogar" element={<HomeServices />} />
             <Route path="/servicios/personal" element={<PersonalServices />} />
