@@ -24,6 +24,7 @@ import ProfessionalPublicProfile from "./pages/ProfessionalPublicProfile.tsx";
 import TermsAndConditions from "./pages/TermsAndConditions.tsx";
 import PlanSelection from "./pages/PlanSelection.tsx";
 import PaymentSetup from "./pages/PaymentSetup.tsx";
+import CheckoutReturn from "./pages/CheckoutReturn.tsx";
 import LegacyRedirect from "./pages/Auth.tsx";
 
 const queryClient = new QueryClient();
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/servicios/personal" element={<PersonalServices />} />
             <Route path="/profesionales/:category" element={<ProfessionalsList />} />
             <Route path="/profesional/:userId" element={<ProfessionalPublicProfile />} />
+            <Route path="/checkout/return" element={<CheckoutReturn />} />
 
             {/* Client protected routes */}
             <Route path="/completar-perfil" element={<PrivateRoute><ClientProfileSetup /></PrivateRoute>} />
