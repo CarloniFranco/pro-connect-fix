@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
  * - Client with profile → / (home)
  * - No profile → onboarding based on role metadata
  */
-export const getRedirectPath = async (userId: string): Promise<string> => {
+export const getRedirectPath = async (userId: string, fallbackRole?: string | null): Promise<string> => {
   const { data: proProfile } = await supabase
     .from("professional_profiles")
     .select("id, rubro, plan")
@@ -15,10 +15,7 @@ export const getRedirectPath = async (userId: string): Promise<string> => {
     .maybeSingle();
 
   if (proProfile) {
-    // Professional exists but hasn't completed profile
     if (!proProfile.rubro) return "/perfil-profesional";
-    // Professional with no plan selected
-    if (!proProfile.plan || proProfile.plan === "basico") return "/dashboard";
     return "/dashboard";
   }
 
@@ -30,8 +27,7 @@ export const getRedirectPath = async (userId: string): Promise<string> => {
 
   if (clientProfile) return "/";
 
-  // No profile at all — check role from metadata
   const { data: { user } } = await supabase.auth.getUser();
-  const role = user?.user_metadata?.role;
+  const role = fallbackRole || user?.user_metadata?.role || localStorage.getItem("fix_pending_role");
   return role === "professional" ? "/perfil-profesional" : "/completar-perfil";
 };

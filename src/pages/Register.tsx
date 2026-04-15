@@ -25,8 +25,31 @@ const Register = () => {
 
   useEffect(() => {
     if (!user) return;
-    getRedirectPath(user.id).then((path) => navigate(path));
-  }, [user]);
+
+    const resolvePendingRoleAndRedirect = async () => {
+      const pendingRole = localStorage.getItem("fix_pending_role") as UserRole | null;
+      const pendingName = localStorage.getItem("fix_pending_full_name") || "";
+      let effectiveRole = user.user_metadata?.role as UserRole | undefined;
+
+      if (pendingRole) {
+        const nextName = user.user_metadata?.full_name || user.user_metadata?.name || pendingName;
+        const { error } = await supabase.auth.updateUser({
+          data: { ...user.user_metadata, role: pendingRole, full_name: nextName },
+        });
+
+        if (!error) {
+          effectiveRole = pendingRole;
+          localStorage.removeItem("fix_pending_role");
+          localStorage.removeItem("fix_pending_full_name");
+        }
+      }
+
+      const path = await getRedirectPath(user.id, effectiveRole);
+      navigate(path);
+    };
+
+    resolvePendingRoleAndRedirect();
+  }, [user, navigate]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,10 +78,13 @@ const Register = () => {
       toast.success("¡Cuenta creada! Revisá tu email para confirmar.");
     } catch (error: any) {
       console.error("Auth error:", error);
+      const isPreview = window.location.hostname.includes("lovableproject.com");
       toast.error(
         error.message?.includes("ya está registrado")
           ? "Este email ya está registrado. Intentá iniciar sesión."
-          : "Error de autenticación. Intentá nuevamente."
+          : isPreview
+            ? "En la vista previa el alta por email puede fallar. Probalo desde la versión publicada."
+            : "Error de autenticación. Intentá nuevamente."
       );
     } finally {
       setLoading(false);
@@ -72,10 +98,11 @@ const Register = () => {
     }
     setLoading(true);
     try {
-      // Store role in localStorage so we can retrieve it after OAuth redirect
       localStorage.setItem("fix_pending_role", role);
+      localStorage.setItem("fix_pending_full_name", fullName.trim());
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: `${window.location.origin}/registro`,
+        extraParams: { prompt: "select_account" },
       });
       if (result.error) {
         toast.error("Error al registrarse con Google");
@@ -86,17 +113,6 @@ const Register = () => {
       setLoading(false);
     }
   };
-
-  // After Google OAuth redirect, save the pending role to user metadata
-  useEffect(() => {
-    const pendingRole = localStorage.getItem("fix_pending_role");
-    if (user && pendingRole) {
-      localStorage.removeItem("fix_pending_role");
-      supabase.auth.updateUser({
-        data: { role: pendingRole, full_name: user.user_metadata?.full_name || user.user_metadata?.name || "" },
-      });
-    }
-  }, [user]);
 
   if (authLoading) {
     return (
