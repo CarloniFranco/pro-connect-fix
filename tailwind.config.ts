@@ -54,6 +54,8 @@ export default {
         warm: "hsl(var(--warm-surface))",
         pipe: "hsl(var(--pipe-green))",
         coin: "hsl(var(--coin-gold))",
+        brick: "hsl(var(--brick))",
+        sky: "hsl(var(--sky))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
