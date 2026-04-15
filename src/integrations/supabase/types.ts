@@ -86,6 +86,36 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          client_user_id: string
+          comment: string | null
+          created_at: string
+          id: string
+          professional_id: string
+          rating: number
+          service_request_id: string
+        }
+        Insert: {
+          client_user_id: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          professional_id: string
+          rating: number
+          service_request_id: string
+        }
+        Update: {
+          client_user_id?: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          professional_id?: string
+          rating?: number
+          service_request_id?: string
+        }
+        Relationships: []
+      }
       service_requests: {
         Row: {
           client_address: string | null
@@ -98,6 +128,8 @@ export type Database = {
           professional_id: string
           quoted_amount: number | null
           quoted_details: string | null
+          responded_at: string | null
+          schedule_met: boolean | null
           scheduled_date: string | null
           scheduled_time: string | null
           service_type: string
@@ -115,6 +147,8 @@ export type Database = {
           professional_id: string
           quoted_amount?: number | null
           quoted_details?: string | null
+          responded_at?: string | null
+          schedule_met?: boolean | null
           scheduled_date?: string | null
           scheduled_time?: string | null
           service_type?: string
@@ -132,6 +166,8 @@ export type Database = {
           professional_id?: string
           quoted_amount?: number | null
           quoted_details?: string | null
+          responded_at?: string | null
+          schedule_met?: boolean | null
           scheduled_date?: string | null
           scheduled_time?: string | null
           service_type?: string
@@ -145,7 +181,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_professional_score: {
+        Args: { p_professional_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       request_status:

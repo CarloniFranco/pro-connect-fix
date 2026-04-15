@@ -43,6 +43,7 @@ const PersonalServices = () => {
               transition={{ delay: i * 0.05 }}
               whileHover={{ scale: 1.05, y: -4 }}
               whileTap={{ scale: 0.95 }}
+              onClick={() => navigate(`/profesionales/${encodeURIComponent(service.label)}`)}
               className="flex flex-col items-center gap-3 rounded-2xl border-2 border-border bg-card p-5 shadow-md transition-shadow hover:shadow-xl hover:border-secondary"
             >
               <div className={`flex h-14 w-14 items-center justify-center rounded-xl ${service.color} shadow-md`}>

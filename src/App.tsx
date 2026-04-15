@@ -13,6 +13,8 @@ import ClientProfileSetup from "./pages/ClientProfileSetup.tsx";
 import ProfessionalProfile from "./pages/ProfessionalProfile.tsx";
 import HomeServices from "./pages/HomeServices.tsx";
 import PersonalServices from "./pages/PersonalServices.tsx";
+import ProfessionalsList from "./pages/ProfessionalsList.tsx";
+import ProfessionalPublicProfile from "./pages/ProfessionalPublicProfile.tsx";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +31,8 @@ const App = () => (
             <Route path="/completar-perfil" element={<ClientProfileSetup />} />
             <Route path="/servicios/hogar" element={<HomeServices />} />
             <Route path="/servicios/personal" element={<PersonalServices />} />
+            <Route path="/profesionales/:category" element={<ProfessionalsList />} />
+            <Route path="/profesional/:userId" element={<ProfessionalPublicProfile />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/perfil-profesional" element={<ProfessionalProfile />} />
             <Route path="/dashboard" element={<Dashboard />} />
