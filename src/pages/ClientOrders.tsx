@@ -21,10 +21,13 @@ import {
   User as UserIcon,
   Wrench,
   Star,
-  StarHalf,
+  CreditCard,
+  XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
 
 type ServiceRequest = {
   id: string;
@@ -36,25 +39,31 @@ type ServiceRequest = {
   scheduled_date: string | null;
   created_at: string;
   professional_id: string;
+  deposit_amount: number | null;
+  deposit_paid: boolean;
 };
 
 const statusLabels: Record<string, string> = {
-  nueva: "Pendiente",
-  cotizada: "Cotizada",
-  aceptada: "Aceptada",
+  nueva: "Solicitado",
+  cotizada: "Presupuestado",
+  aceptada: "Señado / Confirmado",
   en_servicio: "En servicio",
   finalizada: "Finalizado",
+  rechazada_profesional: "Declinado",
+  rechazada_cliente: "Rechazado por vos",
 };
 
 const statusColors: Record<string, string> = {
-  nueva: "bg-muted text-muted-foreground",
-  cotizada: "bg-accent/20 text-accent-foreground",
-  aceptada: "bg-primary/20 text-primary",
+  nueva: "bg-yellow-500/20 text-yellow-700",
+  cotizada: "bg-blue-500/20 text-blue-700",
+  aceptada: "bg-green-500/20 text-green-700",
   en_servicio: "bg-secondary/20 text-secondary-foreground",
   finalizada: "bg-secondary text-secondary-foreground",
+  rechazada_profesional: "bg-destructive/20 text-destructive",
+  rechazada_cliente: "bg-muted text-muted-foreground",
 };
 
-// Interactive star rating (supports half stars: 0.5, 1, 1.5 ... 5)
+// Interactive star rating
 const StarRating = ({
   value,
   onChange,
@@ -74,23 +83,18 @@ const StarRating = ({
         const half = !filled && display >= star - 0.5;
         return (
           <div key={star} className="relative cursor-pointer" style={{ width: size, height: size }}>
-            {/* Left half */}
             <div
               className="absolute inset-0 w-1/2 z-10"
               onMouseEnter={() => setHoverValue(star - 0.5)}
               onClick={() => onChange(star - 0.5)}
             />
-            {/* Right half */}
             <div
               className="absolute inset-0 left-1/2 w-1/2 z-10"
               onMouseEnter={() => setHoverValue(star)}
               onClick={() => onChange(star)}
             />
             {filled ? (
-              <Star
-                size={size}
-                className="text-accent fill-accent"
-              />
+              <Star size={size} className="text-accent fill-accent" />
             ) : half ? (
               <div className="relative">
                 <Star size={size} className="text-muted-foreground/30" />
@@ -111,7 +115,6 @@ const StarRating = ({
   );
 };
 
-// Read-only stars display
 const StarsDisplay = ({ rating, size = 16 }: { rating: number; size?: number }) => (
   <div className="flex items-center gap-0.5">
     {[1, 2, 3, 4, 5].map((star) => {
@@ -143,6 +146,8 @@ const ClientOrders = () => {
   const [existingReviews, setExistingReviews] = useState<Record<string, { rating: number; comment: string | null }>>({});
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<ServiceRequest | null>(null);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
 
   // Review form state
   const [reviewRating, setReviewRating] = useState(0);
@@ -159,7 +164,7 @@ const ClientOrders = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("service_requests")
-      .select("id, service_type, description, status, quoted_amount, quoted_details, scheduled_date, created_at, professional_id")
+      .select("id, service_type, description, status, quoted_amount, quoted_details, scheduled_date, created_at, professional_id, deposit_amount, deposit_paid")
       .eq("client_user_id", user.id)
       .order("created_at", { ascending: false });
 
@@ -171,7 +176,6 @@ const ClientOrders = () => {
 
     setRequests(data || []);
 
-    // Fetch professional names
     const proIds = [...new Set((data || []).map((r) => r.professional_id))];
     if (proIds.length > 0) {
       const { data: pros } = await supabase
@@ -179,13 +183,10 @@ const ClientOrders = () => {
         .select("user_id, full_name")
         .in("user_id", proIds);
       const names: Record<string, string> = {};
-      (pros || []).forEach((p) => {
-        names[p.user_id] = p.full_name;
-      });
+      (pros || []).forEach((p) => { names[p.user_id] = p.full_name; });
       setProNames(names);
     }
 
-    // Fetch existing reviews by this user
     const { data: reviews } = await supabase
       .from("reviews")
       .select("service_request_id, rating, comment")
@@ -203,6 +204,22 @@ const ClientOrders = () => {
     setLoading(false);
   };
 
+  const handleRejectQuote = async (req: ServiceRequest) => {
+    setRejectingId(req.id);
+    const { error } = await supabase
+      .from("service_requests")
+      .update({ status: "rechazada_cliente" as any })
+      .eq("id", req.id);
+    setRejectingId(null);
+    if (error) {
+      toast.error("Error al rechazar");
+      return;
+    }
+    toast.success("Presupuesto rechazado");
+    setSelectedRequest(null);
+    loadRequests();
+  };
+
   const handleSubmitReview = async () => {
     if (!user || !selectedRequest || reviewRating < 0.5) {
       toast.error("Seleccioná una puntuación");
@@ -218,8 +235,7 @@ const ClientOrders = () => {
     });
 
     if (error) {
-      console.error("Error submitting review:", error);
-      toast.error("No se pudo enviar la reseña. Intentá de nuevo.");
+      toast.error("No se pudo enviar la reseña.");
     } else {
       toast.success("¡Gracias por tu reseña!");
       setReviewedIds((prev) => new Set(prev).add(selectedRequest.id));
@@ -233,19 +249,14 @@ const ClientOrders = () => {
     setSubmittingReview(false);
   };
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("es-AR", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-  };
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric" });
 
-  // Reset review form when dialog opens
   useEffect(() => {
     if (selectedRequest) {
       setReviewRating(0);
       setReviewComment("");
+      setShowCheckout(false);
     }
   }, [selectedRequest]);
 
@@ -263,9 +274,39 @@ const ClientOrders = () => {
   const needsReview = (req: ServiceRequest) =>
     req.status === "finalizada" && !reviewedIds.has(req.id);
 
+  const needsDeposit = (req: ServiceRequest) =>
+    req.status === "cotizada" && req.quoted_amount && !req.deposit_paid;
+
+  // Status progress badges
+  const getProgressBadges = (status: string) => {
+    const steps = [
+      { key: "nueva", label: "Solicitado" },
+      { key: "cotizada", label: "Presupuestado" },
+      { key: "aceptada", label: "Señado" },
+    ];
+    const statusOrder = ["nueva", "cotizada", "aceptada", "en_servicio", "finalizada"];
+    const currentIdx = statusOrder.indexOf(status);
+
+    return steps.map((step) => {
+      const stepIdx = statusOrder.indexOf(step.key);
+      const isActive = stepIdx <= currentIdx;
+      return (
+        <span
+          key={step.key}
+          className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+            isActive ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
+          }`}
+        >
+          {step.label}
+        </span>
+      );
+    });
+  };
+
   return (
     <>
       <Navbar />
+      <PaymentTestModeBanner />
       <div className="min-h-screen bg-background pt-14">
         <div className="container mx-auto max-w-2xl px-4 py-8">
           <button
@@ -297,7 +338,7 @@ const ClientOrders = () => {
                   key={req.id}
                   className={`cursor-pointer transition-shadow hover:shadow-md ${
                     needsReview(req) ? "border-accent/50 ring-1 ring-accent/20" : ""
-                  }`}
+                  } ${needsDeposit(req) ? "border-primary/50 ring-1 ring-primary/20" : ""}`}
                   onClick={() => setSelectedRequest(req)}
                 >
                   <CardContent className="p-4">
@@ -322,7 +363,12 @@ const ClientOrders = () => {
                             ${req.quoted_amount.toLocaleString("es-AR")}
                           </div>
                         )}
-                        {/* Show existing review stars inline */}
+                        {/* Progress badges */}
+                        {!["rechazada_profesional", "rechazada_cliente"].includes(req.status) && (
+                          <div className="flex gap-1 mt-2">
+                            {getProgressBadges(req.status)}
+                          </div>
+                        )}
                         {existingReviews[req.id] && (
                           <div className="mt-1">
                             <StarsDisplay rating={existingReviews[req.id].rating} />
@@ -336,6 +382,11 @@ const ClientOrders = () => {
                         >
                           {statusLabels[req.status] || req.status}
                         </Badge>
+                        {needsDeposit(req) && (
+                          <span className="text-xs font-medium text-primary animate-pulse">
+                            💳 Pagar seña
+                          </span>
+                        )}
                         {needsReview(req) && (
                           <span className="text-xs font-medium text-accent animate-pulse">
                             ⭐ Dejá tu reseña
@@ -351,7 +402,7 @@ const ClientOrders = () => {
 
           {/* Detail Dialog */}
           <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && setSelectedRequest(null)}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <Wrench className="h-5 w-5 text-primary" />
@@ -371,10 +422,7 @@ const ClientOrders = () => {
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Estado</p>
-                      <Badge
-                        variant="secondary"
-                        className={`text-xs ${statusColors[selectedRequest.status] || ""}`}
-                      >
+                      <Badge variant="secondary" className={`text-xs ${statusColors[selectedRequest.status] || ""}`}>
                         {statusLabels[selectedRequest.status] || selectedRequest.status}
                       </Badge>
                     </div>
@@ -402,8 +450,100 @@ const ClientOrders = () => {
                   {selectedRequest.quoted_details && (
                     <div>
                       <p className="text-xs text-muted-foreground mb-1">Detalle del presupuesto</p>
-                      <p className="text-sm text-foreground bg-muted/50 rounded-lg p-3">
+                      <p className="text-sm text-foreground bg-muted/50 rounded-lg p-3 whitespace-pre-wrap">
                         {selectedRequest.quoted_details}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Deposit payment section */}
+                  {needsDeposit(selectedRequest) && !showCheckout && (
+                    <div className="border-t border-border pt-4 space-y-3">
+                      <div className="rounded-lg bg-primary/5 border border-primary/20 p-4 text-center">
+                        <p className="text-sm font-semibold text-foreground mb-1">
+                          Para asegurar tu turno, se requiere el pago de una seña del 10%
+                        </p>
+                        <p className="text-2xl font-bold text-primary mb-2">
+                          ${(selectedRequest.deposit_amount || Math.round(selectedRequest.quoted_amount! * 0.1)).toLocaleString("es-AR")}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground mb-3">
+                          La seña será gestionada según nuestros{" "}
+                          <a href="/terminos" className="underline text-primary">Términos y Condiciones</a>
+                        </p>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => handleRejectQuote(selectedRequest)}
+                            disabled={rejectingId === selectedRequest.id}
+                            className="flex-1 gap-1 text-destructive"
+                          >
+                            <XCircle className="h-4 w-4" />
+                            Rechazar
+                          </Button>
+                          <Button
+                            onClick={() => setShowCheckout(true)}
+                            className="flex-1 gap-2"
+                          >
+                            <CreditCard className="h-4 w-4" />
+                            Pagar Seña
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Stripe Checkout inline */}
+                  {needsDeposit(selectedRequest) && showCheckout && (
+                    <div className="border-t border-border pt-4">
+                      <StripeEmbeddedCheckout
+                        amountInCents={(selectedRequest.deposit_amount || Math.round(selectedRequest.quoted_amount! * 0.1)) * 100}
+                        currency="ars"
+                        productName={`Seña - ${selectedRequest.service_type}`}
+                        customerEmail={user?.email || undefined}
+                        userId={user?.id}
+                        returnUrl={`${window.location.origin}/mis-pedidos?checkout=success&session_id={CHECKOUT_SESSION_ID}`}
+                        metadata={{ service_request_id: selectedRequest.id }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Status messages */}
+                  {selectedRequest.status === "nueva" && (
+                    <div className="rounded-lg bg-yellow-500/10 p-3 text-center">
+                      <p className="text-sm font-semibold text-yellow-700 dark:text-yellow-300">
+                        ⏳ Esperando respuesta del profesional
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedRequest.status === "aceptada" && (
+                    <div className="rounded-lg bg-green-500/10 p-3 text-center">
+                      <p className="text-sm font-semibold text-green-700 dark:text-green-300">
+                        ✅ Turno confirmado — Seña pagada
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedRequest.status === "en_servicio" && (
+                    <div className="rounded-lg bg-primary/10 p-3 text-center">
+                      <p className="text-sm font-semibold text-primary">
+                        🔧 El profesional está trabajando en tu servicio
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedRequest.status === "rechazada_profesional" && (
+                    <div className="rounded-lg bg-destructive/10 p-3 text-center">
+                      <p className="text-sm font-semibold text-destructive">
+                        El profesional declinó esta solicitud
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedRequest.status === "rechazada_cliente" && (
+                    <div className="rounded-lg bg-muted p-3 text-center">
+                      <p className="text-sm font-semibold text-muted-foreground">
+                        Rechazaste este presupuesto
                       </p>
                     </div>
                   )}

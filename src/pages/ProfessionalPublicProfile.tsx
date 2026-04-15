@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Star, Zap, Shield, Award, MessageSquare, User } from "lucide-react";
+import { ArrowLeft, Star, Zap, Shield, Award, MessageSquare, User, CalendarDays } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import ServiceRequestForm from "@/components/ServiceRequestForm";
 
 interface ScoreData {
   total_score: number;
@@ -25,10 +28,12 @@ interface Review {
 const ProfessionalPublicProfile = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [score, setScore] = useState<ScoreData | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [requestOpen, setRequestOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -91,6 +96,8 @@ const ProfessionalPublicProfile = () => {
     { label: "Excelencia", value: score?.excellence || 3, icon: Award, color: "text-secondary" },
   ];
 
+  const canRequest = user && user.id !== userId;
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -141,6 +148,28 @@ const ProfessionalPublicProfile = () => {
             <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
               {profile.descripcion}
             </p>
+          )}
+
+          {/* CTA Button */}
+          {canRequest && (
+            <Button
+              onClick={() => setRequestOpen(true)}
+              className="w-full mt-4 gap-2"
+              size="lg"
+            >
+              <CalendarDays className="h-5 w-5" />
+              Solicitar Servicio
+            </Button>
+          )}
+          {!user && (
+            <Button
+              onClick={() => navigate("/login")}
+              variant="outline"
+              className="w-full mt-4 gap-2"
+              size="lg"
+            >
+              Iniciá sesión para solicitar un servicio
+            </Button>
           )}
         </motion.div>
 
@@ -205,6 +234,17 @@ const ProfessionalPublicProfile = () => {
           )}
         </motion.div>
       </div>
+
+      {/* Service Request Modal */}
+      {userId && profile && (
+        <ServiceRequestForm
+          professionalId={userId}
+          professionalName={profile.full_name}
+          rubro={profile.rubro}
+          open={requestOpen}
+          onOpenChange={setRequestOpen}
+        />
+      )}
     </div>
   );
 };
