@@ -17,26 +17,35 @@ export type Database = {
       blocked_slots: {
         Row: {
           created_at: string
+          expires_at: string | null
           id: string
           professional_id: string
           service_request_id: string | null
           slot_date: string
+          slot_end_time: string | null
+          slot_status: string
           slot_time: string
         }
         Insert: {
           created_at?: string
+          expires_at?: string | null
           id?: string
           professional_id: string
           service_request_id?: string | null
           slot_date: string
+          slot_end_time?: string | null
+          slot_status?: string
           slot_time: string
         }
         Update: {
           created_at?: string
+          expires_at?: string | null
           id?: string
           professional_id?: string
           service_request_id?: string | null
           slot_date?: string
+          slot_end_time?: string | null
+          slot_status?: string
           slot_time?: string
         }
         Relationships: [
@@ -204,6 +213,7 @@ export type Database = {
           deposit_amount: number | null
           deposit_paid: boolean | null
           description: string
+          estimated_duration: number | null
           id: string
           professional_id: string
           quoted_amount: number | null
@@ -226,6 +236,7 @@ export type Database = {
           deposit_amount?: number | null
           deposit_paid?: boolean | null
           description?: string
+          estimated_duration?: number | null
           id?: string
           professional_id: string
           quoted_amount?: number | null
@@ -248,6 +259,7 @@ export type Database = {
           deposit_amount?: number | null
           deposit_paid?: boolean | null
           description?: string
+          estimated_duration?: number | null
           id?: string
           professional_id?: string
           quoted_amount?: number | null
