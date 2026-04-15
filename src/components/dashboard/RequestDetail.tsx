@@ -151,6 +151,19 @@ const RequestDetail = ({ request, onBack }: Props) => {
     } else {
       toast.success("Cotización enviada y calendario bloqueado");
     }
+
+    // Notify client about the quote
+    if (request.client_user_id) {
+      sendNotification({
+        userId: request.client_user_id,
+        type: "presupuesto_recibido",
+        title: "¡Presupuesto recibido!",
+        message: `Te han enviado un presupuesto por $${Number(quoteAmount).toLocaleString("es-AR")}. Entrá para revisarlo y confirmar tu turno.`,
+        link: "/mis-pedidos",
+        serviceRequestId: request.id,
+      });
+    }
+
     onBack();
   };
 
