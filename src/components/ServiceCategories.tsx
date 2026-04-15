@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   Home,
   Droplets,
@@ -34,14 +35,17 @@ const personalServices = [
 const ServiceCard = ({
   icon: Icon,
   label,
+  onClick,
 }: {
   icon: React.ElementType;
   label: string;
+  onClick: () => void;
 }) => (
   <motion.button
     whileHover={{ scale: 1.05 }}
     whileTap={{ scale: 0.97 }}
-    className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
+    onClick={onClick}
+    className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md hover:border-primary"
   >
     <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
       <Icon className="h-6 w-6 text-primary" />
@@ -53,6 +57,12 @@ const ServiceCard = ({
 );
 
 const ServiceCategories = () => {
+  const navigate = useNavigate();
+
+  const handleCategoryClick = (label: string) => {
+    navigate(`/profesionales/${encodeURIComponent(label)}`);
+  };
+
   return (
     <section className="px-4 py-12 md:py-20">
       <div className="container mx-auto max-w-4xl">
@@ -78,7 +88,11 @@ const ServiceCategories = () => {
 
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-4">
             {homeServices.map((service) => (
-              <ServiceCard key={service.label} {...service} />
+              <ServiceCard
+                key={service.label}
+                {...service}
+                onClick={() => handleCategoryClick(service.label)}
+              />
             ))}
           </div>
         </motion.div>
@@ -104,7 +118,11 @@ const ServiceCategories = () => {
 
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-3 md:grid-cols-3">
             {personalServices.map((service) => (
-              <ServiceCard key={service.label} {...service} />
+              <ServiceCard
+                key={service.label}
+                {...service}
+                onClick={() => handleCategoryClick(service.label)}
+              />
             ))}
           </div>
         </motion.div>

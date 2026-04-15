@@ -20,7 +20,8 @@ const RUBROS = [
   "Piletero",
   "Calefacción y Refrigeración",
   "Peluquería",
-  "Uñas / Manicura",
+  "Uñas",
+  "Estética",
   "Otro",
 ];
 
