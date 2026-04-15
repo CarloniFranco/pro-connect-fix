@@ -78,6 +78,28 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       if (blockError) {
         console.error("Error confirming blocked slots:", blockError);
       }
+
+      // Send notification to professional about confirmed deposit
+      const { data: sr } = await supabase
+        .from("service_requests")
+        .select("professional_id, client_name, service_type, scheduled_date")
+        .eq("id", session.metadata.service_request_id)
+        .single();
+
+      if (sr) {
+        const dateStr = sr.scheduled_date
+          ? new Date(sr.scheduled_date + "T00:00:00").toLocaleDateString("es-AR")
+          : "próximamente";
+        
+        await supabase.from("notifications").insert({
+          user_id: sr.professional_id,
+          type: "seña_confirmada",
+          title: "¡Seña recibida!",
+          message: `El turno para el ${dateStr} con ${sr.client_name} (${sr.service_type}) ha sido confirmado. Ya podés ver los datos de contacto.`,
+          link: "/dashboard",
+          service_request_id: session.metadata.service_request_id,
+        });
+      }
     }
   }
 }

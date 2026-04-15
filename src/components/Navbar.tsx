@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Wrench, User, LogOut, ChevronDown, ClipboardList, Briefcase, CreditCard, Settings } from "lucide-react";
+import { Wrench, User, LogOut, ChevronDown, ClipboardList, Briefcase, CreditCard } from "lucide-react";
+import NotificationBell from "@/components/NotificationBell";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,7 +68,9 @@ const Navbar = () => {
         </button>
 
         {user ? (
-          <DropdownMenu>
+          <div className="flex items-center gap-1">
+            <NotificationBell />
+            <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="inline-flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted/80">
                 <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary">
@@ -118,6 +121,7 @@ const Navbar = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         ) : (
           <button
             onClick={() => navigate("/login")}
