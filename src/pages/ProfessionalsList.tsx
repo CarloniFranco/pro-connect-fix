@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Star, Zap, Shield, Award, ChevronRight } from "lucide-react";
+import { ArrowLeft, Star, Zap, Shield, Award, ChevronRight, User } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
