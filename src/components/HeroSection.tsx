@@ -28,28 +28,58 @@ const HeroSection = () => {
           </div>
 
           <h1 className="mb-3 font-display text-5xl font-bold tracking-tight text-primary-foreground md:text-7xl">
-            FI
-            <motion.span
-              initial={{ y: -180, scaleY: 1.3, scaleX: 0.8, opacity: 0 }}
-              animate={{
-                y: [null, 0, -18, 0, -6, 0],
-                scaleY: [1.3, 0.7, 1.1, 0.9, 1.05, 1],
-                scaleX: [0.8, 1.3, 0.95, 1.1, 0.98, 1],
-                opacity: 1,
-              }}
-              transition={{
-                duration: 1.4,
-                delay: 0.3,
-                ease: "easeOut",
-                y: { duration: 1.4, times: [0, 0.4, 0.55, 0.7, 0.85, 1] },
-                scaleY: { duration: 1.4, times: [0, 0.4, 0.55, 0.7, 0.85, 1] },
-                scaleX: { duration: 1.4, times: [0, 0.4, 0.55, 0.7, 0.85, 1] },
-              }}
-              className="inline-block origin-bottom"
-              style={{ animation: "spinX 30s ease-in-out 2s infinite" }}
-            >
-              X
-            </motion.span>
+            <span className="relative inline-flex items-center">
+              {/* FIX text — starts tilted/broken, then straightens on hammer hit */}
+              <motion.span
+                initial={{ rotate: -12, scale: 0.95 }}
+                animate={{ rotate: [-12, -12, 0, -2, 0], scale: [0.95, 0.95, 1.05, 0.98, 1] }}
+                transition={{
+                  duration: 1.8,
+                  delay: 0.6,
+                  times: [0, 0.45, 0.6, 0.75, 0.85],
+                  ease: "easeOut",
+                }}
+                className="inline-block origin-bottom-left"
+                style={{ animation: "fixPulse 30s ease-in-out 3s infinite" }}
+              >
+                FIX
+              </motion.span>
+
+              {/* Hammer — swings in from above-right, hits, then exits */}
+              <motion.span
+                initial={{ opacity: 0, rotate: -60, x: 30, y: -60 }}
+                animate={{
+                  opacity: [0, 1, 1, 1, 1, 0],
+                  rotate: [-60, -60, 15, -5, 0, -30],
+                  x: [30, 10, -5, 0, 0, 20],
+                  y: [-60, -50, 5, 0, 0, -40],
+                }}
+                transition={{
+                  duration: 1.8,
+                  delay: 0.6,
+                  times: [0, 0.2, 0.5, 0.65, 0.75, 1],
+                  ease: "easeInOut",
+                }}
+                className="absolute -right-10 -top-8 text-3xl md:-right-14 md:-top-10 md:text-5xl"
+                style={{ transformOrigin: "bottom right" }}
+              >
+                🔨
+              </motion.span>
+
+              {/* Sparkle burst on impact */}
+              <motion.span
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: [0, 1, 0], scale: [0, 1.3, 0] }}
+                transition={{
+                  duration: 0.5,
+                  delay: 1.5,
+                  ease: "easeOut",
+                }}
+                className="absolute -right-4 -top-4 text-2xl md:-right-6 md:-top-6 md:text-3xl pointer-events-none"
+              >
+                ✨
+              </motion.span>
+            </span>
           </h1>
           <p className="mx-auto mb-12 max-w-md text-lg font-medium text-primary-foreground/70 md:text-xl">
             ¿Qué tipo de servicio necesitás?

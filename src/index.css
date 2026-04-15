@@ -85,7 +85,9 @@
   }
 }
 
-@keyframes spinX {
-  0%, 95% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+@keyframes fixPulse {
+  0%, 93% { transform: rotate(0deg) scale(1); }
+  95% { transform: rotate(-8deg) scale(0.97); }
+  97% { transform: rotate(2deg) scale(1.03); }
+  100% { transform: rotate(0deg) scale(1); }
 }
