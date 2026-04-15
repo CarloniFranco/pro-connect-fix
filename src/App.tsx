@@ -18,6 +18,7 @@ import ProfessionalsList from "./pages/ProfessionalsList.tsx";
 import ProfessionalPublicProfile from "./pages/ProfessionalPublicProfile.tsx";
 import TermsAndConditions from "./pages/TermsAndConditions.tsx";
 import PlanSelection from "./pages/PlanSelection.tsx";
+import PaymentSetup from "./pages/PaymentSetup.tsx";
 
 const queryClient = new QueryClient();
 

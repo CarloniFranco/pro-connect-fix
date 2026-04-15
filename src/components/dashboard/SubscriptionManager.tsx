@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Sparkles, Calendar, ArrowRightLeft, AlertTriangle, Loader2 } from "lucide-react";
+import { Sparkles, Calendar, ArrowRightLeft, AlertTriangle, Loader2, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -17,10 +17,16 @@ import {
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
+const PLAN_PRICES: Record<string, number> = {
+  basico: 6999,
+  premium: 14000,
+};
+
 const SubscriptionManager = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [plan, setPlan] = useState<string | null>(null);
+  const [createdAt, setCreatedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [switching, setSwitching] = useState(false);
 
@@ -28,40 +34,22 @@ const SubscriptionManager = () => {
     if (!user) return;
     supabase
       .from("professional_profiles")
-      .select("plan")
+      .select("plan, created_at")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         setPlan(data?.plan || "basico");
+        setCreatedAt(data?.created_at || null);
         setLoading(false);
       });
   }, [user]);
 
-  const handleSwitchPlan = async () => {
-    if (!user) return;
-    setSwitching(true);
-    const newPlan = plan === "premium" ? "basico" : "premium";
-    const { error } = await supabase
-      .from("professional_profiles")
-      .update({ plan: newPlan })
-      .eq("user_id", user.id);
-
-    if (error) {
-      toast.error("Error al cambiar el plan");
-    } else {
-      setPlan(newPlan);
-      toast.success(
-        newPlan === "premium"
-          ? "¡Cambiaste al plan Premium!"
-          : "Cambiaste al plan Básico."
-      );
-    }
-    setSwitching(false);
+  const handleSwitchPlan = () => {
+    navigate("/seleccionar-plan");
   };
 
   const handleDeactivate = async () => {
     if (!user) return;
-    // Delete profile and sign out
     await supabase
       .from("professional_profiles")
       .delete()
@@ -80,6 +68,19 @@ const SubscriptionManager = () => {
   }
 
   const isPremium = plan === "premium";
+  const monthlyPrice = PLAN_PRICES[plan || "basico"] || 6999;
+
+  // Calculate first billing date: 3 months after profile creation
+  let firstBillingLabel = "—";
+  if (createdAt) {
+    const d = new Date(createdAt);
+    d.setMonth(d.getMonth() + 3);
+    firstBillingLabel = d.toLocaleDateString("es-AR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  }
 
   return (
     <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
@@ -89,7 +90,7 @@ const SubscriptionManager = () => {
 
       {/* Current plan */}
       <div
-        className={`flex items-center gap-3 rounded-xl p-4 mb-4 ${
+        className={`flex items-center gap-3 rounded-xl p-4 mb-3 ${
           isPremium
             ? "bg-primary/10 border border-primary/20"
             : "bg-secondary/10 border border-secondary/20"
@@ -116,8 +117,20 @@ const SubscriptionManager = () => {
               : "Agenda, perfil público y recepción de solicitudes"}
           </p>
         </div>
-        <span className="rounded-full bg-accent/20 px-3 py-1 text-xs font-bold text-accent-foreground">
-          Gratis
+        <div className="text-right">
+          <span className="text-xs text-muted-foreground line-through block">
+            ${monthlyPrice.toLocaleString("es-AR")}/mes
+          </span>
+          <span className="text-sm font-bold text-primary">$0 hoy</span>
+        </div>
+      </div>
+
+      {/* Billing info */}
+      <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 mb-4 text-xs text-muted-foreground">
+        <CreditCard className="h-3.5 w-3.5 flex-shrink-0" />
+        <span>
+          Primer cobro automático:{" "}
+          <span className="font-semibold text-foreground">{firstBillingLabel}</span>
         </span>
       </div>
 
