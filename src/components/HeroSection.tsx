@@ -30,10 +30,22 @@ const HeroSection = () => {
           <h1 className="mb-3 font-display text-5xl font-bold tracking-tight text-primary-foreground md:text-7xl">
             FI
             <motion.span
-              initial={{ rotate: -360, opacity: 0, scale: 0.5 }}
-              animate={{ rotate: 0, opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
-              className="inline-block origin-center"
+              initial={{ y: -120, scaleY: 1.3, scaleX: 0.8, opacity: 0 }}
+              animate={{
+                y: [null, 0, -18, 0, -6, 0],
+                scaleY: [1.3, 0.7, 1.1, 0.9, 1.05, 1],
+                scaleX: [0.8, 1.3, 0.95, 1.1, 0.98, 1],
+                opacity: 1,
+              }}
+              transition={{
+                duration: 0.9,
+                delay: 0.3,
+                ease: "easeOut",
+                y: { duration: 0.9, times: [0, 0.4, 0.55, 0.7, 0.85, 1] },
+                scaleY: { duration: 0.9, times: [0, 0.4, 0.55, 0.7, 0.85, 1] },
+                scaleX: { duration: 0.9, times: [0, 0.4, 0.55, 0.7, 0.85, 1] },
+              }}
+              className="inline-block origin-bottom"
             >
               X
             </motion.span>
