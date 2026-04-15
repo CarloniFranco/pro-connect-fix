@@ -16,7 +16,7 @@ const clientSteps = [
   {
     icon: HeartHandshake,
     title: "Seña y Turno Seguro.",
-    text: "Si te cierra, pagás una pequeña seña del 10% por Mercado Pago. Con eso el turno ya es tuyo y el profesional te reserva el lugar. ¡Así de fácil!",
+    text: "Si te cierra, pagás una pequeña seña del 10% por Mercado Pago u otros medios de pago. Con eso el turno ya es tuyo y el profesional te reserva el lugar. ¡Así de fácil!",
   },
 ];
 
