@@ -66,20 +66,17 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
     if (error) {
       console.error("Error updating service request:", error);
     } else {
-      // Create blocked slot
-      const { data: sr } = await supabase
-        .from("service_requests")
-        .select("professional_id, scheduled_date, scheduled_time")
-        .eq("id", session.metadata.service_request_id)
-        .single();
-      
-      if (sr?.scheduled_date && sr?.scheduled_time) {
-        await supabase.from("blocked_slots").insert({
-          professional_id: sr.professional_id,
-          service_request_id: session.metadata.service_request_id,
-          slot_date: sr.scheduled_date,
-          slot_time: sr.scheduled_time,
-        });
+      // Confirm blocked slots (change from pending to confirmed, remove expiry)
+      const { error: blockError } = await supabase
+        .from("blocked_slots")
+        .update({
+          slot_status: "confirmed",
+          expires_at: null,
+        })
+        .eq("service_request_id", session.metadata.service_request_id);
+
+      if (blockError) {
+        console.error("Error confirming blocked slots:", blockError);
       }
     }
   }

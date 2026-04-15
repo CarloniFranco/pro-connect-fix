@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, User, Phone, MapPin, FileText, Send, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, User, Phone, MapPin, FileText, Send, CheckCircle2, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,19 @@ interface Props {
   onBack: () => void;
 }
 
+const DURATION_OPTIONS = [
+  { value: 0.5, label: "30 min" },
+  { value: 1, label: "1 hora" },
+  { value: 1.5, label: "1.5 horas" },
+  { value: 2, label: "2 horas" },
+  { value: 2.5, label: "2.5 horas" },
+  { value: 3, label: "3 horas" },
+  { value: 4, label: "4 horas" },
+  { value: 5, label: "5 horas" },
+  { value: 6, label: "6 horas" },
+  { value: 8, label: "8 horas" },
+];
+
 const statusActions: Record<string, { next: string; label: string; nextLabel: string }> = {
   nueva: { next: "cotizada", label: "Enviar Cotización", nextLabel: "Cotizada" },
   cotizada: { next: "cotizada", label: "Esperando respuesta del cliente", nextLabel: "" },
@@ -19,11 +32,59 @@ const statusActions: Record<string, { next: string; label: string; nextLabel: st
   en_servicio: { next: "finalizada", label: "Marcar como Finalizado", nextLabel: "Finalizada" },
 };
 
+/** Generate blocked slot rows based on start time + duration */
+function generateBlockedSlots(
+  professionalId: string,
+  serviceRequestId: string,
+  date: string,
+  startTime: string,
+  durationHours: number
+) {
+  const slots: {
+    professional_id: string;
+    service_request_id: string;
+    slot_date: string;
+    slot_time: string;
+    slot_end_time: string;
+    slot_status: string;
+    expires_at: string;
+  }[] = [];
+
+  const [h, m] = startTime.split(":").map(Number);
+  const startMinutes = h * 60 + m;
+  const totalMinutes = durationHours * 60;
+  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+  // Create one slot per hour block
+  for (let offset = 0; offset < totalMinutes; offset += 60) {
+    const slotStart = startMinutes + offset;
+    const slotEnd = Math.min(startMinutes + totalMinutes, slotStart + 60);
+    const sh = Math.floor(slotStart / 60);
+    const sm = slotStart % 60;
+    const eh = Math.floor(slotEnd / 60);
+    const em = slotEnd % 60;
+
+    slots.push({
+      professional_id: professionalId,
+      service_request_id: serviceRequestId,
+      slot_date: date,
+      slot_time: `${String(sh).padStart(2, "0")}:${String(sm).padStart(2, "0")}:00`,
+      slot_end_time: `${String(eh).padStart(2, "0")}:${String(em).padStart(2, "0")}:00`,
+      slot_status: "pending",
+      expires_at: expires,
+    });
+  }
+  return slots;
+}
+
 const RequestDetail = ({ request, onBack }: Props) => {
   const [quoteAmount, setQuoteAmount] = useState(request.quoted_amount?.toString() || "");
   const [quoteDetails, setQuoteDetails] = useState(request.quoted_details || "");
   const [scheduledDate, setScheduledDate] = useState(request.scheduled_date || "");
   const [scheduledTime, setScheduledTime] = useState(request.scheduled_time?.slice(0, 5) || "");
+  const [estimatedDuration, setEstimatedDuration] = useState<number>(
+    (request as any).estimated_duration || 1
+  );
   const [saving, setSaving] = useState(false);
 
   const action = statusActions[request.status];
@@ -33,20 +94,62 @@ const RequestDetail = ({ request, onBack }: Props) => {
       toast.error("Completá el monto y detalle de la cotización");
       return;
     }
+    if (!estimatedDuration) {
+      toast.error("Seleccioná la duración estimada del trabajo");
+      return;
+    }
+
+    const finalDate = scheduledDate || request.scheduled_date;
+    const finalTime = scheduledTime || request.scheduled_time?.slice(0, 5);
+
+    if (!finalDate || !finalTime) {
+      toast.error("Se necesita fecha y hora para bloquear el calendario");
+      return;
+    }
+
     setSaving(true);
+
+    // 1. Update service request with quote + duration
     const { error } = await supabase
       .from("service_requests")
       .update({
         status: "cotizada" as any,
         quoted_amount: Number(quoteAmount),
         quoted_details: quoteDetails,
-        scheduled_date: scheduledDate || null,
-        scheduled_time: scheduledTime ? scheduledTime + ":00" : null,
-      })
+        scheduled_date: finalDate,
+        scheduled_time: finalTime + ":00",
+        estimated_duration: estimatedDuration,
+        responded_at: new Date().toISOString(),
+      } as any)
       .eq("id", request.id);
+
+    if (error) {
+      setSaving(false);
+      toast.error("Error al enviar cotización");
+      return;
+    }
+
+    // 2. Auto-block calendar slots
+    const blockedSlots = generateBlockedSlots(
+      request.professional_id,
+      request.id,
+      finalDate,
+      finalTime,
+      estimatedDuration
+    );
+
+    const { error: blockError } = await supabase
+      .from("blocked_slots")
+      .insert(blockedSlots as any);
+
     setSaving(false);
-    if (error) { toast.error("Error al enviar cotización"); return; }
-    toast.success("Cotización enviada");
+
+    if (blockError) {
+      console.error("Error blocking slots:", blockError);
+      toast.warning("Cotización enviada, pero hubo un error al bloquear el calendario");
+    } else {
+      toast.success("Cotización enviada y calendario bloqueado");
+    }
     onBack();
   };
 
@@ -129,6 +232,30 @@ const RequestDetail = ({ request, onBack }: Props) => {
                 className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
+
+            {/* Duration selector */}
+            <div>
+              <label className="mb-1 flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+                <Clock className="h-3 w-3" /> Duración estimada *
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {DURATION_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setEstimatedDuration(opt.value)}
+                    className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      estimatedDuration === opt.value
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-card text-card-foreground hover:border-primary/50"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="mb-1 block text-xs font-semibold text-muted-foreground">Fecha propuesta</label>
@@ -160,6 +287,11 @@ const RequestDetail = ({ request, onBack }: Props) => {
             <p className="text-xs font-semibold text-muted-foreground mb-1">Cotización enviada</p>
             <p className="text-lg font-display font-bold text-foreground">${Number(request.quoted_amount).toLocaleString("es-AR")}</p>
             {request.quoted_details && <p className="text-xs text-muted-foreground mt-1">{request.quoted_details}</p>}
+            {(request as any).estimated_duration && (
+              <p className="text-xs text-muted-foreground mt-1">
+                ⏱️ Duración estimada: {(request as any).estimated_duration}h
+              </p>
+            )}
             {request.scheduled_date && (
               <p className="text-xs text-muted-foreground mt-1">
                 📅 {new Date(request.scheduled_date + "T00:00:00").toLocaleDateString("es-AR")} {request.scheduled_time?.slice(0, 5) && `a las ${request.scheduled_time.slice(0, 5)}`}

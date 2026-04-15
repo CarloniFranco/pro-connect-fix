@@ -10,6 +10,7 @@ type OrderStatus = "nueva" | "cotizada" | "aceptada" | "en_servicio" | "finaliza
 
 export interface ServiceRequest {
   id: string;
+  professional_id: string;
   client_name: string;
   client_phone: string;
   client_address: string;
@@ -20,6 +21,7 @@ export interface ServiceRequest {
   quoted_details: string | null;
   scheduled_date: string | null;
   scheduled_time: string | null;
+  estimated_duration: number | null;
   created_at: string;
 }
 

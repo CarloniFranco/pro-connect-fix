@@ -56,16 +56,16 @@ export default function ServiceRequestForm({
       .eq("is_active", true)
       .then(({ data }) => setAvailability(data || []));
 
-    // Fetch blocked slots for next 30 days
+    // Fetch blocked slots for next 30 days (including duration-based blocks)
     const today = new Date().toISOString().split("T")[0];
     const future = new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
     supabase
       .from("blocked_slots")
-      .select("slot_date, slot_time")
+      .select("slot_date, slot_time, slot_end_time, slot_status")
       .eq("professional_id", professionalId)
       .gte("slot_date", today)
       .lte("slot_date", future)
-      .then(({ data }) => setBlockedSlots(data || []));
+      .then(({ data }) => setBlockedSlots((data as any) || []));
 
     // Fetch client profile
     if (user) {
