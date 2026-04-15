@@ -50,6 +50,60 @@ export type Database = {
         }
         Relationships: []
       }
+      service_requests: {
+        Row: {
+          client_address: string | null
+          client_name: string
+          client_phone: string | null
+          completed_at: string | null
+          created_at: string
+          description: string
+          id: string
+          professional_id: string
+          quoted_amount: number | null
+          quoted_details: string | null
+          scheduled_date: string | null
+          scheduled_time: string | null
+          service_type: string
+          status: Database["public"]["Enums"]["request_status"]
+          updated_at: string
+        }
+        Insert: {
+          client_address?: string | null
+          client_name?: string
+          client_phone?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          professional_id: string
+          quoted_amount?: number | null
+          quoted_details?: string | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          service_type?: string
+          status?: Database["public"]["Enums"]["request_status"]
+          updated_at?: string
+        }
+        Update: {
+          client_address?: string | null
+          client_name?: string
+          client_phone?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          professional_id?: string
+          quoted_amount?: number | null
+          quoted_details?: string | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          service_type?: string
+          status?: Database["public"]["Enums"]["request_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -58,7 +112,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      request_status:
+        | "nueva"
+        | "cotizada"
+        | "aceptada"
+        | "en_servicio"
+        | "finalizada"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -185,6 +244,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      request_status: [
+        "nueva",
+        "cotizada",
+        "aceptada",
+        "en_servicio",
+        "finalizada",
+      ],
+    },
   },
 } as const
