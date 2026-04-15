@@ -45,8 +45,8 @@ const HeroSection = () => {
                 FIX
               </motion.span>
 
-              {/* Mouse cursor — slides in, clicks on FIX, then exits */}
-              <motion.span
+              {/* Cursor arrow — slides in, clicks on FIX, then exits */}
+              <motion.svg
                 initial={{ opacity: 0, x: 40, y: -50 }}
                 animate={{
                   opacity: [0, 1, 1, 1, 1, 0],
@@ -60,10 +60,16 @@ const HeroSection = () => {
                   times: [0, 0.25, 0.45, 0.55, 0.65, 1],
                   ease: "easeInOut",
                 }}
-                className="absolute -right-8 -top-4 text-3xl md:-right-12 md:-top-6 md:text-4xl pointer-events-none"
+                className="absolute -right-6 top-0 pointer-events-none md:-right-10 md:-top-2"
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="white"
+                stroke="hsl(var(--primary))"
+                strokeWidth="1.5"
               >
-                🖱️
-              </motion.span>
+                <path d="M5 3l14 8-6.5 1.5L11 19z" />
+              </motion.svg>
 
               {/* Sparkle burst on impact */}
               <motion.span
