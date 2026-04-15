@@ -11,6 +11,8 @@ import Dashboard from "./pages/Dashboard.tsx";
 import Login from "./pages/Login.tsx";
 import Register from "./pages/Register.tsx";
 import ClientProfileSetup from "./pages/ClientProfileSetup.tsx";
+import ClientProfile from "./pages/ClientProfile.tsx";
+import ClientOrders from "./pages/ClientOrders.tsx";
 import ProfessionalProfile from "./pages/ProfessionalProfile.tsx";
 import HomeServices from "./pages/HomeServices.tsx";
 import PersonalServices from "./pages/PersonalServices.tsx";
