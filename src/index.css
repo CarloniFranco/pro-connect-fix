@@ -84,3 +84,8 @@
     font-family: 'Fredoka', sans-serif;
   }
 }
+
+@keyframes spinX {
+  0%, 95% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
