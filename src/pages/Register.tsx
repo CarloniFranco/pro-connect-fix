@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Wrench, Mail, Lock, User, Briefcase, ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { getRedirectPath } from "@/lib/redirectUser";
 
 type UserRole = "client" | "professional";
 
