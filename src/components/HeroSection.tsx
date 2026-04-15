@@ -46,6 +46,7 @@ const HeroSection = () => {
                 scaleX: { duration: 0.9, times: [0, 0.4, 0.55, 0.7, 0.85, 1] },
               }}
               className="inline-block origin-bottom"
+              style={{ animation: "spinX 30s ease-in-out 2s infinite" }}
             >
               X
             </motion.span>
