@@ -165,12 +165,39 @@ const Login = () => {
             </Button>
           </form>
 
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            ¿No tenés cuenta?{" "}
-            <Link to="/registro" className="font-semibold text-primary hover:underline">
-              Registrate
-            </Link>
-          </p>
+          <div className="mt-4 space-y-2 text-center text-sm text-muted-foreground">
+            <button
+              type="button"
+              onClick={async () => {
+                if (!email) {
+                  toast.error("Ingresá tu email primero");
+                  return;
+                }
+                setLoading(true);
+                try {
+                  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${window.location.origin}/reset-password`,
+                  });
+                  if (error) throw error;
+                  toast.success("Te enviamos un email para restablecer tu contraseña");
+                } catch (err: any) {
+                  console.error(err);
+                  toast.error("Error al enviar el email de recuperación");
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              className="font-semibold text-primary hover:underline"
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+            <p>
+              ¿No tenés cuenta?{" "}
+              <Link to="/registro" className="font-semibold text-primary hover:underline">
+                Registrate
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
