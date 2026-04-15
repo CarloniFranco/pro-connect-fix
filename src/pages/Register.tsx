@@ -155,7 +155,7 @@ const Register = () => {
                 className="flex flex-col items-center gap-3 rounded-xl border-2 border-border p-6 transition-all hover:border-primary hover:bg-primary/5"
               >
                 <User className="h-8 w-8 text-primary" />
-                <span className="text-sm font-semibold text-foreground">Soy Cliente</span>
+                <span className="text-sm font-semibold text-foreground">Quiero ser Cliente</span>
                 <span className="text-xs text-muted-foreground text-center">
                   Busco servicios para mi hogar
                 </span>
@@ -166,7 +166,7 @@ const Register = () => {
                 className="flex flex-col items-center gap-3 rounded-xl border-2 border-border p-6 transition-all hover:border-accent hover:bg-accent/5"
               >
                 <Briefcase className="h-8 w-8 text-accent-foreground" />
-                <span className="text-sm font-semibold text-foreground">Soy Profesional</span>
+                <span className="text-sm font-semibold text-foreground">Quiero ser Profesional</span>
                 <span className="text-xs text-muted-foreground text-center">
                   Ofrezco mis servicios
                 </span>
