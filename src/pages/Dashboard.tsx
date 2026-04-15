@@ -6,6 +6,7 @@ import MonthlyKPI from "@/components/dashboard/MonthlyKPI";
 import DayAgenda from "@/components/dashboard/DayAgenda";
 import AgendaOrders from "@/components/dashboard/AgendaOrders";
 import BudgetGenerator from "@/components/dashboard/BudgetGenerator";
+import AvailabilityManager from "@/components/dashboard/AvailabilityManager";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -103,6 +104,7 @@ const Dashboard = () => {
         <MonthlyKPI />
         <DayAgenda />
         <AgendaOrders />
+        <AvailabilityManager />
       </main>
 
       <BudgetGenerator />
