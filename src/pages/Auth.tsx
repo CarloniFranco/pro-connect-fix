@@ -87,7 +87,7 @@ const Auth = () => {
             </div>
             <h1 className="font-display text-2xl font-bold text-foreground">FIX</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {isLogin ? "Ingresá a tu cuenta profesional" : "Creá tu cuenta profesional"}
+              {isLogin ? "Ingresá a tu cuenta de profesional" : "Creá tu cuenta de profesional"}
             </p>
           </div>
 
