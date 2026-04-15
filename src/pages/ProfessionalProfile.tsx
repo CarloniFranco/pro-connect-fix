@@ -140,7 +140,7 @@ const ProfessionalProfile = () => {
       }
 
       toast.success("¡Perfil guardado! Tu verificación está en proceso.");
-      navigate("/dashboard");
+      navigate("/seleccionar-plan");
     } catch (error: any) {
       toast.error(error.message || "Error al guardar el perfil");
     } finally {
