@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import ProCTA from "@/components/ProCTA";
@@ -13,6 +14,9 @@ const Index = () => {
         <p className="mt-1 text-xs text-muted-foreground">
           © 2026 FIX. Todos los derechos reservados.
         </p>
+        <Link to="/terminos" className="mt-2 inline-block text-xs text-primary hover:underline font-semibold">
+          Términos y Condiciones
+        </Link>
       </footer>
     </div>
   );

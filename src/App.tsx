@@ -15,6 +15,7 @@ import HomeServices from "./pages/HomeServices.tsx";
 import PersonalServices from "./pages/PersonalServices.tsx";
 import ProfessionalsList from "./pages/ProfessionalsList.tsx";
 import ProfessionalPublicProfile from "./pages/ProfessionalPublicProfile.tsx";
+import TermsAndConditions from "./pages/TermsAndConditions.tsx";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/servicios/personal" element={<PersonalServices />} />
             <Route path="/profesionales/:category" element={<ProfessionalsList />} />
             <Route path="/profesional/:userId" element={<ProfessionalPublicProfile />} />
+            <Route path="/terminos" element={<TermsAndConditions />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/perfil-profesional" element={<ProfessionalProfile />} />
             <Route path="/dashboard" element={<Dashboard />} />
