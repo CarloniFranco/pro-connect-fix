@@ -14,6 +14,7 @@ export interface ServiceRequest {
   client_name: string;
   client_phone: string;
   client_address: string;
+  client_user_id: string | null;
   service_type: string;
   description: string;
   status: OrderStatus;
