@@ -32,10 +32,12 @@ const ProfessionalsList = () => {
   useEffect(() => {
     const fetchProfessionals = async () => {
       setLoading(true);
+      // Use the public view which filters by available=true automatically
       const { data: profiles, error } = await supabase
-        .from("professional_profiles")
+        .from("professional_profiles_public")
         .select("id, user_id, full_name, rubro, descripcion, photo_url, verified, plan, created_at")
-        .eq("rubro", category || "");
+        .eq("rubro", category || "")
+        .not("rubro", "eq", "");
 
       if (error || !profiles) {
         setLoading(false);
@@ -114,7 +116,10 @@ const ProfessionalsList = () => {
         ) : professionals.length === 0 ? (
           <div className="rounded-2xl border-2 border-dashed border-border p-12 text-center">
             <p className="text-lg font-semibold text-muted-foreground">
-              No hay profesionales disponibles en esta categoría aún.
+              Próximamente más profesionales en esta zona
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Estamos creciendo 🚀 Pronto habrá profesionales de {category} disponibles.
             </p>
           </div>
         ) : (
