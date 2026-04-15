@@ -111,8 +111,12 @@ const ProfessionalPublicProfile = () => {
           className="rounded-2xl border-2 border-border bg-card p-6 shadow-md mb-6"
         >
           <div className="flex items-start gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-              <User className="h-8 w-8 text-primary" />
+            <div className="h-16 w-16 overflow-hidden rounded-full border-2 border-border bg-primary/10 flex items-center justify-center flex-shrink-0">
+              {profile.photo_url ? (
+                <img src={profile.photo_url} alt={profile.full_name} className="h-full w-full object-cover" />
+              ) : (
+                <User className="h-8 w-8 text-primary" />
+              )}
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
