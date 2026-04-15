@@ -1,48 +1,87 @@
-import { useState } from "react";
-import { ClipboardList } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ClipboardList, Loader2, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import RequestDetail from "./RequestDetail";
 
-type OrderStatus = "pendiente" | "en_proceso" | "finalizado";
+type OrderStatus = "nueva" | "cotizada" | "aceptada" | "en_servicio" | "finalizada";
 
-interface WorkOrder {
+export interface ServiceRequest {
   id: string;
-  client: string;
-  service: string;
+  client_name: string;
+  client_phone: string;
+  client_address: string;
+  service_type: string;
   description: string;
   status: OrderStatus;
+  quoted_amount: number | null;
+  quoted_details: string | null;
+  scheduled_date: string | null;
+  scheduled_time: string | null;
+  created_at: string;
 }
 
-const initialOrders: WorkOrder[] = [
-  { id: "OT-001", client: "María López", service: "Plomería", description: "Pérdida en cañería de cocina", status: "en_proceso" },
-  { id: "OT-002", client: "Carlos García", service: "Electricidad", description: "Instalación de tablero eléctrico", status: "pendiente" },
-  { id: "OT-003", client: "Ana Martínez", service: "Gas", description: "Revisión anual de calefón", status: "pendiente" },
-  { id: "OT-004", client: "Laura Sánchez", service: "Plomería", description: "Destapación de desagüe", status: "finalizado" },
-];
-
-const statusConfig: Record<OrderStatus, { label: string; variant: "pending" | "inProgress" | "done" }> = {
-  pendiente: { label: "Pendiente", variant: "pending" },
-  en_proceso: { label: "En Proceso", variant: "inProgress" },
-  finalizado: { label: "Finalizado", variant: "done" },
+const statusConfig: Record<OrderStatus, { label: string; variant: "pending" | "inProgress" | "done" | "default" | "secondary" }> = {
+  nueva: { label: "Nueva", variant: "secondary" },
+  cotizada: { label: "Cotizada", variant: "pending" },
+  aceptada: { label: "Aceptada", variant: "inProgress" },
+  en_servicio: { label: "En Servicio", variant: "default" },
+  finalizada: { label: "Finalizada", variant: "done" },
 };
 
-const statusOrder: OrderStatus[] = ["pendiente", "en_proceso", "finalizado"];
+const filterOptions: { value: OrderStatus | "todos"; label: string }[] = [
+  { value: "todos", label: "Todos" },
+  { value: "nueva", label: "Nuevas" },
+  { value: "cotizada", label: "Cotizadas" },
+  { value: "aceptada", label: "Aceptadas" },
+  { value: "en_servicio", label: "En Servicio" },
+  { value: "finalizada", label: "Finalizadas" },
+];
 
 const WorkOrders = () => {
-  const [orders, setOrders] = useState<WorkOrder[]>(initialOrders);
+  const { user } = useAuth();
+  const [orders, setOrders] = useState<ServiceRequest[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<OrderStatus | "todos">("todos");
+  const [selectedOrder, setSelectedOrder] = useState<ServiceRequest | null>(null);
+
+  const fetchOrders = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("service_requests")
+      .select("*")
+      .eq("professional_id", user.id)
+      .order("created_at", { ascending: false });
+    setOrders((data as ServiceRequest[]) || []);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    fetchOrders();
+
+    const channel = supabase
+      .channel("orders-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "service_requests", filter: `professional_id=eq.${user.id}` }, () => {
+        fetchOrders();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
 
   const filtered = filter === "todos" ? orders : orders.filter((o) => o.status === filter);
 
-  const cycleStatus = (id: string) => {
-    setOrders((prev) =>
-      prev.map((o) => {
-        if (o.id !== id) return o;
-        const idx = statusOrder.indexOf(o.status);
-        return { ...o, status: statusOrder[(idx + 1) % statusOrder.length] };
-      })
+  if (selectedOrder) {
+    return (
+      <RequestDetail
+        request={selectedOrder}
+        onBack={() => { setSelectedOrder(null); fetchOrders(); }}
+      />
     );
-  };
+  }
 
   return (
     <Card>
@@ -52,41 +91,52 @@ const WorkOrders = () => {
           Órdenes de Trabajo
         </CardTitle>
         <div className="flex flex-wrap gap-2 pt-2">
-          {(["todos", ...statusOrder] as const).map((s) => (
+          {filterOptions.map((f) => (
             <button
-              key={s}
-              onClick={() => setFilter(s)}
+              key={f.value}
+              onClick={() => setFilter(f.value)}
               className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
-                filter === s
+                filter === f.value
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground hover:bg-muted/80"
               }`}
             >
-              {s === "todos" ? "Todos" : statusConfig[s].label}
+              {f.label}
             </button>
           ))}
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {filtered.map((order) => (
-          <div
-            key={order.id}
-            className="rounded-lg border border-border p-3"
-          >
-            <div className="mb-2 flex items-center justify-between">
-              <span className="font-display text-xs font-bold text-muted-foreground">{order.id}</span>
-              <button onClick={() => cycleStatus(order.id)}>
+        {loading ? (
+          <div className="flex justify-center py-6">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <p className="py-4 text-center text-sm text-muted-foreground">No hay órdenes en esta categoría</p>
+        ) : (
+          filtered.map((order) => (
+            <button
+              key={order.id}
+              onClick={() => setSelectedOrder(order)}
+              className="w-full rounded-lg border border-border p-3 text-left transition-colors hover:bg-muted/30"
+            >
+              <div className="mb-2 flex items-center justify-between">
+                <span className="font-display text-xs font-bold text-muted-foreground">
+                  {new Date(order.created_at).toLocaleDateString("es-AR")}
+                </span>
                 <Badge variant={statusConfig[order.status].variant}>
                   {statusConfig[order.status].label}
                 </Badge>
-              </button>
-            </div>
-            <p className="text-sm font-semibold text-foreground">{order.client}</p>
-            <p className="text-xs text-muted-foreground">{order.service} — {order.description}</p>
-          </div>
-        ))}
-        {filtered.length === 0 && (
-          <p className="py-4 text-center text-sm text-muted-foreground">No hay órdenes en esta categoría</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{order.client_name}</p>
+                  <p className="text-xs text-muted-foreground">{order.service_type} — {order.description.slice(0, 50)}{order.description.length > 50 ? "…" : ""}</p>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </button>
+          ))
         )}
       </CardContent>
     </Card>

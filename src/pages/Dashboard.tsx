@@ -1,19 +1,33 @@
-import { useEffect } from "react";
-import { ArrowLeft, User, LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowLeft, User, LogOut, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import MonthlyKPI from "@/components/dashboard/MonthlyKPI";
 import DayAgenda from "@/components/dashboard/DayAgenda";
 import WorkOrders from "@/components/dashboard/WorkOrders";
 import BudgetGenerator from "@/components/dashboard/BudgetGenerator";
-import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, loading, signOut } = useAuth();
+  const [profileName, setProfileName] = useState("");
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("professional_profiles")
+      .select("full_name")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.full_name) setProfileName(data.full_name);
+      });
+  }, [user]);
 
   if (loading) {
     return (
@@ -44,6 +58,10 @@ const Dashboard = () => {
       </header>
 
       <main className="container mx-auto max-w-4xl space-y-6 px-4 py-6">
+        {profileName && (
+          <p className="text-sm text-muted-foreground">Hola, <span className="font-semibold text-foreground">{profileName}</span> 👋</p>
+        )}
+        <MonthlyKPI />
         <DayAgenda />
         <WorkOrders />
       </main>
