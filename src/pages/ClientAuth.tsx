@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -8,9 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Wrench, Mail, Lock, User, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect } from "react";
 
-const Auth = () => {
+const ClientAuth = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
@@ -20,19 +19,30 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (user) navigate("/perfil-profesional");
+    if (!user) return;
+    // Check if client profile exists
+    supabase
+      .from("client_profiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          navigate("/");
+        } else {
+          navigate("/completar-perfil");
+        }
+      });
   }, [user, navigate]);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        toast.success("¡Bienvenido de vuelta!");
-        navigate("/perfil-profesional");
+        toast.success("¡Bienvenido!");
       } else {
         const { error } = await supabase.auth.signUp({
           email,
@@ -56,7 +66,7 @@ const Auth = () => {
     setLoading(true);
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin + "/perfil-profesional",
+        redirect_uri: window.location.origin,
       });
       if (result.error) {
         toast.error("Error al iniciar sesión con Google");
@@ -80,18 +90,18 @@ const Auth = () => {
         </button>
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-lg md:p-8">
-          {/* Logo */}
           <div className="mb-6 text-center">
             <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary">
-              <Wrench className="h-8 w-8 text-primary-foreground" />
+              <User className="h-8 w-8 text-primary-foreground" />
             </div>
-            <h1 className="font-display text-2xl font-bold text-foreground">FIX</h1>
+            <h1 className="font-display text-2xl font-bold text-foreground">
+              {isLogin ? "Ingresá a tu cuenta" : "Creá tu cuenta"}
+            </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {isLogin ? "Ingresá a tu cuenta de profesional" : "Creá tu cuenta de profesional"}
+              Para solicitar servicios en FIX
             </p>
           </div>
 
-          {/* Google */}
           <Button
             onClick={handleGoogleLogin}
             disabled={loading}
@@ -116,7 +126,6 @@ const Auth = () => {
             </div>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleEmailAuth} className="space-y-4">
             {!isLogin && (
               <div className="space-y-2">
@@ -186,4 +195,4 @@ const Auth = () => {
   );
 };
 
-export default Auth;
+export default ClientAuth;

@@ -8,6 +8,8 @@ import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import Auth from "./pages/Auth.tsx";
+import ClientAuth from "./pages/ClientAuth.tsx";
+import ClientProfileSetup from "./pages/ClientProfileSetup.tsx";
 import ProfessionalProfile from "./pages/ProfessionalProfile.tsx";
 import HomeServices from "./pages/HomeServices.tsx";
 import PersonalServices from "./pages/PersonalServices.tsx";
@@ -23,6 +25,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/ingresar" element={<ClientAuth />} />
+            <Route path="/completar-perfil" element={<ClientProfileSetup />} />
             <Route path="/servicios/hogar" element={<HomeServices />} />
             <Route path="/servicios/personal" element={<PersonalServices />} />
             <Route path="/auth" element={<Auth />} />
