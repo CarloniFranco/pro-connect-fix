@@ -4,6 +4,9 @@ import { motion } from "framer-motion";
 import { Check, Sparkles, Calendar, Users, Brain, Search, Headphones, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const plans = [
   {
@@ -37,20 +40,30 @@ const plans = [
 
 const PlanSelection = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSelect = async (planId: string) => {
+    if (!user) return;
     setSelectedPlan(planId);
     setLoading(true);
-    // For now just navigate — plan storage can be added later
-    await new Promise((r) => setTimeout(r, 600));
-    toast.success(
-      planId === "premium"
-        ? "¡Excelente! Activaste el plan Premium."
-        : "Plan Básico activado."
-    );
-    navigate("/dashboard");
+    try {
+      await supabase
+        .from("professional_profiles")
+        .update({ plan: planId === "premium" ? "premium" : "basico" })
+        .eq("user_id", user.id);
+      toast.success(
+        planId === "premium"
+          ? "¡Excelente! Activaste el plan Premium."
+          : "Plan Básico activado."
+      );
+      navigate("/dashboard");
+    } catch {
+      toast.error("Error al activar el plan");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const featureIcons: Record<string, typeof Check> = {
