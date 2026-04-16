@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, User, Phone, MapPin, FileText, Send, CheckCircle2, Clock } from "lucide-react";
+import { ArrowLeft, User, Phone, MapPin, FileText, Send, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,8 +8,11 @@ import { toast } from "sonner";
 import { sendNotification } from "@/lib/notifications";
 import type { ServiceRequest } from "./WorkOrders";
 
+const VISITA_TECNICA_RUBROS = ["gas", "electricidad", "plomería", "plomeria", "calefacción", "calefaccion", "refrigeración", "refrigeracion"];
+
 interface Props {
   request: ServiceRequest;
+  rubro?: string;
   onBack: () => void;
 }
 
@@ -78,13 +81,19 @@ function generateBlockedSlots(
   return slots;
 }
 
-const RequestDetail = ({ request, onBack }: Props) => {
+const RequestDetail = ({ request, rubro, onBack }: Props) => {
+  const isVisitaTecnica = rubro
+    ? VISITA_TECNICA_RUBROS.includes(rubro.toLowerCase())
+    : false;
+
   const [quoteAmount, setQuoteAmount] = useState(request.quoted_amount?.toString() || "");
-  const [quoteDetails, setQuoteDetails] = useState(request.quoted_details || "");
+  const [quoteDetails, setQuoteDetails] = useState(
+    request.quoted_details || (isVisitaTecnica ? "Relevamiento técnico y determinación de falla." : "")
+  );
   const [scheduledDate, setScheduledDate] = useState(request.scheduled_date || "");
   const [scheduledTime, setScheduledTime] = useState(request.scheduled_time?.slice(0, 5) || "");
   const [estimatedDuration, setEstimatedDuration] = useState<number>(
-    (request as any).estimated_duration || 1
+    (request as any).estimated_duration || (isVisitaTecnica ? 1 : 1)
   );
   const [saving, setSaving] = useState(false);
 
@@ -110,17 +119,22 @@ const RequestDetail = ({ request, onBack }: Props) => {
 
     setSaving(true);
 
-    // 1. Update service request with quote + duration
+    const finalDetails = isVisitaTecnica
+      ? `${quoteDetails}\n\n⚠️ Este monto corresponde únicamente a la visita técnica y diagnóstico. El presupuesto de reparación final se entregará tras el relevamiento en el domicilio.`
+      : quoteDetails;
+
+    // 1. Update service request with quote + duration + mode
     const { error } = await supabase
       .from("service_requests")
       .update({
         status: "cotizada" as any,
         quoted_amount: Number(quoteAmount),
-        quoted_details: quoteDetails,
+        quoted_details: finalDetails,
         scheduled_date: finalDate,
         scheduled_time: finalTime + ":00",
-        estimated_duration: estimatedDuration,
+        estimated_duration: isVisitaTecnica ? 1 : estimatedDuration,
         responded_at: new Date().toISOString(),
+        request_mode: isVisitaTecnica ? "visita_tecnica" : "servicio_directo",
       } as any)
       .eq("id", request.id);
 
