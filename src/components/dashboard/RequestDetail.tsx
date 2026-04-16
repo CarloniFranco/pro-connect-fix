@@ -168,11 +168,15 @@ const RequestDetail = ({ request, rubro, onBack }: Props) => {
 
     // Notify client about the quote
     if (request.client_user_id) {
+      const notifTitle = isVisitaTecnica ? "¡Visita técnica programada!" : "¡Presupuesto recibido!";
+      const notifMsg = isVisitaTecnica
+        ? `Te han enviado un costo de visita técnica por $${Number(quoteAmount).toLocaleString("es-AR")}. Confirmá tu turno pagando la seña.`
+        : `Te han enviado un presupuesto por $${Number(quoteAmount).toLocaleString("es-AR")}. Entrá para revisarlo y confirmar tu turno.`;
       sendNotification({
         userId: request.client_user_id,
         type: "presupuesto_recibido",
-        title: "¡Presupuesto recibido!",
-        message: `Te han enviado un presupuesto por $${Number(quoteAmount).toLocaleString("es-AR")}. Entrá para revisarlo y confirmar tu turno.`,
+        title: notifTitle,
+        message: notifMsg,
         link: "/mis-pedidos",
         serviceRequestId: request.id,
       });
