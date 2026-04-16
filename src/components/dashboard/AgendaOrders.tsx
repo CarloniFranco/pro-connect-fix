@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { sendNotification } from "@/lib/notifications";
+
 
 type OrderStatus = "nueva" | "cotizada" | "aceptada" | "en_servicio" | "finalizada" | "rechazada_profesional" | "rechazada_cliente";
 

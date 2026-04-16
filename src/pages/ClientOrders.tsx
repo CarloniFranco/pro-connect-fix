@@ -28,7 +28,7 @@ import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
-import { sendNotification } from "@/lib/notifications";
+
 
 type ServiceRequest = {
   id: string;
