@@ -150,7 +150,7 @@ const RequestDetail = ({ request, rubro, onBack }: Props) => {
       request.id,
       finalDate,
       finalTime,
-      estimatedDuration
+      isVisitaTecnica ? 1 : estimatedDuration
     );
 
     const { error: blockError } = await supabase
