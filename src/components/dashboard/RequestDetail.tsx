@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, User, Phone, MapPin, FileText, Send, CheckCircle2, Clock } from "lucide-react";
+import { ArrowLeft, User, Phone, MapPin, FileText, Send, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,8 +8,11 @@ import { toast } from "sonner";
 import { sendNotification } from "@/lib/notifications";
 import type { ServiceRequest } from "./WorkOrders";
 
+const VISITA_TECNICA_RUBROS = ["gas", "electricidad", "plomería", "plomeria", "calefacción", "calefaccion", "refrigeración", "refrigeracion"];
+
 interface Props {
   request: ServiceRequest;
+  rubro?: string;
   onBack: () => void;
 }
 
@@ -78,13 +81,19 @@ function generateBlockedSlots(
   return slots;
 }
 
-const RequestDetail = ({ request, onBack }: Props) => {
+const RequestDetail = ({ request, rubro, onBack }: Props) => {
+  const isVisitaTecnica = rubro
+    ? VISITA_TECNICA_RUBROS.includes(rubro.toLowerCase())
+    : false;
+
   const [quoteAmount, setQuoteAmount] = useState(request.quoted_amount?.toString() || "");
-  const [quoteDetails, setQuoteDetails] = useState(request.quoted_details || "");
+  const [quoteDetails, setQuoteDetails] = useState(
+    request.quoted_details || (isVisitaTecnica ? "Relevamiento técnico y determinación de falla." : "")
+  );
   const [scheduledDate, setScheduledDate] = useState(request.scheduled_date || "");
   const [scheduledTime, setScheduledTime] = useState(request.scheduled_time?.slice(0, 5) || "");
   const [estimatedDuration, setEstimatedDuration] = useState<number>(
-    (request as any).estimated_duration || 1
+    (request as any).estimated_duration || (isVisitaTecnica ? 1 : 1)
   );
   const [saving, setSaving] = useState(false);
 
@@ -110,17 +119,22 @@ const RequestDetail = ({ request, onBack }: Props) => {
 
     setSaving(true);
 
-    // 1. Update service request with quote + duration
+    const finalDetails = isVisitaTecnica
+      ? `${quoteDetails}\n\n⚠️ Este monto corresponde únicamente a la visita técnica y diagnóstico. El presupuesto de reparación final se entregará tras el relevamiento en el domicilio.`
+      : quoteDetails;
+
+    // 1. Update service request with quote + duration + mode
     const { error } = await supabase
       .from("service_requests")
       .update({
         status: "cotizada" as any,
         quoted_amount: Number(quoteAmount),
-        quoted_details: quoteDetails,
+        quoted_details: finalDetails,
         scheduled_date: finalDate,
         scheduled_time: finalTime + ":00",
-        estimated_duration: estimatedDuration,
+        estimated_duration: isVisitaTecnica ? 1 : estimatedDuration,
         responded_at: new Date().toISOString(),
+        request_mode: isVisitaTecnica ? "visita_tecnica" : "servicio_directo",
       } as any)
       .eq("id", request.id);
 
@@ -136,7 +150,7 @@ const RequestDetail = ({ request, onBack }: Props) => {
       request.id,
       finalDate,
       finalTime,
-      estimatedDuration
+      isVisitaTecnica ? 1 : estimatedDuration
     );
 
     const { error: blockError } = await supabase
@@ -154,11 +168,15 @@ const RequestDetail = ({ request, onBack }: Props) => {
 
     // Notify client about the quote
     if (request.client_user_id) {
+      const notifTitle = isVisitaTecnica ? "¡Visita técnica programada!" : "¡Presupuesto recibido!";
+      const notifMsg = isVisitaTecnica
+        ? `Te han enviado un costo de visita técnica por $${Number(quoteAmount).toLocaleString("es-AR")}. Confirmá tu turno pagando la seña.`
+        : `Te han enviado un presupuesto por $${Number(quoteAmount).toLocaleString("es-AR")}. Entrá para revisarlo y confirmar tu turno.`;
       sendNotification({
         userId: request.client_user_id,
         type: "presupuesto_recibido",
-        title: "¡Presupuesto recibido!",
-        message: `Te han enviado un presupuesto por $${Number(quoteAmount).toLocaleString("es-AR")}. Entrá para revisarlo y confirmar tu turno.`,
+        title: notifTitle,
+        message: notifMsg,
         link: "/mis-pedidos",
         serviceRequestId: request.id,
       });
@@ -224,51 +242,76 @@ const RequestDetail = ({ request, onBack }: Props) => {
         {request.status === "nueva" && (
           <div className="space-y-3 rounded-lg border border-border p-3">
             <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
-              <FileText className="h-4 w-4 text-accent" /> Cotización
+              <FileText className="h-4 w-4 text-accent" />
+              {isVisitaTecnica ? "Visita Técnica de Diagnóstico" : "Cotización"}
             </p>
+
+            {isVisitaTecnica && (
+              <div className="rounded-lg bg-accent/10 border border-accent/30 p-3">
+                <p className="flex items-center gap-2 text-xs font-semibold text-accent-foreground">
+                  <AlertTriangle className="h-3.5 w-3.5" /> Rubro técnico detectado
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Para {rubro}, se envía un costo de visita técnica y diagnóstico. El presupuesto final se entrega tras el relevamiento en domicilio.
+                </p>
+              </div>
+            )}
+
             <div>
-              <label className="mb-1 block text-xs font-semibold text-muted-foreground">Monto total ($)</label>
+              <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                {isVisitaTecnica ? "Costo de visita y diagnóstico ($)" : "Monto total ($)"}
+              </label>
               <input
                 type="number"
                 value={quoteAmount}
                 onChange={(e) => setQuoteAmount(e.target.value)}
-                placeholder="25000"
+                placeholder={isVisitaTecnica ? "15000" : "25000"}
                 className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-muted-foreground">Detalle</label>
+              <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                {isVisitaTecnica ? "Concepto" : "Detalle"}
+              </label>
               <textarea
                 value={quoteDetails}
                 onChange={(e) => setQuoteDetails(e.target.value)}
-                placeholder="Materiales, mano de obra, tiempo estimado..."
+                placeholder={isVisitaTecnica ? "Relevamiento técnico y determinación de falla." : "Materiales, mano de obra, tiempo estimado..."}
                 rows={3}
                 className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
 
-            {/* Duration selector */}
-            <div>
-              <label className="mb-1 flex items-center gap-1 text-xs font-semibold text-muted-foreground">
-                <Clock className="h-3 w-3" /> Duración estimada *
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {DURATION_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setEstimatedDuration(opt.value)}
-                    className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
-                      estimatedDuration === opt.value
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-card text-card-foreground hover:border-primary/50"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
+            {/* Duration selector - hidden for visits (fixed 1h) */}
+            {isVisitaTecnica ? (
+              <div className="rounded-lg bg-muted/50 p-3">
+                <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                  <Clock className="h-3 w-3" /> Duración: 1 hora (visita técnica)
+                </p>
               </div>
-            </div>
+            ) : (
+              <div>
+                <label className="mb-1 flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+                  <Clock className="h-3 w-3" /> Duración estimada *
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {DURATION_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setEstimatedDuration(opt.value)}
+                      className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                        estimatedDuration === opt.value
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-card text-card-foreground hover:border-primary/50"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -290,8 +333,16 @@ const RequestDetail = ({ request, onBack }: Props) => {
                 />
               </div>
             </div>
+
+            {isVisitaTecnica && (
+              <p className="text-[10px] text-muted-foreground leading-tight">
+                ⚠️ Este monto corresponde únicamente a la visita técnica y diagnóstico. El presupuesto de reparación final se entregará tras el relevamiento en el domicilio.
+              </p>
+            )}
+
             <Button onClick={handleSendQuote} disabled={saving} className="w-full gap-2">
-              <Send className="h-4 w-4" /> {saving ? "Enviando..." : "Enviar Cotización"}
+              <Send className="h-4 w-4" />
+              {saving ? "Enviando..." : isVisitaTecnica ? "Enviar Visita Técnica" : "Enviar Cotización"}
             </Button>
           </div>
         )}

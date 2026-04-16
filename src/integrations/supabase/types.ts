@@ -254,6 +254,7 @@ export type Database = {
           professional_id: string
           quoted_amount: number | null
           quoted_details: string | null
+          request_mode: string
           responded_at: string | null
           schedule_met: boolean | null
           scheduled_date: string | null
@@ -277,6 +278,7 @@ export type Database = {
           professional_id: string
           quoted_amount?: number | null
           quoted_details?: string | null
+          request_mode?: string
           responded_at?: string | null
           schedule_met?: boolean | null
           scheduled_date?: string | null
@@ -300,6 +302,7 @@ export type Database = {
           professional_id?: string
           quoted_amount?: number | null
           quoted_details?: string | null
+          request_mode?: string
           responded_at?: string | null
           schedule_met?: boolean | null
           scheduled_date?: string | null
