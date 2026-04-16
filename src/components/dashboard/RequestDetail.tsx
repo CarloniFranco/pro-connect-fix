@@ -161,9 +161,9 @@ const RequestDetail = ({ request, rubro, onBack }: Props) => {
 
     if (blockError) {
       console.error("Error blocking slots:", blockError);
-      toast.warning("Cotización enviada, pero hubo un error al bloquear el calendario");
+toast.warning("Presupuesto enviado, pero hubo un error al bloquear el calendario.");
     } else {
-      toast.success("Cotización enviada y calendario bloqueado");
+      toast.success("Presupuesto enviado. Notificación enviada al cliente dentro de la plataforma.");
     }
 
     // Notify client about the quote

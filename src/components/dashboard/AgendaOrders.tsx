@@ -164,7 +164,7 @@ const AgendaOrders = () => {
       .eq("id", order.id);
     setSaving(false);
     if (error) { toast.error("Error al cotizar"); return; }
-    toast.success("Cotización enviada. El cliente debe pagar una seña del 10% para confirmar.");
+    toast.success("Presupuesto enviado. Notificación enviada al cliente dentro de la plataforma.");
     setSelectedOrder(null);
     setQuoteAmount(""); setQuoteDetails(""); setScheduledDate(""); setScheduledTime("");
     fetchOrders();
