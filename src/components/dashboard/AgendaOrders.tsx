@@ -96,17 +96,7 @@ const AgendaOrders = () => {
       .eq("id", order.id);
     setSaving(false);
     if (error) { toast.error("Error al rechazar"); return; }
-    // Notify client about professional rejection
-    if (order.client_user_id) {
-      sendNotification({
-        userId: order.client_user_id,
-        type: "solicitud_rechazada",
-        title: "Solicitud no disponible",
-        message: `El profesional no puede tomar tu pedido de ${order.service_type} en este momento. ¡Buscá otros expertos disponibles en FIX!`,
-        link: "/servicios/hogar",
-        serviceRequestId: order.id,
-      });
-    }
+    // Notification is handled automatically by DB trigger
 
     toast.success("Solicitud declinada. Esto afecta tu ranking de confiabilidad.");
     setSelectedOrder(null);
