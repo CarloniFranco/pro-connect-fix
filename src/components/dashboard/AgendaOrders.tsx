@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { sendNotification } from "@/lib/notifications";
+
 
 type OrderStatus = "nueva" | "cotizada" | "aceptada" | "en_servicio" | "finalizada" | "rechazada_profesional" | "rechazada_cliente";
 
@@ -96,17 +96,7 @@ const AgendaOrders = () => {
       .eq("id", order.id);
     setSaving(false);
     if (error) { toast.error("Error al rechazar"); return; }
-    // Notify client about professional rejection
-    if (order.client_user_id) {
-      sendNotification({
-        userId: order.client_user_id,
-        type: "solicitud_rechazada",
-        title: "Solicitud no disponible",
-        message: `El profesional no puede tomar tu pedido de ${order.service_type} en este momento. ¡Buscá otros expertos disponibles en FIX!`,
-        link: "/servicios/hogar",
-        serviceRequestId: order.id,
-      });
-    }
+    // Notification is handled automatically by DB trigger
 
     toast.success("Solicitud declinada. Esto afecta tu ranking de confiabilidad.");
     setSelectedOrder(null);
@@ -164,7 +154,7 @@ const AgendaOrders = () => {
       .eq("id", order.id);
     setSaving(false);
     if (error) { toast.error("Error al cotizar"); return; }
-    toast.success("Cotización enviada. El cliente debe pagar una seña del 10% para confirmar.");
+    toast.success("Presupuesto enviado. Notificación enviada al cliente dentro de la plataforma.");
     setSelectedOrder(null);
     setQuoteAmount(""); setQuoteDetails(""); setScheduledDate(""); setScheduledTime("");
     fetchOrders();

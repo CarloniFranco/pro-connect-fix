@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { sendNotification } from "@/lib/notifications";
+
 import type { ServiceRequest } from "./WorkOrders";
 
 const VISITA_TECNICA_RUBROS = ["gas", "electricidad", "plomería", "plomeria", "calefacción", "calefaccion", "refrigeración", "refrigeracion"];
@@ -161,26 +161,12 @@ const RequestDetail = ({ request, rubro, onBack }: Props) => {
 
     if (blockError) {
       console.error("Error blocking slots:", blockError);
-      toast.warning("Cotización enviada, pero hubo un error al bloquear el calendario");
+toast.warning("Presupuesto enviado, pero hubo un error al bloquear el calendario.");
     } else {
-      toast.success("Cotización enviada y calendario bloqueado");
+      toast.success("Presupuesto enviado. Notificación enviada al cliente dentro de la plataforma.");
     }
 
-    // Notify client about the quote
-    if (request.client_user_id) {
-      const notifTitle = isVisitaTecnica ? "¡Visita técnica programada!" : "¡Presupuesto recibido!";
-      const notifMsg = isVisitaTecnica
-        ? `Te han enviado un costo de visita técnica por $${Number(quoteAmount).toLocaleString("es-AR")}. Confirmá tu turno pagando la seña.`
-        : `Te han enviado un presupuesto por $${Number(quoteAmount).toLocaleString("es-AR")}. Entrá para revisarlo y confirmar tu turno.`;
-      sendNotification({
-        userId: request.client_user_id,
-        type: "presupuesto_recibido",
-        title: notifTitle,
-        message: notifMsg,
-        link: "/mis-pedidos",
-        serviceRequestId: request.id,
-      });
-    }
+    // Notification is handled automatically by DB trigger
 
     onBack();
   };

@@ -28,7 +28,7 @@ import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
-import { sendNotification } from "@/lib/notifications";
+
 
 type ServiceRequest = {
   id: string;
@@ -223,15 +223,7 @@ const ClientOrders = () => {
       toast.error("Error al rechazar");
       return;
     }
-    // Notify professional about rejection
-    sendNotification({
-      userId: req.professional_id,
-      type: "presupuesto_rechazado",
-      title: "Presupuesto no aceptado",
-      message: `El presupuesto enviado para ${req.service_type} no fue aceptado.`,
-      link: "/dashboard",
-      serviceRequestId: req.id,
-    });
+    // Notification is handled automatically by DB trigger
 
     toast.success("Presupuesto rechazado");
     setSelectedRequest(null);
