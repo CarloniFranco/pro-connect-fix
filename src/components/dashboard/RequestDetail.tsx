@@ -247,8 +247,8 @@ const RequestDetail = ({ request, rubro, onBack }: Props) => {
             </p>
 
             {isVisitaTecnica && (
-              <div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-3">
-                <p className="flex items-center gap-2 text-xs font-semibold text-amber-700 dark:text-amber-400">
+              <div className="rounded-lg bg-accent/10 border border-accent/30 p-3">
+                <p className="flex items-center gap-2 text-xs font-semibold text-accent-foreground">
                   <AlertTriangle className="h-3.5 w-3.5" /> Rubro técnico detectado
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
