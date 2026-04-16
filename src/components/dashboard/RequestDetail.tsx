@@ -238,51 +238,76 @@ const RequestDetail = ({ request, rubro, onBack }: Props) => {
         {request.status === "nueva" && (
           <div className="space-y-3 rounded-lg border border-border p-3">
             <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
-              <FileText className="h-4 w-4 text-accent" /> Cotización
+              <FileText className="h-4 w-4 text-accent" />
+              {isVisitaTecnica ? "Visita Técnica de Diagnóstico" : "Cotización"}
             </p>
+
+            {isVisitaTecnica && (
+              <div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-3">
+                <p className="flex items-center gap-2 text-xs font-semibold text-amber-700 dark:text-amber-400">
+                  <AlertTriangle className="h-3.5 w-3.5" /> Rubro técnico detectado
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Para {rubro}, se envía un costo de visita técnica y diagnóstico. El presupuesto final se entrega tras el relevamiento en domicilio.
+                </p>
+              </div>
+            )}
+
             <div>
-              <label className="mb-1 block text-xs font-semibold text-muted-foreground">Monto total ($)</label>
+              <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                {isVisitaTecnica ? "Costo de visita y diagnóstico ($)" : "Monto total ($)"}
+              </label>
               <input
                 type="number"
                 value={quoteAmount}
                 onChange={(e) => setQuoteAmount(e.target.value)}
-                placeholder="25000"
+                placeholder={isVisitaTecnica ? "15000" : "25000"}
                 className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-muted-foreground">Detalle</label>
+              <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                {isVisitaTecnica ? "Concepto" : "Detalle"}
+              </label>
               <textarea
                 value={quoteDetails}
                 onChange={(e) => setQuoteDetails(e.target.value)}
-                placeholder="Materiales, mano de obra, tiempo estimado..."
+                placeholder={isVisitaTecnica ? "Relevamiento técnico y determinación de falla." : "Materiales, mano de obra, tiempo estimado..."}
                 rows={3}
                 className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
 
-            {/* Duration selector */}
-            <div>
-              <label className="mb-1 flex items-center gap-1 text-xs font-semibold text-muted-foreground">
-                <Clock className="h-3 w-3" /> Duración estimada *
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {DURATION_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setEstimatedDuration(opt.value)}
-                    className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
-                      estimatedDuration === opt.value
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-card text-card-foreground hover:border-primary/50"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
+            {/* Duration selector - hidden for visits (fixed 1h) */}
+            {isVisitaTecnica ? (
+              <div className="rounded-lg bg-muted/50 p-3">
+                <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                  <Clock className="h-3 w-3" /> Duración: 1 hora (visita técnica)
+                </p>
               </div>
-            </div>
+            ) : (
+              <div>
+                <label className="mb-1 flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+                  <Clock className="h-3 w-3" /> Duración estimada *
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {DURATION_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setEstimatedDuration(opt.value)}
+                      className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                        estimatedDuration === opt.value
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-card text-card-foreground hover:border-primary/50"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -304,8 +329,16 @@ const RequestDetail = ({ request, rubro, onBack }: Props) => {
                 />
               </div>
             </div>
+
+            {isVisitaTecnica && (
+              <p className="text-[10px] text-muted-foreground leading-tight">
+                ⚠️ Este monto corresponde únicamente a la visita técnica y diagnóstico. El presupuesto de reparación final se entregará tras el relevamiento en el domicilio.
+              </p>
+            )}
+
             <Button onClick={handleSendQuote} disabled={saving} className="w-full gap-2">
-              <Send className="h-4 w-4" /> {saving ? "Enviando..." : "Enviar Cotización"}
+              <Send className="h-4 w-4" />
+              {saving ? "Enviando..." : isVisitaTecnica ? "Enviar Visita Técnica" : "Enviar Cotización"}
             </Button>
           </div>
         )}
