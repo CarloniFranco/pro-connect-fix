@@ -49,6 +49,7 @@ const WorkOrders = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<OrderStatus | "todos">("todos");
   const [selectedOrder, setSelectedOrder] = useState<ServiceRequest | null>(null);
+  const [proRubro, setProRubro] = useState("");
 
   const fetchOrders = async () => {
     if (!user) return;
@@ -60,6 +61,18 @@ const WorkOrders = () => {
     setOrders((data as ServiceRequest[]) || []);
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("professional_profiles")
+      .select("rubro")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.rubro) setProRubro(data.rubro);
+      });
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -81,6 +94,7 @@ const WorkOrders = () => {
     return (
       <RequestDetail
         request={selectedOrder}
+        rubro={proRubro}
         onBack={() => { setSelectedOrder(null); fetchOrders(); }}
       />
     );
