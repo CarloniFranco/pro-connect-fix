@@ -52,7 +52,7 @@ const AgendaOrders = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabKey>("pendientes");
   const [selectedOrder, setSelectedOrder] = useState<ServiceRequest | null>(null);
-  const [proProfile, setProProfile] = useState<{ full_name: string; rubro: string } | null>(null);
+  const [proProfile, setProProfile] = useState<{ full_name: string; rubro: string; work_stations: number } | null>(null);
 
   // Quote form state
   const [quoteAmount, setQuoteAmount] = useState("");
@@ -77,8 +77,8 @@ const AgendaOrders = () => {
     if (!user) return;
     fetchOrders();
     // Fetch pro profile for AI budget
-    supabase.from("professional_profiles").select("full_name, rubro").eq("user_id", user.id).maybeSingle()
-      .then(({ data }) => setProProfile(data));
+    supabase.from("professional_profiles").select("full_name, rubro, work_stations").eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => setProProfile(data as any));
     const channel = supabase
       .channel("agenda-orders")
       .on("postgres_changes", { event: "*", schema: "public", table: "service_requests", filter: `professional_id=eq.${user.id}` }, () => fetchOrders())
@@ -404,6 +404,60 @@ const AgendaOrders = () => {
             <Clock className="h-8 w-8 text-muted-foreground/40" />
             <p className="text-sm text-muted-foreground">No hay pedidos en esta categoría</p>
           </div>
+        ) : activeTab === "confirmados" && (proProfile?.work_stations || 1) > 1 ? (
+          // Grouped view by time slot for multi-station professionals
+          (() => {
+            const groups = new Map<string, ServiceRequest[]>();
+            filtered.forEach((o) => {
+              const key = o.scheduled_date && o.scheduled_time
+                ? `${o.scheduled_date}T${o.scheduled_time.slice(0, 5)}`
+                : "sin-horario";
+              if (!groups.has(key)) groups.set(key, []);
+              groups.get(key)!.push(o);
+            });
+            const sortedKeys = Array.from(groups.keys()).sort();
+            return sortedKeys.map((key) => {
+              const items = groups.get(key)!;
+              const stations = proProfile!.work_stations;
+              const [datePart, timePart] = key.split("T");
+              const isScheduled = key !== "sin-horario";
+              return (
+                <div key={key} className="rounded-lg border-2 border-primary/20 bg-primary/5 p-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-xs font-bold text-primary">
+                      {isScheduled ? `📅 ${new Date(datePart + "T00:00:00").toLocaleDateString("es-AR")} • ⏰ ${timePart}` : "Sin horario asignado"}
+                    </p>
+                    <span className="rounded-full bg-primary/20 px-2 py-0.5 text-[10px] font-bold text-primary">
+                      {items.length}/{stations} {items.length === 1 ? "estación" : "estaciones"}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {items.map((order) => (
+                      <button
+                        key={order.id}
+                        onClick={() => {
+                          setSelectedOrder(order);
+                          setQuoteAmount(order.quoted_amount?.toString() || "");
+                          setQuoteDetails(order.quoted_details || "");
+                          setScheduledDate(order.scheduled_date || "");
+                          setScheduledTime(order.scheduled_time?.slice(0, 5) || "");
+                        }}
+                        className="w-full rounded-md border border-border bg-card p-2 text-left transition-colors hover:bg-muted/30"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-semibold text-foreground">{order.client_name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{order.service_type}</p>
+                          </div>
+                          <StatusBadge status={order.status} />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            });
+          })()
         ) : (
           filtered.map((order) => (
             <button
