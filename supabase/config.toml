@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.generate-budget]
 verify_jwt = false
+
+[functions.lavadero-chat]
+verify_jwt = false
