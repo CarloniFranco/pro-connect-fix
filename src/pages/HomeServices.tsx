@@ -1,17 +1,18 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Droplets, Zap, Flame, Car, Wrench, TreePine, Waves, Thermometer } from "lucide-react";
+import { ArrowLeft, Car, Droplets, Zap, Flame, Wrench, TreePine, Waves, Thermometer } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import { Badge } from "@/components/ui/badge";
 
 const services = [
-  { icon: Droplets, label: "Plomería", color: "bg-secondary" },
-  { icon: Zap, label: "Electricidad", color: "bg-accent" },
-  { icon: Flame, label: "Gas", color: "bg-primary" },
-  { icon: Car, label: "Lavadero de Auto", color: "bg-secondary" },
-  { icon: Wrench, label: "Taller Mecánico", color: "bg-primary" },
-  { icon: TreePine, label: "Jardinería", color: "bg-pipe" },
-  { icon: Waves, label: "Piletero", color: "bg-secondary" },
-  { icon: Thermometer, label: "Calefacción y Refrigeración", color: "bg-primary" },
+  { icon: Car, label: "Lavadero de Auto", color: "bg-primary", isActive: true },
+  { icon: Droplets, label: "Plomería", color: "bg-secondary", isActive: false },
+  { icon: Zap, label: "Electricidad", color: "bg-accent", isActive: false },
+  { icon: Flame, label: "Gas", color: "bg-primary", isActive: false },
+  { icon: Wrench, label: "Taller Mecánico", color: "bg-primary", isActive: false },
+  { icon: TreePine, label: "Jardinería", color: "bg-pipe", isActive: false },
+  { icon: Waves, label: "Piletero", color: "bg-secondary", isActive: false },
+  { icon: Thermometer, label: "Calefacción y Refrigeración", color: "bg-primary", isActive: false },
 ];
 
 const HomeServices = () => {
@@ -46,15 +47,25 @@ const HomeServices = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              whileHover={{ scale: 1.05, y: -4 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigate(`/profesionales/${encodeURIComponent(service.label)}`)}
-              className="flex flex-col items-center gap-3 rounded-2xl border-2 border-border bg-card p-5 shadow-md transition-shadow hover:shadow-xl hover:border-primary"
+              whileHover={service.isActive ? { scale: 1.05, y: -4 } : {}}
+              whileTap={service.isActive ? { scale: 0.95 } : {}}
+              onClick={() => service.isActive && navigate(`/profesionales/${encodeURIComponent(service.label)}`)}
+              disabled={!service.isActive}
+              className={`flex flex-col items-center gap-3 rounded-2xl border-2 border-border bg-card p-5 shadow-md transition-all relative ${
+                service.isActive
+                  ? "hover:shadow-xl hover:border-primary cursor-pointer"
+                  : "opacity-50 cursor-not-allowed"
+              }`}
             >
-              <div className={`flex h-14 w-14 items-center justify-center rounded-xl ${service.color} shadow-md`}>
+              {!service.isActive && (
+                <Badge variant="secondary" className="absolute -top-2 -right-2 text-xs">
+                  Próximamente
+                </Badge>
+              )}
+              <div className={`flex h-14 w-14 items-center justify-center rounded-xl ${service.color} shadow-md ${!service.isActive ? "grayscale" : ""}`}>
                 <service.icon className="h-7 w-7 text-white" />
               </div>
-              <span className="text-center text-sm font-bold text-card-foreground">
+              <span className={`text-center text-sm font-bold ${service.isActive ? "text-card-foreground" : "text-muted-foreground"}`}>
                 {service.label}
               </span>
             </motion.button>

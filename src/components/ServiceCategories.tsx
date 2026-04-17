@@ -2,10 +2,10 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   Home,
+  Car,
   Droplets,
   Zap,
   Flame,
-  Car,
   Wrench,
   TreePine,
   Waves,
@@ -14,43 +14,56 @@ import {
   Sparkles,
   User,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const homeServices = [
-  { icon: Droplets, label: "Plomería" },
-  { icon: Zap, label: "Electricidad" },
-  { icon: Flame, label: "Gas" },
-  { icon: Car, label: "Lavadero de Auto" },
-  { icon: Wrench, label: "Taller Mecánico" },
-  { icon: TreePine, label: "Jardinería" },
-  { icon: Waves, label: "Piletero" },
-  { icon: Thermometer, label: "Calefacción y Refrigeración" },
+  { icon: Car, label: "Lavadero de Auto", isActive: true },
+  { icon: Droplets, label: "Plomería", isActive: false },
+  { icon: Zap, label: "Electricidad", isActive: false },
+  { icon: Flame, label: "Gas", isActive: false },
+  { icon: Wrench, label: "Taller Mecánico", isActive: false },
+  { icon: TreePine, label: "Jardinería", isActive: false },
+  { icon: Waves, label: "Piletero", isActive: false },
+  { icon: Thermometer, label: "Calefacción y Refrigeración", isActive: false },
 ];
 
 const personalServices = [
-  { icon: Scissors, label: "Peluquería" },
-  { icon: Sparkles, label: "Uñas" },
-  { icon: User, label: "Estética" },
+  { icon: Scissors, label: "Peluquería", isActive: false },
+  { icon: Sparkles, label: "Uñas", isActive: false },
+  { icon: User, label: "Estética", isActive: false },
 ];
 
 const ServiceCard = ({
   icon: Icon,
   label,
+  isActive,
   onClick,
 }: {
   icon: React.ElementType;
   label: string;
+  isActive: boolean;
   onClick: () => void;
 }) => (
   <motion.button
-    whileHover={{ scale: 1.05 }}
-    whileTap={{ scale: 0.97 }}
+    whileHover={isActive ? { scale: 1.05 } : {}}
+    whileTap={isActive ? { scale: 0.97 } : {}}
     onClick={onClick}
-    className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md hover:border-primary"
+    disabled={!isActive}
+    className={`flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-4 shadow-sm transition-all relative ${
+      isActive
+        ? "hover:shadow-md hover:border-primary cursor-pointer"
+        : "opacity-50 cursor-not-allowed"
+    }`}
   >
-    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
-      <Icon className="h-6 w-6 text-primary" />
+    {!isActive && (
+      <Badge variant="secondary" className="absolute -top-2 -right-2 text-[10px] px-1.5 py-0.5">
+        Próximamente
+      </Badge>
+    )}
+    <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${isActive ? "bg-primary" : "bg-muted"}`}>
+      <Icon className={`h-6 w-6 ${isActive ? "text-primary-foreground" : "text-muted-foreground"}`} />
     </div>
-    <span className="text-center text-xs font-semibold text-card-foreground">
+    <span className={`text-center text-xs font-semibold ${isActive ? "text-card-foreground" : "text-muted-foreground"}`}>
       {label}
     </span>
   </motion.button>
@@ -59,7 +72,8 @@ const ServiceCard = ({
 const ServiceCategories = () => {
   const navigate = useNavigate();
 
-  const handleCategoryClick = (label: string) => {
+  const handleCategoryClick = (label: string, isActive: boolean) => {
+    if (!isActive) return;
     navigate(`/profesionales/${encodeURIComponent(label)}`);
   };
 
@@ -90,8 +104,10 @@ const ServiceCategories = () => {
             {homeServices.map((service) => (
               <ServiceCard
                 key={service.label}
-                {...service}
-                onClick={() => handleCategoryClick(service.label)}
+                icon={service.icon}
+                label={service.label}
+                isActive={service.isActive}
+                onClick={() => handleCategoryClick(service.label, service.isActive)}
               />
             ))}
           </div>
@@ -120,8 +136,10 @@ const ServiceCategories = () => {
             {personalServices.map((service) => (
               <ServiceCard
                 key={service.label}
-                {...service}
-                onClick={() => handleCategoryClick(service.label)}
+                icon={service.icon}
+                label={service.label}
+                isActive={service.isActive}
+                onClick={() => handleCategoryClick(service.label, service.isActive)}
               />
             ))}
           </div>
