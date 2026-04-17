@@ -31,6 +31,7 @@ const ProfessionalProfile = () => {
   const [fullName, setFullName] = useState("");
   const [rubro, setRubro] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  const [workStations, setWorkStations] = useState(1);
   const [matriculaFile, setMatriculaFile] = useState<File | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -60,6 +61,7 @@ const ProfessionalProfile = () => {
       setFullName(data.full_name);
       setRubro(data.rubro);
       setDescripcion(data.descripcion);
+      setWorkStations((data as any).work_stations || 1);
       if (data.photo_url) setPhotoPreview(data.photo_url);
       if (data.rubro && data.descripcion) {
         navigate("/dashboard");
@@ -122,10 +124,12 @@ const ProfessionalProfile = () => {
         photoUrl = urlData.publicUrl;
       }
 
-      const profileData = {
+      const isLavadero = rubro === "Lavadero de Auto";
+      const profileData: any = {
         full_name: fullName,
         rubro,
         descripcion,
+        work_stations: isLavadero ? Math.max(1, Math.min(20, workStations)) : 1,
         ...(matriculaUrl && { matricula_url: matriculaUrl }),
         ...(photoUrl && { photo_url: photoUrl }),
       };
@@ -247,6 +251,24 @@ const ProfessionalProfile = () => {
               required
             />
           </div>
+
+          {rubro === "Lavadero de Auto" && (
+            <div className="space-y-2">
+              <Label htmlFor="workStations">🚗 Estaciones de trabajo simultáneas</Label>
+              <Input
+                id="workStations"
+                type="number"
+                min={1}
+                max={20}
+                value={workStations}
+                onChange={(e) => setWorkStations(Number(e.target.value) || 1)}
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                Cantidad de autos que podés atender en paralelo en el mismo horario (boxes / lugares de trabajo).
+              </p>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="matricula">Matrícula / Habilitación</Label>

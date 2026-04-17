@@ -39,7 +39,8 @@ export default function ServiceRequestForm({
 }: ServiceRequestFormProps) {
   const { user } = useAuth();
   const [availability, setAvailability] = useState<AvailabilitySlot[]>([]);
-  const [blockedSlots, setBlockedSlots] = useState<{ slot_date: string; slot_time: string }[]>([]);
+  const [blockedSlots, setBlockedSlots] = useState<{ slot_date: string; slot_time: string; slot_status: string }[]>([]);
+  const [workStations, setWorkStations] = useState(1);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [description, setDescription] = useState("");
@@ -56,6 +57,14 @@ export default function ServiceRequestForm({
       .eq("professional_id", professionalId)
       .eq("is_active", true)
       .then(({ data }) => setAvailability(data || []));
+
+    // Fetch professional capacity (work_stations)
+    supabase
+      .from("professional_profiles")
+      .select("work_stations")
+      .eq("user_id", professionalId)
+      .maybeSingle()
+      .then(({ data }) => setWorkStations((data as any)?.work_stations || 1));
 
     // Fetch blocked slots for next 30 days (including duration-based blocks)
     const today = new Date().toISOString().split("T")[0];
@@ -100,17 +109,21 @@ export default function ServiceRequestForm({
     return dates;
   })();
 
-  // Generate time slots for selected date
+  // Generate time slots for selected date — count occupied stations per slot
   const timeSlots = (() => {
     if (!selectedDate) return [];
     const d = new Date(selectedDate + "T00:00:00");
     const dow = d.getDay();
     const dayAvailability = availability.filter((a) => a.day_of_week === dow);
-    const blocked = new Set(
-      blockedSlots
-        .filter((b) => b.slot_date === selectedDate)
-        .map((b) => b.slot_time.slice(0, 5))
-    );
+
+    // Count slots with paid deposit per time (these consume a station)
+    const occupiedCount = new Map<string, number>();
+    blockedSlots
+      .filter((b) => b.slot_date === selectedDate && b.slot_status === "paid")
+      .forEach((b) => {
+        const key = b.slot_time.slice(0, 5);
+        occupiedCount.set(key, (occupiedCount.get(key) || 0) + 1);
+      });
 
     const slots: string[] = [];
     dayAvailability.forEach((slot) => {
@@ -119,7 +132,8 @@ export default function ServiceRequestForm({
       let h = startH, m = startM;
       while (h < endH || (h === endH && m < endM)) {
         const timeStr = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-        if (!blocked.has(timeStr)) {
+        // Slot is available if occupied count < total work stations
+        if ((occupiedCount.get(timeStr) || 0) < workStations) {
           slots.push(timeStr);
         }
         m += 60; // 1 hour slots
