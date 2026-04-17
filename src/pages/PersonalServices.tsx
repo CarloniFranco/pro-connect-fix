@@ -2,11 +2,12 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Scissors, Sparkles, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import { Badge } from "@/components/ui/badge";
 
 const services = [
-  { icon: Scissors, label: "Peluquería", color: "bg-primary" },
-  { icon: Sparkles, label: "Uñas", color: "bg-secondary" },
-  { icon: User, label: "Estética", color: "bg-accent" },
+  { icon: Scissors, label: "Peluquería", color: "bg-primary", isActive: false },
+  { icon: Sparkles, label: "Uñas", color: "bg-secondary", isActive: false },
+  { icon: User, label: "Estética", color: "bg-accent", isActive: false },
 ];
 
 const PersonalServices = () => {
@@ -41,15 +42,16 @@ const PersonalServices = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              whileHover={{ scale: 1.05, y: -4 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigate(`/profesionales/${encodeURIComponent(service.label)}`)}
-              className="flex flex-col items-center gap-3 rounded-2xl border-2 border-border bg-card p-5 shadow-md transition-shadow hover:shadow-xl hover:border-secondary"
+              disabled={!service.isActive}
+              className="flex flex-col items-center gap-3 rounded-2xl border-2 border-border bg-card p-5 shadow-md transition-all relative opacity-50 cursor-not-allowed"
             >
-              <div className={`flex h-14 w-14 items-center justify-center rounded-xl ${service.color} shadow-md`}>
+              <Badge variant="secondary" className="absolute -top-2 -right-2 text-xs">
+                Próximamente
+              </Badge>
+              <div className={`flex h-14 w-14 items-center justify-center rounded-xl ${service.color} shadow-md grayscale`}>
                 <service.icon className="h-7 w-7 text-white" />
               </div>
-              <span className="text-center text-sm font-bold text-card-foreground">
+              <span className="text-center text-sm font-bold text-muted-foreground">
                 {service.label}
               </span>
             </motion.button>
