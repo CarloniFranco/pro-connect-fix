@@ -177,6 +177,7 @@ export type Database = {
           updated_at: string
           user_id: string
           verified: boolean
+          work_stations: number
         }
         Insert: {
           available?: boolean
@@ -191,6 +192,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           verified?: boolean
+          work_stations?: number
         }
         Update: {
           available?: boolean
@@ -205,6 +207,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           verified?: boolean
+          work_stations?: number
         }
         Relationships: []
       }
