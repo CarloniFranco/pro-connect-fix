@@ -56,6 +56,22 @@ export default {
         coin: "hsl(var(--coin-gold))",
         brick: "hsl(var(--brick))",
         sky: "hsl(var(--sky))",
+        vehicle: {
+          DEFAULT: "hsl(var(--vehicle))",
+          foreground: "hsl(var(--vehicle-foreground))",
+        },
+        pet: {
+          DEFAULT: "hsl(var(--pet))",
+          foreground: "hsl(var(--pet-foreground))",
+        },
+        "home-cat": {
+          DEFAULT: "hsl(var(--home-cat))",
+          foreground: "hsl(var(--home-cat-foreground))",
+        },
+        "personal-cat": {
+          DEFAULT: "hsl(var(--personal-cat))",
+          foreground: "hsl(var(--personal-cat-foreground))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
