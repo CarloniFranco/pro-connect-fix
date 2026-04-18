@@ -1,15 +1,13 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Car, Droplets, Zap, Flame, Wrench, TreePine, Waves, Thermometer } from "lucide-react";
+import { ArrowLeft, Droplets, Zap, Flame, TreePine, Waves, Thermometer } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { Badge } from "@/components/ui/badge";
 
 const services = [
-  { icon: Car, label: "Lavadero de Auto", color: "bg-primary", isActive: true },
   { icon: Droplets, label: "Plomería", color: "bg-secondary", isActive: false },
   { icon: Zap, label: "Electricidad", color: "bg-accent", isActive: false },
   { icon: Flame, label: "Gas", color: "bg-primary", isActive: false },
-  { icon: Wrench, label: "Taller Mecánico", color: "bg-primary", isActive: false },
   { icon: TreePine, label: "Jardinería", color: "bg-pipe", isActive: false },
   { icon: Waves, label: "Piletero", color: "bg-secondary", isActive: false },
   { icon: Thermometer, label: "Calefacción y Refrigeración", color: "bg-primary", isActive: false },
