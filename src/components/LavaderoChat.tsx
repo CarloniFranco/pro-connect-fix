@@ -144,18 +144,35 @@ export default function LavaderoChat() {
     <>
       {/* Floating button */}
       {!open && (
-        <button
-          onClick={handleOpen}
-          className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition-transform hover:scale-110"
-          aria-label="Abrir chat de reservas"
-        >
-          <MessageCircle className="h-6 w-6" />
-          {unread > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
-              {unread}
-            </span>
-          )}
-        </button>
+        <div className="fixed bottom-5 right-5 z-50 flex items-end gap-2">
+          {/* Tooltip / cartel */}
+          <div className="hidden sm:flex flex-col items-end animate-[float_3s_ease-in-out_infinite]">
+            <div className="relative rounded-2xl rounded-br-sm bg-card border border-border px-4 py-2 shadow-lg">
+              <p className="text-xs font-bold text-foreground whitespace-nowrap">
+                Chateá con <span className="text-primary">FIX</span> 🚗
+              </p>
+              <p className="text-[10px] text-muted-foreground whitespace-nowrap">
+                Tu asistente para reservar turnos
+              </p>
+              {/* Tail */}
+              <div className="absolute -bottom-1.5 right-4 h-3 w-3 rotate-45 border-b border-r border-border bg-card" />
+            </div>
+          </div>
+          <button
+            onClick={handleOpen}
+            className="relative flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition-transform hover:scale-110"
+            aria-label="Abrir chat de reservas"
+          >
+            <MessageCircle className="h-6 w-6" />
+            {/* Pulse ring */}
+            <span className="absolute inset-0 rounded-full bg-primary/40 animate-ping" />
+            {unread > 0 && (
+              <span className="absolute -top-1 -right-1 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                {unread}
+              </span>
+            )}
+          </button>
+        </div>
       )}
 
       {/* Chat panel */}
