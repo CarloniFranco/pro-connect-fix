@@ -74,11 +74,10 @@ export default function LavaderoChat() {
               role: "assistant",
               content: `¡Ya tengo tu presupuesto! 🎉\n\n💰 **$${Number(
                 newRow.quoted_amount,
-              ).toLocaleString("es-AR")}**\n\nReservá tu lugar pagando la seña del 10% acá: [Ver pedido y pagar](/mis-pedidos)`,
+              ).toLocaleString("es-AR")}**\n\nMirá los detalles y confirmá acá: [Ver pedido](/mis-pedidos)`,
             };
             setMessages((prev) => [...prev, msg]);
             if (!open) setUnread((u) => u + 1);
-            setActiveRequestId(null);
           }
         },
       )
@@ -88,18 +87,18 @@ export default function LavaderoChat() {
     };
   }, [activeRequestId, user, open]);
 
-  const sendMessage = async () => {
-    const text = input.trim();
+  const sendMessage = async (overrideText?: string) => {
+    const text = (overrideText ?? input).trim();
     if (!text || loading) return;
     const userMsg: Msg = { role: "user", content: text };
     const newMsgs = [...messages, userMsg];
     setMessages(newMsgs);
-    setInput("");
+    if (!overrideText) setInput("");
     setLoading(true);
 
     try {
       const { data, error } = await supabase.functions.invoke("lavadero-chat", {
-        body: { messages: newMsgs },
+        body: { messages: newMsgs, active_request_id: activeRequestId },
       });
       if (error) throw error;
       if (data?.error) {
@@ -111,21 +110,11 @@ export default function LavaderoChat() {
       } else if (data?.reply) {
         setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
 
-        if (user) {
-          const { data: latest } = await supabase
-            .from("service_requests")
-            .select("id, created_at, status")
-            .eq("client_user_id", user.id)
-            .eq("service_type", "Lavadero de Auto")
-            .in("status", ["nueva", "cotizada"])
-            .order("created_at", { ascending: false })
-            .limit(1);
-          if (latest && latest[0]) {
-            const created = new Date(latest[0].created_at).getTime();
-            if (Date.now() - created < 60_000 && latest[0].status === "nueva") {
-              setActiveRequestId(latest[0].id);
-            }
-          }
+        // Trust the edge function's request_id (it knows what was just created/cancelled)
+        if (typeof data.request_id === "string") {
+          setActiveRequestId(data.request_id);
+        } else if (data.request_id === null) {
+          setActiveRequestId(null);
         }
       }
     } catch (e) {
@@ -134,6 +123,11 @@ export default function LavaderoChat() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    if (loading) return;
+    sendMessage("Quiero cancelar el turno");
   };
 
   const reset = () => {
@@ -228,6 +222,18 @@ export default function LavaderoChat() {
                   <Loader2 className="h-3 w-3 animate-spin" />
                   Pensando...
                 </div>
+              </div>
+            )}
+            {activeRequestId && !loading && (
+              <div className="flex justify-center">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCancel}
+                  className="text-destructive hover:text-destructive"
+                >
+                  Cancelar pedido
+                </Button>
               </div>
             )}
             {!user && messages.length > 1 && (
