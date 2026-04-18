@@ -1,19 +1,15 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Droplets, Zap, Flame, TreePine, Waves, Thermometer } from "lucide-react";
+import { ArrowLeft, Car, Wrench } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { Badge } from "@/components/ui/badge";
 
 const services = [
-  { icon: Droplets, label: "Plomería", color: "bg-secondary", isActive: false },
-  { icon: Zap, label: "Electricidad", color: "bg-accent", isActive: false },
-  { icon: Flame, label: "Gas", color: "bg-primary", isActive: false },
-  { icon: TreePine, label: "Jardinería", color: "bg-pipe", isActive: false },
-  { icon: Waves, label: "Piletero", color: "bg-secondary", isActive: false },
-  { icon: Thermometer, label: "Calefacción y Refrigeración", color: "bg-primary", isActive: false },
+  { icon: Car, label: "Lavadero de Auto", color: "bg-primary", isActive: true },
+  { icon: Wrench, label: "Taller Mecánico", color: "bg-secondary", isActive: false },
 ];
 
-const HomeServices = () => {
+const VehicleServices = () => {
   const navigate = useNavigate();
 
   return (
@@ -34,11 +30,11 @@ const HomeServices = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-2 font-display text-3xl font-bold text-foreground md:text-4xl"
         >
-          🏠 Servicios para el Hogar
+          🚗 Servicios para tu Vehículo
         </motion.h1>
         <p className="mb-8 text-muted-foreground">Elegí el servicio que necesitás</p>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           {services.map((service, i) => (
             <motion.button
               key={service.label}
@@ -74,4 +70,4 @@ const HomeServices = () => {
   );
 };
 
-export default HomeServices;
+export default VehicleServices;
