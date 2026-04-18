@@ -50,6 +50,16 @@
     --coin-gold: 38 60% 52%;
     --brick: 30 25% 55%;
     --sky: 210 40% 60%;
+
+    /* Category brand colors */
+    --vehicle: 265 55% 55%;            /* Profesional violet */
+    --vehicle-foreground: 0 0% 100%;
+    --pet: 200 75% 75%;                /* Soft pastel sky blue */
+    --pet-foreground: 215 35% 20%;
+    --home-cat: 168 45% 38%;           /* Reuse teal */
+    --home-cat-foreground: 0 0% 100%;
+    --personal-cat: 340 65% 62%;       /* Warm rose */
+    --personal-cat-foreground: 0 0% 100%;
   }
 
   .dark {
