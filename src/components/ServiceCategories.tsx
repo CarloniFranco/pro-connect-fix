@@ -6,22 +6,27 @@ import {
   Droplets,
   Zap,
   Flame,
-  Wrench,
   TreePine,
   Waves,
   Thermometer,
   Scissors,
   Sparkles,
   User,
+  Wrench,
+  PawPrint,
+  Footprints,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-const homeServices = [
+const vehicleServices = [
   { icon: Car, label: "Lavadero de Auto", isActive: true },
+  { icon: Wrench, label: "Taller Mecánico", isActive: false },
+];
+
+const homeServices = [
   { icon: Droplets, label: "Plomería", isActive: false },
   { icon: Zap, label: "Electricidad", isActive: false },
   { icon: Flame, label: "Gas", isActive: false },
-  { icon: Wrench, label: "Taller Mecánico", isActive: false },
   { icon: TreePine, label: "Jardinería", isActive: false },
   { icon: Waves, label: "Piletero", isActive: false },
   { icon: Thermometer, label: "Calefacción y Refrigeración", isActive: false },
@@ -31,6 +36,11 @@ const personalServices = [
   { icon: Scissors, label: "Peluquería", isActive: false },
   { icon: Sparkles, label: "Uñas", isActive: false },
   { icon: User, label: "Estética", isActive: false },
+];
+
+const petServices = [
+  { icon: Footprints, label: "Paseo de Mascotas", isActive: false },
+  { icon: PawPrint, label: "Peluquería Canina", isActive: false },
 ];
 
 const ServiceCard = ({
@@ -69,6 +79,50 @@ const ServiceCard = ({
   </motion.button>
 );
 
+type Section = {
+  key: string;
+  title: string;
+  subtitle: string;
+  icon: React.ElementType;
+  iconBg: string;
+  services: { icon: React.ElementType; label: string; isActive: boolean }[];
+};
+
+const sections: Section[] = [
+  {
+    key: "vehiculo",
+    title: "Vehículo",
+    subtitle: "Auto y moto",
+    icon: Car,
+    iconBg: "bg-primary",
+    services: vehicleServices,
+  },
+  {
+    key: "hogar",
+    title: "Servicios para el Hogar",
+    subtitle: "y otros",
+    icon: Home,
+    iconBg: "bg-primary",
+    services: homeServices,
+  },
+  {
+    key: "personal",
+    title: "Servicios Personales",
+    subtitle: "Cuidado y estética",
+    icon: Scissors,
+    iconBg: "bg-secondary",
+    services: personalServices,
+  },
+  {
+    key: "mascotas",
+    title: "Mascotas",
+    subtitle: "Cuidado animal",
+    icon: PawPrint,
+    iconBg: "bg-accent",
+    services: petServices,
+  },
+];
+
 const ServiceCategories = () => {
   const navigate = useNavigate();
 
@@ -79,71 +133,40 @@ const ServiceCategories = () => {
 
   return (
     <section className="px-4 py-12 md:py-20">
-      <div className="container mx-auto max-w-4xl">
-        {/* Home Services */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="mb-12"
-        >
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-              <Home className="h-5 w-5 text-primary-foreground" />
+      <div className="container mx-auto max-w-4xl space-y-12">
+        {sections.map((section, idx) => (
+          <motion.div
+            key={section.key}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: idx * 0.05 }}
+          >
+            <div className="mb-6 flex items-center gap-3">
+              <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${section.iconBg}`}>
+                <section.icon className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <div>
+                <h2 className="font-display text-xl font-bold text-foreground md:text-2xl">
+                  {section.title}
+                </h2>
+                <p className="text-sm text-muted-foreground">{section.subtitle}</p>
+              </div>
             </div>
-            <div>
-              <h2 className="font-display text-xl font-bold text-foreground md:text-2xl">
-                Servicios para el Hogar
-              </h2>
-              <p className="text-sm text-muted-foreground">y otros</p>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-4">
-            {homeServices.map((service) => (
-              <ServiceCard
-                key={service.label}
-                icon={service.icon}
-                label={service.label}
-                isActive={service.isActive}
-                onClick={() => handleCategoryClick(service.label, service.isActive)}
-              />
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Personal Services */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
-              <Scissors className="h-5 w-5 text-secondary-foreground" />
+            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-4">
+              {section.services.map((service) => (
+                <ServiceCard
+                  key={service.label}
+                  icon={service.icon}
+                  label={service.label}
+                  isActive={service.isActive}
+                  onClick={() => handleCategoryClick(service.label, service.isActive)}
+                />
+              ))}
             </div>
-            <div>
-              <h2 className="font-display text-xl font-bold text-foreground md:text-2xl">
-                Servicios Personales
-              </h2>
-              <p className="text-sm text-muted-foreground">Cuidado y estética</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-3 md:grid-cols-3">
-            {personalServices.map((service) => (
-              <ServiceCard
-                key={service.label}
-                icon={service.icon}
-                label={service.label}
-                isActive={service.isActive}
-                onClick={() => handleCategoryClick(service.label, service.isActive)}
-              />
-            ))}
-          </div>
-        </motion.div>
+          </motion.div>
+        ))}
       </div>
     </section>
   );
