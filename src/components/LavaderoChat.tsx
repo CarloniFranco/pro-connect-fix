@@ -224,6 +224,18 @@ export default function LavaderoChat() {
                 </div>
               </div>
             )}
+            {activeRequestId && !loading && (
+              <div className="flex justify-center">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCancel}
+                  className="text-destructive hover:text-destructive"
+                >
+                  Cancelar pedido
+                </Button>
+              </div>
+            )}
             {!user && messages.length > 1 && (
               <div className="flex justify-center">
                 <Button
