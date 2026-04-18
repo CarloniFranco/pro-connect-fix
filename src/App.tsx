@@ -19,6 +19,8 @@ import ProWorkHistory from "./pages/ProWorkHistory.tsx";
 import ProSubscription from "./pages/ProSubscription.tsx";
 import HomeServices from "./pages/HomeServices.tsx";
 import PersonalServices from "./pages/PersonalServices.tsx";
+import VehicleServices from "./pages/VehicleServices.tsx";
+import PetServices from "./pages/PetServices.tsx";
 import ProfessionalsList from "./pages/ProfessionalsList.tsx";
 import ProfessionalPublicProfile from "./pages/ProfessionalPublicProfile.tsx";
 import TermsAndConditions from "./pages/TermsAndConditions.tsx";
@@ -48,6 +50,8 @@ const App = () => (
             <Route path="/terminos" element={<TermsAndConditions />} />
             <Route path="/servicios/hogar" element={<HomeServices />} />
             <Route path="/servicios/personal" element={<PersonalServices />} />
+            <Route path="/servicios/vehiculo" element={<VehicleServices />} />
+            <Route path="/servicios/mascotas" element={<PetServices />} />
             <Route path="/profesionales/:category" element={<ProfessionalsList />} />
             <Route path="/profesional/:userId" element={<ProfessionalPublicProfile />} />
             <Route path="/checkout/return" element={<CheckoutReturn />} />
