@@ -1,8 +1,7 @@
 // Conversational chatbot for "Lavadero de Auto" bookings.
 // Uses Lovable AI Gateway (Gemini 2.5 Flash) with tool-calling
-// to: check availability across active car-wash professionals,
-// suggest closest slots, and create service_requests on behalf
-// of an authenticated client.
+// to: check availability, create requests directly as 'aceptada'
+// (no deposit for MVP), and cancel pending requests.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 
 const corsHeaders = {
@@ -17,18 +16,20 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
 
 const RUBRO = "Lavadero de Auto";
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const SYSTEM_PROMPT = `Sos "Fix Bot", un asistente de Argentina que SOLO ayuda a reservar turnos de Lavadero de Autos en la plataforma FIX.
 
 REGLAS CRÍTICAS:
-- Hablás en español argentino, breve, simpático y directo. Usá "vos" y "che" con moderación.
-- Si el usuario pide otro rubro (plomero, electricista, etc.), respondé que por ahora solo Lavadero de Auto está habilitado y que el resto llegará "muy pronto". NO inventes disponibilidad.
+- Hablás en español argentino, breve, simpático y directo. Usá "vos".
+- Si el usuario pide otro rubro (plomero, electricista, peluquero, mascotas, etc.), respondé que por ahora SOLO Lavadero de Auto está habilitado y que el resto llegará "muy pronto". NO inventes disponibilidad.
 - Para reservar necesitás: fecha y hora aproximada. Si dice "urgente" o "ya", buscá el primer hueco disponible hoy.
 - SIEMPRE usá la tool 'check_availability' antes de prometer un turno. NUNCA inventes nombres de lavaderos ni horarios.
 - Cuando haya disponibilidad, ofrecé los TOP 2-3 lavaderos (con su nombre y score) para que el usuario elija.
-- Cuando el usuario confirma uno, usá la tool 'create_request' para crear la solicitud.
-- Si la tool 'create_request' devuelve { needs_login: true }, decile al usuario que se loguee/registre para confirmar el pedido (mostrá un mensaje claro, no llames la tool de nuevo).
-- Después de crear la solicitud, decile que el lavadero le va a mandar un presupuesto y que cuando llegue lo va a ver acá mismo.
+- Cuando el usuario confirma uno, usá la tool 'create_request'. ⚠️ IMPORTANTE: en esta versión MVP NO se cobra seña. El turno queda CONFIRMADO de inmediato.
+- Si el usuario dice "cancelo", "no", "mejor no", "cancelar", "rechazo" o equivalente DESPUÉS de haber creado un pedido, usá la tool 'cancel_request' con el request_id de la última solicitud creada en esta conversación.
+- Si la tool 'create_request' devuelve { needs_login: true }, decile al usuario que se loguee/registre para confirmar el pedido (NO llames la tool de nuevo).
+- Después de crear la solicitud, decile que el turno quedó CONFIRMADO y que el lavadero le va a mandar un presupuesto que va a ver acá mismo.
 - No menciones IDs ni detalles técnicos.
 - Fecha de hoy: ${new Date().toISOString().split("T")[0]}. Zona horaria de Argentina (UTC-3).`;
 
@@ -38,22 +39,15 @@ const tools = [
     function: {
       name: "check_availability",
       description:
-        "Consulta los lavaderos disponibles para una fecha y hora dadas. Devuelve el top 3 con score, ordenados de mejor a peor. Si no hay nadie en ese horario exacto, devuelve los huecos más cercanos.",
+        "Consulta los lavaderos disponibles para una fecha y hora dadas. Devuelve el top 3 con score, ordenados de mejor a peor. Si urgent=true, ignora la hora y devuelve el primer hueco disponible hoy.",
       parameters: {
         type: "object",
         properties: {
-          date: {
-            type: "string",
-            description: "Fecha en formato YYYY-MM-DD",
-          },
-          time: {
-            type: "string",
-            description: "Hora en formato HH:MM (24h)",
-          },
+          date: { type: "string", description: "Fecha en formato YYYY-MM-DD" },
+          time: { type: "string", description: "Hora en formato HH:MM (24h)" },
           urgent: {
             type: "boolean",
-            description:
-              "Si es true, ignora la hora y devuelve el primer hueco disponible hoy.",
+            description: "Si es true, ignora la hora y devuelve el primer hueco disponible hoy.",
           },
         },
         required: ["date"],
@@ -66,11 +60,11 @@ const tools = [
     function: {
       name: "create_request",
       description:
-        "Crea una solicitud de servicio de lavado a nombre del usuario logueado. Solo llamar después de confirmación explícita.",
+        "Crea una solicitud de servicio de lavado a nombre del usuario logueado. CONFIRMA el turno directamente (sin seña). Solo llamar después de confirmación explícita del usuario.",
       parameters: {
         type: "object",
         properties: {
-          professional_id: { type: "string" },
+          professional_id: { type: "string", description: "UUID del profesional devuelto por check_availability" },
           professional_name: { type: "string" },
           date: { type: "string", description: "YYYY-MM-DD" },
           time: { type: "string", description: "HH:MM" },
@@ -80,6 +74,22 @@ const tools = [
           },
         },
         required: ["professional_id", "date", "time", "description"],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "cancel_request",
+      description:
+        "Cancela una solicitud previamente creada por el usuario en esta conversación. Usar cuando el usuario indique que quiere cancelar.",
+      parameters: {
+        type: "object",
+        properties: {
+          request_id: { type: "string", description: "UUID de la solicitud a cancelar" },
+        },
+        required: ["request_id"],
         additionalProperties: false,
       },
     },
@@ -99,7 +109,6 @@ async function checkAvailability(args: {
   const targetDate = urgent ? new Date().toISOString().split("T")[0] : date;
   const dow = new Date(targetDate + "T12:00:00").getDay();
 
-  // 1. Active car-wash pros with availability that day
   const { data: pros } = await admin
     .from("professional_profiles")
     .select("user_id, full_name, work_stations, available")
@@ -119,21 +128,20 @@ async function checkAvailability(args: {
     .eq("day_of_week", dow)
     .eq("is_active", true);
 
+  // Count any blocked slot (paid OR pending) since now we confirm without deposit
   const { data: blocked } = await admin
     .from("blocked_slots")
     .select("professional_id, slot_time, slot_status")
     .in("professional_id", proIds)
     .eq("slot_date", targetDate)
-    .eq("slot_status", "paid");
+    .in("slot_status", ["paid", "pending"]);
 
-  // Count occupied per pro/time
   const occupiedMap = new Map<string, number>();
   blocked?.forEach((b) => {
     const key = `${b.professional_id}|${b.slot_time.slice(0, 5)}`;
     occupiedMap.set(key, (occupiedMap.get(key) || 0) + 1);
   });
 
-  // Generate hourly slots per pro
   type SlotRow = { proId: string; proName: string; time: string; freeStations: number };
   const allSlots: SlotRow[] = [];
   for (const pro of pros) {
@@ -147,12 +155,7 @@ async function checkAvailability(args: {
         const occ = occupiedMap.get(`${pro.user_id}|${t}`) || 0;
         const free = pro.work_stations - occ;
         if (free > 0) {
-          allSlots.push({
-            proId: pro.user_id,
-            proName: pro.full_name,
-            time: t,
-            freeStations: free,
-          });
+          allSlots.push({ proId: pro.user_id, proName: pro.full_name, time: t, freeStations: free });
         }
         m += 60;
         if (m >= 60) { h++; m = 0; }
@@ -164,7 +167,6 @@ async function checkAvailability(args: {
     return { available: [], message: `No hay turnos libres el ${targetDate}.` };
   }
 
-  // Get scores
   const scoredPros = await Promise.all(
     pros.map(async (p) => {
       const { data: score } = await admin.rpc("get_professional_score", {
@@ -175,10 +177,8 @@ async function checkAvailability(args: {
   );
   const scoreMap = new Map(scoredPros.map((s) => [s.user_id, s.score]));
 
-  // Filter by requested time
   let candidates: SlotRow[];
   if (urgent) {
-    // Only future times today
     const now = new Date();
     const nowMin = now.getHours() * 60 + now.getMinutes();
     candidates = allSlots
@@ -199,7 +199,6 @@ async function checkAvailability(args: {
     candidates = allSlots.sort((a, b) => a.time.localeCompare(b.time));
   }
 
-  // Top 3 distinct (proId,time)
   const top = candidates.slice(0, 6).map((s) => ({
     professional_id: s.proId,
     professional_name: s.proName,
@@ -207,8 +206,6 @@ async function checkAvailability(args: {
     time: s.time,
     score: scoreMap.get(s.proId) ?? 3,
   }));
-
-  // Sort top by score desc within similar time proximity
   top.sort((a, b) => (b.score as number) - (a.score as number));
 
   return {
@@ -231,6 +228,15 @@ async function createRequest(
   if (!authHeader?.startsWith("Bearer ")) {
     return { needs_login: true, message: "El usuario debe iniciar sesión para confirmar." };
   }
+
+  // Validate professional_id is a real UUID before hitting DB
+  if (!args.professional_id || !UUID_RE.test(args.professional_id)) {
+    return { error: "ID de profesional inválido. Volvé a consultar disponibilidad." };
+  }
+  if (!args.date || !args.time) {
+    return { error: "Fecha y hora son obligatorias." };
+  }
+
   const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     global: { headers: { Authorization: authHeader } },
   });
@@ -241,14 +247,26 @@ async function createRequest(
   }
   const userId = claimsData.claims.sub as string;
 
-  // Pull client profile for contact data
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+  // Verify pro exists & is car wash
+  const { data: pro } = await admin
+    .from("professional_profiles")
+    .select("user_id, rubro")
+    .eq("user_id", args.professional_id)
+    .maybeSingle();
+  if (!pro || pro.rubro !== RUBRO) {
+    return { error: "El profesional no está disponible." };
+  }
+
   const { data: profile } = await admin
     .from("client_profiles")
     .select("full_name, phone, address")
     .eq("user_id", userId)
     .maybeSingle();
 
+  // Insert request as ACEPTADA directly (MVP: no deposit step)
+  const nowIso = new Date().toISOString();
   const { data: inserted, error } = await userClient
     .from("service_requests")
     .insert({
@@ -261,22 +279,90 @@ async function createRequest(
       description: args.description,
       scheduled_date: args.date,
       scheduled_time: args.time + ":00",
-      status: "nueva",
+      status: "aceptada",
+      responded_at: nowIso,
     })
     .select("id")
     .single();
 
-  if (error) {
+  if (error || !inserted?.id) {
     console.error("create_request error", error);
-    return { error: error.message };
+    return { error: error?.message || "No se pudo crear la solicitud." };
   }
+
+  // Block the slot as 'paid' so capacity counts even without real payment
+  const { error: blockErr } = await admin
+    .from("blocked_slots")
+    .insert({
+      professional_id: args.professional_id,
+      service_request_id: inserted.id,
+      slot_date: args.date,
+      slot_time: args.time + ":00",
+      slot_status: "paid",
+    });
+  if (blockErr) console.error("blocked_slots insert warning", blockErr);
+
   return {
     success: true,
     request_id: inserted.id,
+    professional_id: args.professional_id,
     professional_name: args.professional_name,
     date: args.date,
     time: args.time,
   };
+}
+
+async function cancelRequest(
+  args: { request_id: string },
+  authHeader: string | null,
+) {
+  if (!authHeader?.startsWith("Bearer ")) {
+    return { error: "Necesitás iniciar sesión para cancelar." };
+  }
+  if (!args.request_id || !UUID_RE.test(args.request_id)) {
+    return { error: "No encontré ningún pedido reciente para cancelar." };
+  }
+
+  const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const token = authHeader.replace("Bearer ", "");
+  const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token);
+  if (claimsErr || !claimsData?.claims) {
+    return { error: "Sesión inválida." };
+  }
+  const userId = claimsData.claims.sub as string;
+
+  const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  const { data: existing } = await admin
+    .from("service_requests")
+    .select("id, client_user_id, status")
+    .eq("id", args.request_id)
+    .maybeSingle();
+
+  if (!existing || existing.client_user_id !== userId) {
+    return { error: "No encontré ese pedido." };
+  }
+  if (["finalizada", "rechazada_cliente", "rechazada_profesional"].includes(existing.status)) {
+    return { error: "Ese pedido ya estaba cerrado." };
+  }
+
+  const { error: updErr } = await userClient
+    .from("service_requests")
+    .update({ status: "rechazada_cliente", updated_at: new Date().toISOString() })
+    .eq("id", args.request_id);
+  if (updErr) {
+    console.error("cancel update error", updErr);
+    return { error: "No pude cancelar el pedido." };
+  }
+
+  // Free the blocked slot
+  await admin
+    .from("blocked_slots")
+    .delete()
+    .eq("service_request_id", args.request_id);
+
+  return { success: true, request_id: args.request_id };
 }
 
 // ------- Main handler -------
@@ -287,15 +373,22 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json();
+    const { messages, active_request_id } = await req.json();
     const authHeader = req.headers.get("Authorization");
 
-    let conversation = [
-      { role: "system", content: SYSTEM_PROMPT },
+    // Inject context about the current active request (if any) so the AI
+    // knows which ID to pass to cancel_request without asking the user.
+    const contextMsg = active_request_id && UUID_RE.test(active_request_id)
+      ? `\n\nCONTEXTO: El usuario tiene un pedido activo recién creado con request_id="${active_request_id}". Si pide cancelar, usá ESE id.`
+      : "";
+
+    let conversation: any[] = [
+      { role: "system", content: SYSTEM_PROMPT + contextMsg },
       ...messages,
     ];
 
-    // Multi-turn tool loop (max 4 iterations to be safe)
+    let lastCreatedRequestId: string | null = null;
+
     for (let i = 0; i < 4; i++) {
       const aiResp = await fetch(
         "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -338,15 +431,16 @@ Deno.serve(async (req) => {
       const msg = data.choices?.[0]?.message;
       if (!msg) break;
 
-      // No tool call → final answer
       if (!msg.tool_calls || msg.tool_calls.length === 0) {
         return new Response(
-          JSON.stringify({ reply: msg.content || "" }),
+          JSON.stringify({
+            reply: msg.content || "",
+            request_id: lastCreatedRequestId,
+          }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
 
-      // Push assistant turn (with tool_calls) and execute each tool
       conversation.push(msg);
       for (const call of msg.tool_calls) {
         let result: any;
@@ -356,6 +450,18 @@ Deno.serve(async (req) => {
             result = await checkAvailability(args);
           } else if (call.function.name === "create_request") {
             result = await createRequest(args, authHeader);
+            if (result?.success && result.request_id) {
+              lastCreatedRequestId = result.request_id;
+            }
+          } else if (call.function.name === "cancel_request") {
+            // If the AI didn't pass an id, fall back to the active one
+            if (!args.request_id && active_request_id) {
+              args.request_id = active_request_id;
+            }
+            result = await cancelRequest(args, authHeader);
+            if (result?.success) {
+              lastCreatedRequestId = null;
+            }
           } else {
             result = { error: "Tool desconocida" };
           }
@@ -371,7 +477,10 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ reply: "Disculpá, no pude completar la consulta. Probá de nuevo." }),
+      JSON.stringify({
+        reply: "Disculpá, no pude completar la consulta. Probá de nuevo.",
+        request_id: lastCreatedRequestId,
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {
