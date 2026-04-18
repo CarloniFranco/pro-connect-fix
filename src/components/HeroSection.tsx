@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Home, Scissors, Wrench } from "lucide-react";
+import { Home, Scissors, Wrench, Car, PawPrint } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
@@ -91,47 +91,35 @@ const HeroSection = () => {
           </p>
         </motion.div>
 
-        {/* Two main category buttons */}
-        <div className="mx-auto flex max-w-lg flex-col gap-4 sm:flex-row sm:gap-5">
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            whileHover={{ y: -3 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => navigate("/servicios/hogar")}
-            className="group flex flex-1 flex-col items-center gap-3 rounded-xl bg-primary-foreground/10 p-6 backdrop-blur-sm border border-primary-foreground/15 transition-all hover:bg-primary-foreground/15 md:p-8"
-          >
-            <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-secondary shadow-md md:h-16 md:w-16">
-              <Home className="h-7 w-7 text-secondary-foreground md:h-8 md:w-8" />
-            </div>
-            <span className="font-display text-lg font-bold text-primary-foreground md:text-xl">
-              Hogar
-            </span>
-            <span className="text-xs text-primary-foreground/60 md:text-sm">
-              Plomería, Electricidad, Gas y más
-            </span>
-          </motion.button>
-
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            whileHover={{ y: -3 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => navigate("/servicios/personal")}
-            className="group flex flex-1 flex-col items-center gap-3 rounded-xl bg-primary-foreground/10 p-6 backdrop-blur-sm border border-primary-foreground/15 transition-all hover:bg-primary-foreground/15 md:p-8"
-          >
-            <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-accent shadow-md md:h-16 md:w-16">
-              <Scissors className="h-7 w-7 text-accent-foreground md:h-8 md:w-8" />
-            </div>
-            <span className="font-display text-lg font-bold text-primary-foreground md:text-xl">
-              Personal
-            </span>
-            <span className="text-xs text-primary-foreground/60 md:text-sm">
-              Peluquería, Uñas, Estética
-            </span>
-          </motion.button>
+        {/* Four main category buttons */}
+        <div className="mx-auto grid max-w-2xl grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+          {[
+            { label: "Vehículo", desc: "Lavadero, Taller", icon: Car, bg: "bg-accent", fg: "text-accent-foreground", route: "/servicios/vehiculo", delay: 0.2 },
+            { label: "Hogar", desc: "Plomería, Gas y más", icon: Home, bg: "bg-secondary", fg: "text-secondary-foreground", route: "/servicios/hogar", delay: 0.25 },
+            { label: "Personal", desc: "Peluquería, Estética", icon: Scissors, bg: "bg-accent", fg: "text-accent-foreground", route: "/servicios/personal", delay: 0.3 },
+            { label: "Mascotas", desc: "Paseo, Peluquería", icon: PawPrint, bg: "bg-secondary", fg: "text-secondary-foreground", route: "/servicios/mascotas", delay: 0.35 },
+          ].map((cat) => (
+            <motion.button
+              key={cat.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: cat.delay, duration: 0.5 }}
+              whileHover={{ y: -3 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => navigate(cat.route)}
+              className="group flex flex-col items-center gap-2 rounded-xl bg-primary-foreground/10 p-4 backdrop-blur-sm border border-primary-foreground/15 transition-all hover:bg-primary-foreground/15 md:gap-3 md:p-6"
+            >
+              <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${cat.bg} shadow-md md:h-14 md:w-14`}>
+                <cat.icon className={`h-6 w-6 ${cat.fg} md:h-7 md:w-7`} />
+              </div>
+              <span className="font-display text-base font-bold text-primary-foreground md:text-lg">
+                {cat.label}
+              </span>
+              <span className="text-[10px] text-primary-foreground/60 md:text-xs">
+                {cat.desc}
+              </span>
+            </motion.button>
+          ))}
         </div>
       </div>
     </section>
