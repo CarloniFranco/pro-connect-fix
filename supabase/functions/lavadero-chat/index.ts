@@ -210,7 +210,7 @@ async function checkAvailability(args: {
     candidates = allSlots.sort((a, b) => a.time.localeCompare(b.time));
   }
 
-  const top = candidates.slice(0, 6).map((s) => ({
+  const top = candidates.slice(0, 10).map((s) => ({
     professional_id: s.proId,
     professional_name: s.proName,
     date: targetDate,
@@ -220,7 +220,7 @@ async function checkAvailability(args: {
   top.sort((a, b) => (b.score as number) - (a.score as number));
 
   return {
-    available: top.slice(0, 3),
+    available: top.slice(0, 5),
     requested_time: time || null,
     requested_date: targetDate,
   };
