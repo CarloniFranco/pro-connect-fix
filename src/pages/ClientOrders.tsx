@@ -146,7 +146,7 @@ const ClientOrders = () => {
   const [existingReviews, setExistingReviews] = useState<Record<string, { rating: number; comment: string | null }>>({});
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<ServiceRequest | null>(null);
-  const [showCheckout, setShowCheckout] = useState(false);
+  const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
 
   // Review form state
