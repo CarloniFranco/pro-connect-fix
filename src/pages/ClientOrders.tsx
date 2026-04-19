@@ -46,7 +46,7 @@ type ServiceRequest = {
 const statusLabels: Record<string, string> = {
   nueva: "Solicitado",
   cotizada: "Presupuestado",
-  aceptada: "Señado / Confirmado",
+  aceptada: "Confirmado",
   en_servicio: "En servicio",
   finalizada: "Finalizado",
   rechazada_profesional: "Declinado",
