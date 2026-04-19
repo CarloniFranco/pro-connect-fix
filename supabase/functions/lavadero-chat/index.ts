@@ -211,6 +211,14 @@ async function checkAvailability(args: {
   }
 
   if (allSlots.length === 0) {
+    if (nameFiltered) {
+      return {
+        available: [],
+        name_searched: professional_name,
+        no_slots_for_pro: true,
+        message: `${pros[0].full_name} no tiene turnos disponibles el ${targetDate}.`,
+      };
+    }
     return { available: [], message: `No hay turnos libres el ${targetDate}.` };
   }
 
