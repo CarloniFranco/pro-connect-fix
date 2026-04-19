@@ -21,13 +21,12 @@ import {
   User as UserIcon,
   Wrench,
   Star,
-  CreditCard,
+  CheckCircle2,
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
-import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
 
 
 type ServiceRequest = {
@@ -47,7 +46,7 @@ type ServiceRequest = {
 const statusLabels: Record<string, string> = {
   nueva: "Solicitado",
   cotizada: "Presupuestado",
-  aceptada: "Señado / Confirmado",
+  aceptada: "Confirmado",
   en_servicio: "En servicio",
   finalizada: "Finalizado",
   rechazada_profesional: "Declinado",
@@ -147,7 +146,7 @@ const ClientOrders = () => {
   const [existingReviews, setExistingReviews] = useState<Record<string, { rating: number; comment: string | null }>>({});
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<ServiceRequest | null>(null);
-  const [showCheckout, setShowCheckout] = useState(false);
+  const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
 
   // Review form state
@@ -205,10 +204,35 @@ const ClientOrders = () => {
     setLoading(false);
   };
 
+  const handleAcceptQuote = async (req: ServiceRequest) => {
+    setAcceptingId(req.id);
+    const { error } = await supabase
+      .from("service_requests")
+      .update({ status: "aceptada" as any })
+      .eq("id", req.id);
+
+    if (!error) {
+      // Confirmar bloqueo del slot (de pending → paid para que cuente en capacidad)
+      await supabase
+        .from("blocked_slots")
+        .update({ slot_status: "paid", expires_at: null })
+        .eq("service_request_id", req.id);
+    }
+
+    setAcceptingId(null);
+    if (error) {
+      toast.error("Error al confirmar el turno");
+      return;
+    }
+    toast.success("¡Turno confirmado! Te esperamos.");
+    setSelectedRequest(null);
+    loadRequests();
+  };
+
   const handleRejectQuote = async (req: ServiceRequest) => {
     setRejectingId(req.id);
-    
-    // Release blocked slots for this request
+
+    // Liberar slots bloqueados
     await supabase
       .from("blocked_slots")
       .delete()
@@ -223,8 +247,6 @@ const ClientOrders = () => {
       toast.error("Error al rechazar");
       return;
     }
-    // Notification is handled automatically by DB trigger
-
     toast.success("Presupuesto rechazado");
     setSelectedRequest(null);
     loadRequests();
@@ -266,7 +288,6 @@ const ClientOrders = () => {
     if (selectedRequest) {
       setReviewRating(0);
       setReviewComment("");
-      setShowCheckout(false);
     }
   }, [selectedRequest]);
 
@@ -284,15 +305,15 @@ const ClientOrders = () => {
   const needsReview = (req: ServiceRequest) =>
     req.status === "finalizada" && !reviewedIds.has(req.id);
 
-  const needsDeposit = (req: ServiceRequest) =>
-    req.status === "cotizada" && req.quoted_amount && !req.deposit_paid;
+  const needsDecision = (req: ServiceRequest) =>
+    req.status === "cotizada" && req.quoted_amount;
 
   // Status progress badges
   const getProgressBadges = (status: string) => {
     const steps = [
       { key: "nueva", label: "Solicitado" },
       { key: "cotizada", label: "Presupuestado" },
-      { key: "aceptada", label: "Señado" },
+      { key: "aceptada", label: "Confirmado" },
     ];
     const statusOrder = ["nueva", "cotizada", "aceptada", "en_servicio", "finalizada"];
     const currentIdx = statusOrder.indexOf(status);
@@ -348,7 +369,7 @@ const ClientOrders = () => {
                   key={req.id}
                   className={`cursor-pointer transition-shadow hover:shadow-md ${
                     needsReview(req) ? "border-accent/50 ring-1 ring-accent/20" : ""
-                  } ${needsDeposit(req) ? "border-primary/50 ring-1 ring-primary/20" : ""}`}
+                  } ${needsDecision(req) ? "border-primary/50 ring-1 ring-primary/20" : ""}`}
                   onClick={() => setSelectedRequest(req)}
                 >
                   <CardContent className="p-4">
@@ -392,9 +413,9 @@ const ClientOrders = () => {
                         >
                           {statusLabels[req.status] || req.status}
                         </Badge>
-                        {needsDeposit(req) && (
+                        {needsDecision(req) && (
                           <span className="text-xs font-medium text-primary animate-pulse">
-                            💳 Pagar seña
+                            ✋ Aceptar / Rechazar
                           </span>
                         )}
                         {needsReview(req) && (
@@ -466,54 +487,40 @@ const ClientOrders = () => {
                     </div>
                   )}
 
-                  {/* Deposit payment section */}
-                  {needsDeposit(selectedRequest) && !showCheckout && (
+                  {/* Accept / Reject quote */}
+                  {needsDecision(selectedRequest) && (
                     <div className="border-t border-border pt-4 space-y-3">
                       <div className="rounded-lg bg-primary/5 border border-primary/20 p-4 text-center">
                         <p className="text-sm font-semibold text-foreground mb-1">
-                          Para asegurar tu turno, se requiere el pago de una seña del 10%
+                          ¿Aceptás el presupuesto?
                         </p>
-                        <p className="text-2xl font-bold text-primary mb-2">
-                          ${(selectedRequest.deposit_amount || Math.round(selectedRequest.quoted_amount! * 0.1)).toLocaleString("es-AR")}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground mb-3">
-                          La seña será gestionada según nuestros{" "}
-                          <a href="/terminos" className="underline text-primary">Términos y Condiciones</a>
+                        <p className="text-xs text-muted-foreground mb-3">
+                          Si lo aceptás, el turno queda confirmado automáticamente. No se requiere pago anticipado.
                         </p>
                         <div className="flex gap-2">
                           <Button
                             variant="outline"
                             onClick={() => handleRejectQuote(selectedRequest)}
-                            disabled={rejectingId === selectedRequest.id}
+                            disabled={rejectingId === selectedRequest.id || acceptingId === selectedRequest.id}
                             className="flex-1 gap-1 text-destructive"
                           >
                             <XCircle className="h-4 w-4" />
                             Rechazar
                           </Button>
                           <Button
-                            onClick={() => setShowCheckout(true)}
+                            onClick={() => handleAcceptQuote(selectedRequest)}
+                            disabled={acceptingId === selectedRequest.id || rejectingId === selectedRequest.id}
                             className="flex-1 gap-2"
                           >
-                            <CreditCard className="h-4 w-4" />
-                            Pagar Seña
+                            {acceptingId === selectedRequest.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <CheckCircle2 className="h-4 w-4" />
+                            )}
+                            Aceptar y confirmar
                           </Button>
                         </div>
                       </div>
-                    </div>
-                  )}
-
-                  {/* Stripe Checkout inline */}
-                  {needsDeposit(selectedRequest) && showCheckout && (
-                    <div className="border-t border-border pt-4">
-                      <StripeEmbeddedCheckout
-                        amountInCents={(selectedRequest.deposit_amount || Math.round(selectedRequest.quoted_amount! * 0.1)) * 100}
-                        currency="ars"
-                        productName={`Seña - ${selectedRequest.service_type}`}
-                        customerEmail={user?.email || undefined}
-                        userId={user?.id}
-                        returnUrl={`${window.location.origin}/mis-pedidos?checkout=success&session_id={CHECKOUT_SESSION_ID}`}
-                        metadata={{ service_request_id: selectedRequest.id }}
-                      />
                     </div>
                   )}
 
@@ -529,7 +536,7 @@ const ClientOrders = () => {
                   {selectedRequest.status === "aceptada" && (
                     <div className="rounded-lg bg-green-500/10 p-3 text-center">
                       <p className="text-sm font-semibold text-green-700 dark:text-green-300">
-                        ✅ Turno confirmado — Seña pagada
+                        ✅ Turno confirmado — Te esperamos
                       </p>
                     </div>
                   )}
