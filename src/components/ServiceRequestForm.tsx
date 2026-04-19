@@ -147,7 +147,7 @@ export default function ServiceRequestForm({
   const handleSubmit = async () => {
     if (!user) { toast.error("Debés iniciar sesión"); return; }
     if (!selectedDate || !selectedTime) { toast.error("Seleccioná día y hora"); return; }
-    if (!description.trim()) { toast.error("Describí el problema"); return; }
+    if (!serviceType) { toast.error("Seleccioná un tipo de servicio"); return; }
 
     setLoading(true);
     const { error } = await supabase.from("service_requests").insert({
@@ -156,7 +156,7 @@ export default function ServiceRequestForm({
       client_name: clientProfile?.full_name || user.email?.split("@")[0] || "Cliente",
       client_phone: clientProfile?.phone || null,
       client_address: clientProfile?.address || null,
-      service_type: serviceType || rubro,
+      service_type: serviceType,
       description: description.trim(),
       scheduled_date: selectedDate,
       scheduled_time: selectedTime + ":00",
