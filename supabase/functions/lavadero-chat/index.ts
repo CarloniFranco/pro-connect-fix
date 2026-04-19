@@ -113,25 +113,57 @@ const tools = [
 
 // ------- Tool implementations -------
 
+function normalizeName(s: string): string {
+  return (s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 async function checkAvailability(args: {
   date: string;
   time?: string;
   urgent?: boolean;
+  professional_name?: string;
 }) {
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-  const { date, time, urgent } = args;
+  const { date, time, urgent, professional_name } = args;
 
   const targetDate = urgent ? new Date().toISOString().split("T")[0] : date;
   const dow = new Date(targetDate + "T12:00:00").getDay();
 
-  const { data: pros } = await admin
+  const { data: prosAll } = await admin
     .from("professional_profiles")
     .select("user_id, full_name, work_stations, available")
     .eq("rubro", RUBRO)
     .eq("available", true);
 
-  if (!pros || pros.length === 0) {
+  if (!prosAll || prosAll.length === 0) {
     return { available: [], message: "No hay lavaderos activos por ahora." };
+  }
+
+  // Filter by name if user asked for a specific professional
+  let pros = prosAll;
+  let nameFiltered = false;
+  if (professional_name && professional_name.trim()) {
+    const needle = normalizeName(professional_name);
+    const tokens = needle.split(" ").filter(Boolean);
+    const matches = prosAll.filter((p) => {
+      const hay = normalizeName(p.full_name);
+      return tokens.every((tok) => hay.includes(tok));
+    });
+    if (matches.length === 0) {
+      return {
+        available: [],
+        name_searched: professional_name,
+        not_found: true,
+        message: `No encontré ningún profesional llamado "${professional_name}".`,
+      };
+    }
+    pros = matches;
+    nameFiltered = true;
   }
 
   const proIds = pros.map((p) => p.user_id);
