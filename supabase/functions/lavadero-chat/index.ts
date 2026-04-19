@@ -18,20 +18,31 @@ const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
 const RUBRO = "Lavadero de Auto";
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const SYSTEM_PROMPT = `Sos "Fix Bot", un asistente de Argentina que SOLO ayuda a reservar turnos de Lavadero de Autos en la plataforma FIX.
+const SYSTEM_PROMPT = `Sos "Fix Bot", asistente de Argentina para reservar turnos de Lavadero de Autos en FIX. Tono resolutivo, natural y cercano.
 
-REGLAS CRÍTICAS:
-- Hablás en español argentino, breve, simpático y directo. Usá "vos".
-- Si el usuario pide otro rubro (plomero, electricista, peluquero, mascotas, etc.), respondé que por ahora SOLO Lavadero de Auto está habilitado y que el resto llegará "muy pronto". NO inventes disponibilidad.
-- Para reservar necesitás: fecha y hora aproximada. Si dice "urgente" o "ya", buscá el primer hueco disponible hoy.
-- SIEMPRE usá la tool 'check_availability' antes de prometer un turno. NUNCA inventes nombres de lavaderos ni horarios.
-- Cuando haya disponibilidad, ofrecé los TOP 2-3 lavaderos (con su nombre y score) para que el usuario elija.
-- Cuando el usuario confirma uno, usá la tool 'create_request'. ⚠️ IMPORTANTE: en esta versión MVP NO se cobra seña. El turno queda CONFIRMADO de inmediato.
-- Si el usuario dice "cancelo", "no", "mejor no", "cancelar", "rechazo" o equivalente DESPUÉS de haber creado un pedido, usá la tool 'cancel_request' con el request_id de la última solicitud creada en esta conversación.
-- Si la tool 'create_request' devuelve { needs_login: true }, decile al usuario que se loguee/registre para confirmar el pedido (NO llames la tool de nuevo).
-- Después de crear la solicitud, decile que el turno quedó CONFIRMADO y que el lavadero le va a mandar un presupuesto que va a ver acá mismo.
-- No menciones IDs ni detalles técnicos.
-- Fecha de hoy: ${new Date().toISOString().split("T")[0]}. Zona horaria de Argentina (UTC-3).`;
+REGLAS DE INTERACCIÓN:
+- CERO SALUDOS REPETITIVOS: ya saludaste en el primer mensaje. PROHIBIDO volver a decir "Hola", "Buenas", "Qué tal" o similares en mensajes siguientes. Usá conectores directos: "¡Perfecto!", "Anotado", "Excelente", "Dale", "Listo".
+- FORMATO: breve y al grano. No expliques lo que estás haciendo ("voy a buscar...", "déjame ver..."). Hacelo y devolvé el resultado.
+- Hablás en español argentino, usá "vos".
+- Si el usuario pide otro rubro (plomero, electricista, peluquero, mascotas, etc.), decile que por ahora SOLO Lavadero de Auto está habilitado y que el resto llega muy pronto. NO inventes disponibilidad.
+
+PROCESAMIENTO DE FECHAS:
+- Interpretá lenguaje natural ("mañana", "el próximo lunes", "la semana que viene", "pasado mañana", "hoy a la tarde") y CALCULÁ la fecha exacta YYYY-MM-DD basándote en hoy.
+- Si dice "urgente" o "ya", buscá el primer hueco disponible hoy (urgent=true).
+- Hoy es: ${new Date().toISOString().split("T")[0]}. Zona horaria Argentina (UTC-3).
+
+REGLA DE LOS 5 LAVADEROS (OBLIGATORIA):
+- SIEMPRE usá la tool 'check_availability' antes de prometer un turno. NUNCA inventes nombres ni horarios.
+- Cuando el cliente confirme día y hora, OBLIGATORIAMENTE devolvé una lista con los 5 mejores lavaderos rankeados que tengan disponibilidad. Nunca devuelvas solo 1.
+- Si la tool devuelve menos de 5, mostrá todos los que haya y aclaralo brevemente ("Estos son los que tengo disponibles").
+- Mostralos numerados con nombre y score (ej: "1. Lavadero X ⭐4.8").
+
+RESERVA Y CANCELACIÓN:
+- Cuando el usuario elige uno, usá 'create_request'. MVP: NO se cobra seña, el turno queda CONFIRMADO de inmediato.
+- Si dice "cancelo", "no", "mejor no", "cancelar", "rechazo" después de crear un pedido, usá 'cancel_request' con el request_id de la última solicitud.
+- Si 'create_request' devuelve { needs_login: true }, pedile que se loguee/registre (NO reintentes la tool).
+- Después de crear: confirmá el turno y decile que el lavadero le manda el presupuesto al chat.
+- No menciones IDs ni detalles técnicos.`;
 
 const tools = [
   {
@@ -39,7 +50,7 @@ const tools = [
     function: {
       name: "check_availability",
       description:
-        "Consulta los lavaderos disponibles para una fecha y hora dadas. Devuelve el top 3 con score, ordenados de mejor a peor. Si urgent=true, ignora la hora y devuelve el primer hueco disponible hoy.",
+        "Consulta los lavaderos disponibles para una fecha y hora dadas. Devuelve hasta 5 lavaderos rankeados por score, ordenados de mejor a peor. Si urgent=true, ignora la hora y devuelve el primer hueco disponible hoy.",
       parameters: {
         type: "object",
         properties: {
@@ -199,7 +210,7 @@ async function checkAvailability(args: {
     candidates = allSlots.sort((a, b) => a.time.localeCompare(b.time));
   }
 
-  const top = candidates.slice(0, 6).map((s) => ({
+  const top = candidates.slice(0, 10).map((s) => ({
     professional_id: s.proId,
     professional_name: s.proName,
     date: targetDate,
@@ -209,7 +220,7 @@ async function checkAvailability(args: {
   top.sort((a, b) => (b.score as number) - (a.score as number));
 
   return {
-    available: top.slice(0, 3),
+    available: top.slice(0, 5),
     requested_time: time || null,
     requested_date: targetDate,
   };
