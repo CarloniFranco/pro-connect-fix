@@ -37,6 +37,12 @@ REGLA DE LOS 5 LAVADEROS (OBLIGATORIA):
 - Si la tool devuelve menos de 5, mostrá todos los que haya y aclaralo brevemente ("Estos son los que tengo disponibles").
 - Mostralos numerados con nombre y score (ej: "1. Lavadero X ⭐4.8").
 
+BÚSQUEDA POR NOMBRE DE PROFESIONAL:
+- Si el usuario pide un profesional específico (ej: "quiero con franco carloni", "el lavadero de juan"), llamá 'check_availability' pasando 'professional_name' con lo que dijo el usuario. La tool ya ignora mayúsculas, minúsculas y tildes y hace match parcial.
+- Si la tool devuelve resultados con name_filtered=true, mostrá ÚNICAMENTE los horarios de ese profesional. NO ofrezcas alternativas de otros lavaderos.
+- Si devuelve not_found=true, decí que no encontraste ese profesional y preguntá si quiere ver otras opciones.
+- Si devuelve no_slots_for_pro=true, recién ahí ofrecé alternativas (volvé a llamar la tool sin professional_name).
+
 RESERVA Y CANCELACIÓN:
 - Cuando el usuario elige uno, usá 'create_request'. MVP: NO se cobra seña, el turno queda CONFIRMADO de inmediato.
 - Si dice "cancelo", "no", "mejor no", "cancelar", "rechazo" después de crear un pedido, usá 'cancel_request' con el request_id de la última solicitud.
@@ -50,7 +56,7 @@ const tools = [
     function: {
       name: "check_availability",
       description:
-        "Consulta los lavaderos disponibles para una fecha y hora dadas. Devuelve hasta 5 lavaderos rankeados por score, ordenados de mejor a peor. Si urgent=true, ignora la hora y devuelve el primer hueco disponible hoy.",
+        "Consulta los lavaderos disponibles para una fecha y hora dadas. Devuelve hasta 5 lavaderos rankeados por score, ordenados de mejor a peor. Si urgent=true, ignora la hora y devuelve el primer hueco disponible hoy. Si professional_name está presente, filtra SOLO los profesionales cuyo nombre coincida (parcial, sin tildes, case-insensitive).",
       parameters: {
         type: "object",
         properties: {
@@ -59,6 +65,10 @@ const tools = [
           urgent: {
             type: "boolean",
             description: "Si es true, ignora la hora y devuelve el primer hueco disponible hoy.",
+          },
+          professional_name: {
+            type: "string",
+            description: "Nombre (o parte) del profesional que el usuario pidió específicamente. Ej: 'franco carloni'.",
           },
         },
         required: ["date"],
@@ -109,25 +119,57 @@ const tools = [
 
 // ------- Tool implementations -------
 
+function normalizeName(s: string): string {
+  return (s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 async function checkAvailability(args: {
   date: string;
   time?: string;
   urgent?: boolean;
+  professional_name?: string;
 }) {
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-  const { date, time, urgent } = args;
+  const { date, time, urgent, professional_name } = args;
 
   const targetDate = urgent ? new Date().toISOString().split("T")[0] : date;
   const dow = new Date(targetDate + "T12:00:00").getDay();
 
-  const { data: pros } = await admin
+  const { data: prosAll } = await admin
     .from("professional_profiles")
     .select("user_id, full_name, work_stations, available")
     .eq("rubro", RUBRO)
     .eq("available", true);
 
-  if (!pros || pros.length === 0) {
+  if (!prosAll || prosAll.length === 0) {
     return { available: [], message: "No hay lavaderos activos por ahora." };
+  }
+
+  // Filter by name if user asked for a specific professional
+  let pros = prosAll;
+  let nameFiltered = false;
+  if (professional_name && professional_name.trim()) {
+    const needle = normalizeName(professional_name);
+    const tokens = needle.split(" ").filter(Boolean);
+    const matches = prosAll.filter((p) => {
+      const hay = normalizeName(p.full_name);
+      return tokens.every((tok) => hay.includes(tok));
+    });
+    if (matches.length === 0) {
+      return {
+        available: [],
+        name_searched: professional_name,
+        not_found: true,
+        message: `No encontré ningún profesional llamado "${professional_name}".`,
+      };
+    }
+    pros = matches;
+    nameFiltered = true;
   }
 
   const proIds = pros.map((p) => p.user_id);
@@ -175,6 +217,14 @@ async function checkAvailability(args: {
   }
 
   if (allSlots.length === 0) {
+    if (nameFiltered) {
+      return {
+        available: [],
+        name_searched: professional_name,
+        no_slots_for_pro: true,
+        message: `${pros[0].full_name} no tiene turnos disponibles el ${targetDate}.`,
+      };
+    }
     return { available: [], message: `No hay turnos libres el ${targetDate}.` };
   }
 
@@ -220,7 +270,9 @@ async function checkAvailability(args: {
   top.sort((a, b) => (b.score as number) - (a.score as number));
 
   return {
-    available: top.slice(0, 5),
+    available: nameFiltered ? top : top.slice(0, 5),
+    name_filtered: nameFiltered,
+    name_searched: nameFiltered ? professional_name : null,
     requested_time: time || null,
     requested_date: targetDate,
   };
