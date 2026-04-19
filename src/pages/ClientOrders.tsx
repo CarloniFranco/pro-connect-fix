@@ -265,7 +265,6 @@ const ClientOrders = () => {
     if (selectedRequest) {
       setReviewRating(0);
       setReviewComment("");
-      setShowCheckout(false);
     }
   }, [selectedRequest]);
 
