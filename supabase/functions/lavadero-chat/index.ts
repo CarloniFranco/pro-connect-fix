@@ -50,7 +50,7 @@ const tools = [
     function: {
       name: "check_availability",
       description:
-        "Consulta los lavaderos disponibles para una fecha y hora dadas. Devuelve el top 3 con score, ordenados de mejor a peor. Si urgent=true, ignora la hora y devuelve el primer hueco disponible hoy.",
+        "Consulta los lavaderos disponibles para una fecha y hora dadas. Devuelve hasta 5 lavaderos rankeados por score, ordenados de mejor a peor. Si urgent=true, ignora la hora y devuelve el primer hueco disponible hoy.",
       parameters: {
         type: "object",
         properties: {
