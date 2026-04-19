@@ -536,7 +536,7 @@ const ClientOrders = () => {
                   {selectedRequest.status === "aceptada" && (
                     <div className="rounded-lg bg-green-500/10 p-3 text-center">
                       <p className="text-sm font-semibold text-green-700 dark:text-green-300">
-                        ✅ Turno confirmado — Seña pagada
+                        ✅ Turno confirmado — Te esperamos
                       </p>
                     </div>
                   )}
