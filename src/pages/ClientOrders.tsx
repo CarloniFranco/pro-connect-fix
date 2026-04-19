@@ -369,7 +369,7 @@ const ClientOrders = () => {
                   key={req.id}
                   className={`cursor-pointer transition-shadow hover:shadow-md ${
                     needsReview(req) ? "border-accent/50 ring-1 ring-accent/20" : ""
-                  } ${needsDeposit(req) ? "border-primary/50 ring-1 ring-primary/20" : ""}`}
+                  } ${needsDecision(req) ? "border-primary/50 ring-1 ring-primary/20" : ""}`}
                   onClick={() => setSelectedRequest(req)}
                 >
                   <CardContent className="p-4">
