@@ -264,7 +264,9 @@ async function checkAvailability(args: {
   top.sort((a, b) => (b.score as number) - (a.score as number));
 
   return {
-    available: top.slice(0, 5),
+    available: nameFiltered ? top : top.slice(0, 5),
+    name_filtered: nameFiltered,
+    name_searched: nameFiltered ? professional_name : null,
     requested_time: time || null,
     requested_date: targetDate,
   };
