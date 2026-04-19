@@ -21,13 +21,12 @@ import {
   User as UserIcon,
   Wrench,
   Star,
-  CreditCard,
+  CheckCircle2,
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
-import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
 
 
 type ServiceRequest = {
