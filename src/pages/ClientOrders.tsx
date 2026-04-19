@@ -413,9 +413,9 @@ const ClientOrders = () => {
                         >
                           {statusLabels[req.status] || req.status}
                         </Badge>
-                        {needsDeposit(req) && (
+                        {needsDecision(req) && (
                           <span className="text-xs font-medium text-primary animate-pulse">
-                            💳 Pagar seña
+                            ✋ Aceptar / Rechazar
                           </span>
                         )}
                         {needsReview(req) && (
