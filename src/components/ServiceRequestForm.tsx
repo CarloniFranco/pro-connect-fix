@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { CalendarDays, Clock, Send, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -44,7 +45,7 @@ export default function ServiceRequestForm({
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [description, setDescription] = useState("");
-  const [serviceType, setServiceType] = useState(rubro);
+  const [serviceType, setServiceType] = useState("");
   const [loading, setLoading] = useState(false);
   const [clientProfile, setClientProfile] = useState<{ full_name: string; phone: string; address: string } | null>(null);
 
@@ -146,7 +147,7 @@ export default function ServiceRequestForm({
   const handleSubmit = async () => {
     if (!user) { toast.error("Debés iniciar sesión"); return; }
     if (!selectedDate || !selectedTime) { toast.error("Seleccioná día y hora"); return; }
-    if (!description.trim()) { toast.error("Describí el problema"); return; }
+    if (!serviceType) { toast.error("Seleccioná un tipo de servicio"); return; }
 
     setLoading(true);
     const { error } = await supabase.from("service_requests").insert({
@@ -155,7 +156,7 @@ export default function ServiceRequestForm({
       client_name: clientProfile?.full_name || user.email?.split("@")[0] || "Cliente",
       client_phone: clientProfile?.phone || null,
       client_address: clientProfile?.address || null,
-      service_type: serviceType || rubro,
+      service_type: serviceType,
       description: description.trim(),
       scheduled_date: selectedDate,
       scheduled_time: selectedTime + ":00",
@@ -195,12 +196,19 @@ export default function ServiceRequestForm({
           {/* Service type */}
           <div>
             <label className="mb-1 block text-xs font-semibold text-muted-foreground">Tipo de servicio</label>
-            <input
-              type="text"
-              value={serviceType}
-              onChange={(e) => setServiceType(e.target.value)}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
+            <Select value={serviceType} onValueChange={setServiceType}>
+              <SelectTrigger className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm">
+                <SelectValue placeholder="Seleccioná un servicio..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Lavado Exterior">Lavado Exterior</SelectItem>
+                <SelectItem value="Lavado Interior">Lavado Interior</SelectItem>
+                <SelectItem value="Lavado Completo">Lavado Completo</SelectItem>
+                <SelectItem value="Lavado Completo + Encerado">Lavado Completo + Encerado</SelectItem>
+                <SelectItem value="Lavado Completo + Pulido">Lavado Completo + Pulido</SelectItem>
+                <SelectItem value="Limpieza de Tapizados">Limpieza de Tapizados</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Calendar - Day selection */}
@@ -266,12 +274,12 @@ export default function ServiceRequestForm({
           {/* Description */}
           <div>
             <label className="mb-1 block text-xs font-semibold text-muted-foreground">
-              Descripción del problema *
+              Comentarios adicionales (Opcional)
             </label>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describí con detalle qué necesitás..."
+              placeholder="Aclaraciones sobre el estado del vehículo, manchas específicas, etc."
               rows={4}
               maxLength={1000}
             />
@@ -281,7 +289,7 @@ export default function ServiceRequestForm({
           {/* Submit */}
           <Button
             onClick={handleSubmit}
-            disabled={loading || !selectedDate || !selectedTime || !description.trim()}
+            disabled={loading || !selectedDate || !selectedTime || !serviceType}
             className="w-full gap-2"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
