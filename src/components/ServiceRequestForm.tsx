@@ -274,12 +274,12 @@ export default function ServiceRequestForm({
           {/* Description */}
           <div>
             <label className="mb-1 block text-xs font-semibold text-muted-foreground">
-              Descripción del problema *
+              Comentarios adicionales (Opcional)
             </label>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describí con detalle qué necesitás..."
+              placeholder="Aclaraciones sobre el estado del vehículo, manchas específicas, etc."
               rows={4}
               maxLength={1000}
             />
@@ -289,7 +289,7 @@ export default function ServiceRequestForm({
           {/* Submit */}
           <Button
             onClick={handleSubmit}
-            disabled={loading || !selectedDate || !selectedTime || !description.trim()}
+            disabled={loading || !selectedDate || !selectedTime || !serviceType}
             className="w-full gap-2"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
