@@ -45,7 +45,7 @@ export default function ServiceRequestForm({
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [description, setDescription] = useState("");
-  const [serviceType, setServiceType] = useState(rubro);
+  const [serviceType, setServiceType] = useState("");
   const [loading, setLoading] = useState(false);
   const [clientProfile, setClientProfile] = useState<{ full_name: string; phone: string; address: string } | null>(null);
 
