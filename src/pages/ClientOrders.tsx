@@ -305,15 +305,15 @@ const ClientOrders = () => {
   const needsReview = (req: ServiceRequest) =>
     req.status === "finalizada" && !reviewedIds.has(req.id);
 
-  const needsDeposit = (req: ServiceRequest) =>
-    req.status === "cotizada" && req.quoted_amount && !req.deposit_paid;
+  const needsDecision = (req: ServiceRequest) =>
+    req.status === "cotizada" && req.quoted_amount;
 
   // Status progress badges
   const getProgressBadges = (status: string) => {
     const steps = [
       { key: "nueva", label: "Solicitado" },
       { key: "cotizada", label: "Presupuestado" },
-      { key: "aceptada", label: "Señado" },
+      { key: "aceptada", label: "Confirmado" },
     ];
     const statusOrder = ["nueva", "cotizada", "aceptada", "en_servicio", "finalizada"];
     const currentIdx = statusOrder.indexOf(status);
