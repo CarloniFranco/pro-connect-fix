@@ -204,10 +204,35 @@ const ClientOrders = () => {
     setLoading(false);
   };
 
+  const handleAcceptQuote = async (req: ServiceRequest) => {
+    setAcceptingId(req.id);
+    const { error } = await supabase
+      .from("service_requests")
+      .update({ status: "aceptada" as any })
+      .eq("id", req.id);
+
+    if (!error) {
+      // Confirmar bloqueo del slot (de pending → paid para que cuente en capacidad)
+      await supabase
+        .from("blocked_slots")
+        .update({ slot_status: "paid", expires_at: null })
+        .eq("service_request_id", req.id);
+    }
+
+    setAcceptingId(null);
+    if (error) {
+      toast.error("Error al confirmar el turno");
+      return;
+    }
+    toast.success("¡Turno confirmado! Te esperamos.");
+    setSelectedRequest(null);
+    loadRequests();
+  };
+
   const handleRejectQuote = async (req: ServiceRequest) => {
     setRejectingId(req.id);
-    
-    // Release blocked slots for this request
+
+    // Liberar slots bloqueados
     await supabase
       .from("blocked_slots")
       .delete()
@@ -222,8 +247,6 @@ const ClientOrders = () => {
       toast.error("Error al rechazar");
       return;
     }
-    // Notification is handled automatically by DB trigger
-
     toast.success("Presupuesto rechazado");
     setSelectedRequest(null);
     loadRequests();
