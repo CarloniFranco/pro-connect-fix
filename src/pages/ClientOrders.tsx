@@ -487,54 +487,40 @@ const ClientOrders = () => {
                     </div>
                   )}
 
-                  {/* Deposit payment section */}
-                  {needsDeposit(selectedRequest) && !showCheckout && (
+                  {/* Accept / Reject quote */}
+                  {needsDecision(selectedRequest) && (
                     <div className="border-t border-border pt-4 space-y-3">
                       <div className="rounded-lg bg-primary/5 border border-primary/20 p-4 text-center">
                         <p className="text-sm font-semibold text-foreground mb-1">
-                          Para asegurar tu turno, se requiere el pago de una seña del 10%
+                          ¿Aceptás el presupuesto?
                         </p>
-                        <p className="text-2xl font-bold text-primary mb-2">
-                          ${(selectedRequest.deposit_amount || Math.round(selectedRequest.quoted_amount! * 0.1)).toLocaleString("es-AR")}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground mb-3">
-                          La seña será gestionada según nuestros{" "}
-                          <a href="/terminos" className="underline text-primary">Términos y Condiciones</a>
+                        <p className="text-xs text-muted-foreground mb-3">
+                          Si lo aceptás, el turno queda confirmado automáticamente. No se requiere pago anticipado.
                         </p>
                         <div className="flex gap-2">
                           <Button
                             variant="outline"
                             onClick={() => handleRejectQuote(selectedRequest)}
-                            disabled={rejectingId === selectedRequest.id}
+                            disabled={rejectingId === selectedRequest.id || acceptingId === selectedRequest.id}
                             className="flex-1 gap-1 text-destructive"
                           >
                             <XCircle className="h-4 w-4" />
                             Rechazar
                           </Button>
                           <Button
-                            onClick={() => setShowCheckout(true)}
+                            onClick={() => handleAcceptQuote(selectedRequest)}
+                            disabled={acceptingId === selectedRequest.id || rejectingId === selectedRequest.id}
                             className="flex-1 gap-2"
                           >
-                            <CreditCard className="h-4 w-4" />
-                            Pagar Seña
+                            {acceptingId === selectedRequest.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <CheckCircle2 className="h-4 w-4" />
+                            )}
+                            Aceptar y confirmar
                           </Button>
                         </div>
                       </div>
-                    </div>
-                  )}
-
-                  {/* Stripe Checkout inline */}
-                  {needsDeposit(selectedRequest) && showCheckout && (
-                    <div className="border-t border-border pt-4">
-                      <StripeEmbeddedCheckout
-                        amountInCents={(selectedRequest.deposit_amount || Math.round(selectedRequest.quoted_amount! * 0.1)) * 100}
-                        currency="ars"
-                        productName={`Seña - ${selectedRequest.service_type}`}
-                        customerEmail={user?.email || undefined}
-                        userId={user?.id}
-                        returnUrl={`${window.location.origin}/mis-pedidos?checkout=success&session_id={CHECKOUT_SESSION_ID}`}
-                        metadata={{ service_request_id: selectedRequest.id }}
-                      />
                     </div>
                   )}
 
