@@ -196,12 +196,19 @@ export default function ServiceRequestForm({
           {/* Service type */}
           <div>
             <label className="mb-1 block text-xs font-semibold text-muted-foreground">Tipo de servicio</label>
-            <input
-              type="text"
-              value={serviceType}
-              onChange={(e) => setServiceType(e.target.value)}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
+            <Select value={serviceType} onValueChange={setServiceType}>
+              <SelectTrigger className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm">
+                <SelectValue placeholder="Seleccioná un servicio..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Lavado Exterior">Lavado Exterior</SelectItem>
+                <SelectItem value="Lavado Interior">Lavado Interior</SelectItem>
+                <SelectItem value="Lavado Completo">Lavado Completo</SelectItem>
+                <SelectItem value="Lavado Completo + Encerado">Lavado Completo + Encerado</SelectItem>
+                <SelectItem value="Lavado Completo + Pulido">Lavado Completo + Pulido</SelectItem>
+                <SelectItem value="Limpieza de Tapizados">Limpieza de Tapizados</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Calendar - Day selection */}
