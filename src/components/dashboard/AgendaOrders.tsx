@@ -55,8 +55,10 @@ const AgendaOrders = () => {
   const [proProfile, setProProfile] = useState<{ full_name: string; rubro: string; work_stations: number } | null>(null);
 
   // Quote form state
+  const [aiDescription, setAiDescription] = useState("");
+  const [materials, setMaterials] = useState("");
+  const [estimatedTime, setEstimatedTime] = useState("");
   const [quoteAmount, setQuoteAmount] = useState("");
-  const [quoteDetails, setQuoteDetails] = useState("");
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
   const [saving, setSaving] = useState(false);
