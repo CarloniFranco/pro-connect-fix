@@ -1,7 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
-const VISITA_TECNICA_RUBROS = ["gas", "electricidad", "plomería", "plomeria", "calefacción", "calefaccion", "refrigeración", "refrigeracion"];
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -11,33 +13,23 @@ serve(async (req) => {
   try {
     const { serviceType, description, professionalName, rubro } = await req.json();
 
-    const isVisitaTecnica = rubro
-      ? VISITA_TECNICA_RUBROS.includes(rubro.toLowerCase())
-      : false;
-
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = isVisitaTecnica
-      ? `Sos un asistente para profesionales de servicios técnicos en Argentina.
+    const systemPrompt = `Sos un asistente para profesionales de servicios en Argentina.
 El profesional se llama "${professionalName || 'Profesional'}" y trabaja en el rubro "${rubro || 'servicios'}".
-Este rubro requiere una VISITA TÉCNICA DE DIAGNÓSTICO antes de presupuestar.
-Respondé SOLO con el presupuesto de visita en formato texto plano, sin markdown. Incluí:
-- Concepto: Relevamiento técnico y determinación de falla
-- Costo sugerido de visita técnica (en ARS, acorde al mercado argentino 2026)
-- Duración: 1 hora
-- Aclaración legal: "Este monto corresponde únicamente a la visita técnica y diagnóstico. El presupuesto de reparación final se entregará tras el relevamiento en el domicilio."
-NO incluyas estimación de materiales ni mano de obra final. Solo el costo de la visita.`
-      : `Sos un asistente de presupuestos para profesionales de servicios en Argentina. 
-Generás presupuestos técnicos claros y profesionales en español argentino.
-El profesional se llama "${professionalName || 'Profesional'}" y trabaja en el rubro "${rubro || 'servicios'}".
-Respondé SOLO con el presupuesto en formato texto plano, sin markdown. Incluí:
-- Detalle de materiales estimados con precios en ARS
-- Mano de obra
-- Total estimado
-- Tiempo estimado de trabajo
-- Condiciones (garantía, etc.)
-Sé realista con los precios del mercado argentino actual (2026).`;
+
+TU ÚNICA TAREA: Redactar una descripción profesional, clara y breve (máximo 3 oraciones) del trabajo solicitado por el cliente, en español argentino.
+
+REGLAS ESTRICTAS:
+- NO inventes ni estimes precios, montos ni costos.
+- NO inventes ni estimes tiempos de trabajo o duraciones.
+- NO menciones materiales específicos con marcas o cantidades exactas.
+- NO uses markdown ni listas, solo texto plano corrido.
+- Enfocate en describir QUÉ trabajo se va a realizar de forma profesional.
+- Tono: claro, técnico y cordial. Tratá al cliente de "usted".
+
+Ejemplo de salida válida: "Se realizará el lavado completo exterior e interior del vehículo, incluyendo aspirado, limpieza de tableros y abrillantado de neumáticos. El trabajo se ejecutará en nuestro local con productos profesionales."`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -51,10 +43,8 @@ Sé realista con los precios del mercado argentino actual (2026).`;
           { role: "system", content: systemPrompt },
           {
             role: "user",
-            content: isVisitaTecnica
-              ? `Generá un presupuesto de visita técnica para:\n\nTipo: ${serviceType}\nDescripción del cliente: ${description}`
-              : `Generá un presupuesto para el siguiente servicio:\n\nTipo: ${serviceType}\nDescripción del cliente: ${description}`
-          }
+            content: `Redactá la descripción profesional del trabajo para:\n\nTipo de servicio: ${serviceType}\nLo que pidió el cliente: ${description || "(sin comentarios adicionales)"}`,
+          },
         ],
       }),
     });
@@ -76,9 +66,9 @@ Sé realista con los precios del mercado argentino actual (2026).`;
     }
 
     const data = await response.json();
-    const budget = data.choices?.[0]?.message?.content || "No se pudo generar el presupuesto";
+    const description_ai = data.choices?.[0]?.message?.content?.trim() || "No se pudo generar la descripción";
 
-    return new Response(JSON.stringify({ budget, isVisitaTecnica }), {
+    return new Response(JSON.stringify({ description: description_ai }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
