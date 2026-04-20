@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Wrench, User, LogOut, ChevronDown, ClipboardList, Briefcase, CreditCard } from "lucide-react";
+import { Wrench, User, LogOut, ChevronDown, ClipboardList, Briefcase, CreditCard, Search } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -88,6 +88,10 @@ const Navbar = () => {
                   <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                     <Wrench className="mr-2 h-4 w-4" />
                     Mi Panel
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/")}>
+                    <Search className="mr-2 h-4 w-4" />
+                    Solicitar un Servicio
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/mi-perfil-pro")}>
                     <Briefcase className="mr-2 h-4 w-4" />
