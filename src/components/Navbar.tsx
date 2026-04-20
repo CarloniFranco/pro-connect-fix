@@ -89,6 +89,10 @@ const Navbar = () => {
                     <Wrench className="mr-2 h-4 w-4" />
                     Mi Panel
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/")}>
+                    <Search className="mr-2 h-4 w-4" />
+                    Solicitar un Servicio
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/mi-perfil-pro")}>
                     <Briefcase className="mr-2 h-4 w-4" />
                     Mi Perfil Profesional
