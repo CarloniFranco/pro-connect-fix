@@ -117,29 +117,33 @@ const AgendaOrders = () => {
         },
       });
       if (error) throw error;
-      if (data?.budget) {
-        setQuoteDetails(data.budget);
-        // Try to extract total from AI response
-        const totalMatch = data.budget.match(/total[:\s]*\$?\s*([\d.,]+)/i);
-        if (totalMatch) {
-          const amount = totalMatch[1].replace(/\./g, "").replace(",", ".");
-          setQuoteAmount(amount);
-        }
-        toast.success("Presupuesto generado por IA");
+      if (data?.description) {
+        setAiDescription(data.description);
+        toast.success("Descripción generada por IA");
       }
     } catch (e: any) {
-      toast.error(e.message || "Error al generar presupuesto");
+      toast.error(e.message || "Error al generar descripción");
     }
     setGeneratingBudget(false);
   };
 
   const handleSendQuote = async (order: ServiceRequest) => {
-    if (!quoteAmount || !quoteDetails) {
-      toast.error("Completá monto y detalle");
+    if (!aiDescription.trim()) {
+      toast.error("Generá primero la descripción con IA");
+      return;
+    }
+    if (!materials.trim() || !estimatedTime.trim() || !quoteAmount) {
+      toast.error("Completá materiales, tiempo y monto total");
       return;
     }
     const amount = Number(quoteAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error("Ingresá un monto total válido");
+      return;
+    }
     const depositAmount = Math.round(amount * 0.1);
+
+    const combinedDetails = `${aiDescription.trim()}\n\nMateriales a utilizar: ${materials.trim()}\nTiempo estimado de trabajo: ${estimatedTime.trim()}\nMonto Total: $${amount.toLocaleString("es-AR")}`;
 
     setSaving(true);
     const { error } = await supabase
@@ -147,7 +151,7 @@ const AgendaOrders = () => {
       .update({
         status: "cotizada" as any,
         quoted_amount: amount,
-        quoted_details: quoteDetails,
+        quoted_details: combinedDetails,
         deposit_amount: depositAmount,
         scheduled_date: scheduledDate || order.scheduled_date || null,
         scheduled_time: scheduledTime ? scheduledTime + ":00" : order.scheduled_time || null,
@@ -156,9 +160,10 @@ const AgendaOrders = () => {
       .eq("id", order.id);
     setSaving(false);
     if (error) { toast.error("Error al cotizar"); return; }
-    toast.success("Presupuesto enviado. Notificación enviada al cliente dentro de la plataforma.");
+    toast.success("Presupuesto enviado al cliente");
     setSelectedOrder(null);
-    setQuoteAmount(""); setQuoteDetails(""); setScheduledDate(""); setScheduledTime("");
+    setAiDescription(""); setMaterials(""); setEstimatedTime(""); setQuoteAmount("");
+    setScheduledDate(""); setScheduledTime("");
     fetchOrders();
   };
 
@@ -440,7 +445,9 @@ const AgendaOrders = () => {
                         onClick={() => {
                           setSelectedOrder(order);
                           setQuoteAmount(order.quoted_amount?.toString() || "");
-                          setQuoteDetails(order.quoted_details || "");
+                          setAiDescription("");
+                          setMaterials("");
+                          setEstimatedTime("");
                           setScheduledDate(order.scheduled_date || "");
                           setScheduledTime(order.scheduled_time?.slice(0, 5) || "");
                         }}
@@ -467,7 +474,9 @@ const AgendaOrders = () => {
               onClick={() => {
                 setSelectedOrder(order);
                 setQuoteAmount(order.quoted_amount?.toString() || "");
-                setQuoteDetails(order.quoted_details || "");
+                setAiDescription("");
+                setMaterials("");
+                setEstimatedTime("");
                 setScheduledDate(order.scheduled_date || "");
                 setScheduledTime(order.scheduled_time?.slice(0, 5) || "");
               }}
