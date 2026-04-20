@@ -42,6 +42,7 @@ export default function ServiceRequestForm({
   const [availability, setAvailability] = useState<AvailabilitySlot[]>([]);
   const [blockedSlots, setBlockedSlots] = useState<{ slot_date: string; slot_time: string; slot_status: string }[]>([]);
   const [workStations, setWorkStations] = useState(1);
+  const [proServices, setProServices] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [description, setDescription] = useState("");
@@ -59,13 +60,16 @@ export default function ServiceRequestForm({
       .eq("is_active", true)
       .then(({ data }) => setAvailability(data || []));
 
-    // Fetch professional capacity (work_stations)
+    // Fetch professional capacity (work_stations) + custom services
     supabase
       .from("professional_profiles")
-      .select("work_stations")
+      .select("work_stations, services")
       .eq("user_id", professionalId)
       .maybeSingle()
-      .then(({ data }) => setWorkStations((data as any)?.work_stations || 1));
+      .then(({ data }) => {
+        setWorkStations((data as any)?.work_stations || 1);
+        setProServices(((data as any)?.services as string[]) || []);
+      });
 
     // Fetch blocked slots for next 30 days (including duration-based blocks)
     const today = new Date().toISOString().split("T")[0];
@@ -196,17 +200,22 @@ export default function ServiceRequestForm({
           {/* Service type */}
           <div>
             <label className="mb-1 block text-xs font-semibold text-muted-foreground">Tipo de servicio</label>
-            <Select value={serviceType} onValueChange={setServiceType}>
+            <Select value={serviceType} onValueChange={setServiceType} disabled={proServices.length === 0}>
               <SelectTrigger className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm">
                 <SelectValue placeholder="Seleccioná un servicio..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Lavado Exterior">Lavado Exterior</SelectItem>
-                <SelectItem value="Lavado Interior">Lavado Interior</SelectItem>
-                <SelectItem value="Lavado Completo">Lavado Completo</SelectItem>
-                <SelectItem value="Lavado Completo + Encerado">Lavado Completo + Encerado</SelectItem>
-                <SelectItem value="Lavado Completo + Pulido">Lavado Completo + Pulido</SelectItem>
-                <SelectItem value="Limpieza de Tapizados">Limpieza de Tapizados</SelectItem>
+                {proServices.length === 0 ? (
+                  <SelectItem value="__none__" disabled>
+                    No hay servicios configurados
+                  </SelectItem>
+                ) : (
+                  proServices.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
