@@ -251,7 +251,7 @@ const AgendaOrders = () => {
             <div className="space-y-3 rounded-lg border border-border p-3">
               <div className="flex items-center justify-between">
                 <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                  <FileText className="h-4 w-4 text-accent" /> Cotización
+                  <FileText className="h-4 w-4 text-accent" /> Armar Presupuesto
                 </p>
                 <Button
                   variant="outline"
@@ -260,25 +260,73 @@ const AgendaOrders = () => {
                   disabled={generatingBudget}
                   className="gap-1 text-xs"
                 >
-                  {generatingBudget ? <Loader2 className="h-3 w-3 animate-spin" /> : <Brain className="h-3 w-3" />}
-                  {generatingBudget ? "Generando..." : "IA Presupuesto"}
+                  {generatingBudget ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                  {generatingBudget ? "Generando..." : aiDescription ? "Regenerar IA" : "Generar Descripción IA"}
                 </Button>
               </div>
+
+              {/* AI-generated read-only description */}
               <div>
-                <label className="mb-1 block text-xs font-semibold text-muted-foreground">Monto ($)</label>
-                <input type="number" value={quoteAmount} onChange={(e) => setQuoteAmount(e.target.value)} placeholder="25000"
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
-                {quoteAmount && (
+                <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                  Descripción profesional del trabajo (IA)
+                </label>
+                {aiDescription ? (
+                  <div className="rounded-lg border border-accent/30 bg-accent/5 px-3 py-2 text-sm text-foreground whitespace-pre-wrap">
+                    {aiDescription}
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-dashed border-border bg-muted/30 px-3 py-4 text-center text-xs text-muted-foreground">
+                    Tocá "Generar Descripción IA" para que la IA redacte el resumen del trabajo.
+                  </div>
+                )}
+              </div>
+
+              {/* Manual inputs */}
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                  Materiales a utilizar <span className="text-destructive">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={materials}
+                  onChange={(e) => setMaterials(e.target.value)}
+                  placeholder="Ej: Shampoo neutro, cera líquida, microfibras..."
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                  Tiempo estimado de trabajo <span className="text-destructive">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={estimatedTime}
+                  onChange={(e) => setEstimatedTime(e.target.value)}
+                  placeholder="Ej: 2 horas, 45 minutos..."
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                  Monto Total ($) <span className="text-destructive">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={quoteAmount}
+                  onChange={(e) => setQuoteAmount(e.target.value)}
+                  placeholder="25000"
+                  min="0"
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+                {quoteAmount && Number(quoteAmount) > 0 && (
                   <p className="mt-1 text-xs text-muted-foreground">
                     Seña (10%): <span className="font-semibold text-primary">${Math.round(Number(quoteAmount) * 0.1).toLocaleString("es-AR")}</span>
                   </p>
                 )}
               </div>
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-muted-foreground">Detalle</label>
-                <textarea value={quoteDetails} onChange={(e) => setQuoteDetails(e.target.value)} placeholder="Materiales, mano de obra..." rows={5}
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
-              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-muted-foreground">Fecha</label>
@@ -291,12 +339,13 @@ const AgendaOrders = () => {
                     className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                 </div>
               </div>
+
               <div className="flex gap-2">
                 <Button onClick={() => handleDecline(o)} disabled={saving} variant="outline" className="flex-1 gap-1 text-destructive border-destructive/30 hover:bg-destructive/10">
                   <XCircle className="h-4 w-4" /> Declinar
                 </Button>
                 <Button onClick={() => handleSendQuote(o)} disabled={saving} className="flex-1 gap-1">
-                  <Send className="h-4 w-4" /> {saving ? "Enviando..." : "Cotizar"}
+                  <Send className="h-4 w-4" /> {saving ? "Enviando..." : "Enviar Presupuesto"}
                 </Button>
               </div>
               <p className="text-[10px] text-muted-foreground text-center">
