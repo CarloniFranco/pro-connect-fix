@@ -14,6 +14,7 @@ interface ProfessionalWithScore {
   descripcion: string;
   verified: boolean;
   photo_url: string | null;
+  neighborhood: string;
   score: {
     total_score: number;
     velocity: number;
