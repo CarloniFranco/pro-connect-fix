@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CalendarDays, Clock, Send, Loader2, X } from "lucide-react";
+import { CalendarDays, Clock, Send, Loader2, Car, Wrench, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,12 +14,19 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+interface ServiceItem {
+  name: string;
+  prices: Record<string, number>;
+}
+
 interface ServiceRequestFormProps {
   professionalId: string;
   professionalName: string;
   rubro: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialDate?: string;
+  initialTime?: string;
 }
 
 interface AvailabilitySlot {
@@ -29,7 +36,6 @@ interface AvailabilitySlot {
 }
 
 const DAYS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
-const FULL_DAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
 export default function ServiceRequestForm({
   professionalId,
@@ -37,22 +43,30 @@ export default function ServiceRequestForm({
   rubro,
   open,
   onOpenChange,
+  initialDate,
+  initialTime,
 }: ServiceRequestFormProps) {
   const { user } = useAuth();
   const [availability, setAvailability] = useState<AvailabilitySlot[]>([]);
   const [blockedSlots, setBlockedSlots] = useState<{ slot_date: string; slot_time: string; slot_status: string }[]>([]);
   const [workStations, setWorkStations] = useState(1);
-  const [proServices, setProServices] = useState<string[]>([]);
+  const [proServices, setProServices] = useState<ServiceItem[]>([]);
+  const [vehicleTypes, setVehicleTypes] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
+  const [vehicleType, setVehicleType] = useState("");
+  const [serviceName, setServiceName] = useState("");
   const [description, setDescription] = useState("");
-  const [serviceType, setServiceType] = useState("");
   const [loading, setLoading] = useState(false);
   const [clientProfile, setClientProfile] = useState<{ full_name: string; phone: string; address: string } | null>(null);
 
   useEffect(() => {
     if (!open) return;
-    // Fetch availability
+
+    // Pre-fill date/time when provided
+    if (initialDate) setSelectedDate(initialDate);
+    if (initialTime) setSelectedTime(initialTime);
+
     supabase
       .from("professional_availability")
       .select("day_of_week, start_time, end_time")
@@ -60,18 +74,18 @@ export default function ServiceRequestForm({
       .eq("is_active", true)
       .then(({ data }) => setAvailability(data || []));
 
-    // Fetch professional capacity (work_stations) + custom services
     supabase
       .from("professional_profiles")
-      .select("work_stations, services")
+      .select("work_stations, services, vehicle_types")
       .eq("user_id", professionalId)
       .maybeSingle()
       .then(({ data }) => {
-        setWorkStations((data as any)?.work_stations || 1);
-        setProServices(((data as any)?.services as string[]) || []);
+        const d = data as any;
+        setWorkStations(d?.work_stations || 1);
+        setProServices(Array.isArray(d?.services) ? (d.services as ServiceItem[]) : []);
+        setVehicleTypes(d?.vehicle_types || []);
       });
 
-    // Fetch blocked slots for next 30 days (including duration-based blocks)
     const today = new Date().toISOString().split("T")[0];
     const future = new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
     supabase
@@ -82,7 +96,6 @@ export default function ServiceRequestForm({
       .lte("slot_date", future)
       .then(({ data }) => setBlockedSlots((data as any) || []));
 
-    // Fetch client profile
     if (user) {
       supabase
         .from("client_profiles")
@@ -91,21 +104,19 @@ export default function ServiceRequestForm({
         .maybeSingle()
         .then(({ data }) => setClientProfile(data));
     }
-  }, [open, professionalId, user]);
+  }, [open, professionalId, user, initialDate, initialTime]);
 
-  // Generate next 14 days of available dates
   const availableDates = (() => {
     const dates: { date: string; label: string; dayOfWeek: number }[] = [];
     const availableDays = new Set(availability.map((a) => a.day_of_week));
-
-    for (let i = 1; i <= 30; i++) {
+    for (let i = 0; i <= 30; i++) {
       const d = new Date();
       d.setDate(d.getDate() + i);
       const dow = d.getDay();
       if (availableDays.has(dow)) {
         dates.push({
           date: d.toISOString().split("T")[0],
-          label: `${DAYS[dow]} ${d.getDate()}/${d.getMonth() + 1}`,
+          label: i === 0 ? "Hoy" : `${DAYS[dow]} ${d.getDate()}/${d.getMonth() + 1}`,
           dayOfWeek: dow,
         });
       }
@@ -114,14 +125,12 @@ export default function ServiceRequestForm({
     return dates;
   })();
 
-  // Generate time slots for selected date — count occupied stations per slot
   const timeSlots = (() => {
     if (!selectedDate) return [];
     const d = new Date(selectedDate + "T00:00:00");
     const dow = d.getDay();
     const dayAvailability = availability.filter((a) => a.day_of_week === dow);
 
-    // Count slots with paid deposit per time (these consume a station)
     const occupiedCount = new Map<string, number>();
     blockedSlots
       .filter((b) => b.slot_date === selectedDate && b.slot_status === "paid")
@@ -137,21 +146,27 @@ export default function ServiceRequestForm({
       let h = startH, m = startM;
       while (h < endH || (h === endH && m < endM)) {
         const timeStr = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-        // Slot is available if occupied count < total work stations
         if ((occupiedCount.get(timeStr) || 0) < workStations) {
           slots.push(timeStr);
         }
-        m += 60; // 1 hour slots
+        m += 60;
         if (m >= 60) { h++; m = 0; }
       }
     });
     return slots;
   })();
 
+  // Pricing
+  const selectedService = proServices.find((s) => s.name === serviceName);
+  const totalPrice = selectedService && vehicleType ? selectedService.prices[vehicleType] || 0 : 0;
+  const depositAmount = Math.round(totalPrice * 0.1);
+
   const handleSubmit = async () => {
     if (!user) { toast.error("Debés iniciar sesión"); return; }
     if (!selectedDate || !selectedTime) { toast.error("Seleccioná día y hora"); return; }
-    if (!serviceType) { toast.error("Seleccioná un tipo de servicio"); return; }
+    if (!vehicleType) { toast.error("Seleccioná el tipo de vehículo"); return; }
+    if (!serviceName) { toast.error("Seleccioná un tipo de lavado"); return; }
+    if (totalPrice <= 0) { toast.error("Este servicio no tiene precio cargado para ese vehículo"); return; }
 
     setLoading(true);
     const { error } = await supabase.from("service_requests").insert({
@@ -160,12 +175,14 @@ export default function ServiceRequestForm({
       client_name: clientProfile?.full_name || user.email?.split("@")[0] || "Cliente",
       client_phone: clientProfile?.phone || null,
       client_address: clientProfile?.address || null,
-      service_type: serviceType,
+      service_type: `${serviceName} (${vehicleType})`,
       description: description.trim(),
       scheduled_date: selectedDate,
       scheduled_time: selectedTime + ":00",
-      status: "nueva",
-    });
+      quoted_amount: totalPrice,
+      deposit_amount: depositAmount,
+      status: "cotizada",
+    } as any);
     setLoading(false);
 
     if (error) {
@@ -174,14 +191,16 @@ export default function ServiceRequestForm({
       return;
     }
 
-    // Notification is handled automatically by DB trigger
-
-    toast.success("¡Solicitud enviada! El profesional te responderá pronto.");
+    toast.success("¡Reserva creada! Pagá la seña para confirmar el turno.");
     onOpenChange(false);
     setDescription("");
     setSelectedDate("");
     setSelectedTime("");
+    setVehicleType("");
+    setServiceName("");
   };
+
+  const noServicesConfigured = proServices.length === 0 || vehicleTypes.length === 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -189,46 +208,84 @@ export default function ServiceRequestForm({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg">
             <CalendarDays className="h-5 w-5 text-primary" />
-            Solicitar Servicio
+            Reservar turno
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Profesional: <span className="font-semibold text-foreground">{professionalName}</span>
+            <span className="font-semibold text-foreground">{professionalName}</span>
           </p>
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Service type */}
+          {noServicesConfigured && (
+            <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+              Este profesional aún no configuró sus servicios y precios.
+            </div>
+          )}
+
+          {/* Vehicle type */}
           <div>
-            <label className="mb-1 block text-xs font-semibold text-muted-foreground">Tipo de servicio</label>
-            <Select value={serviceType} onValueChange={setServiceType} disabled={proServices.length === 0}>
-              <SelectTrigger className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm">
-                <SelectValue placeholder="Seleccioná un servicio..." />
+            <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+              <Car className="inline h-3 w-3 mr-1" /> Tipo de vehículo
+            </label>
+            <Select value={vehicleType} onValueChange={setVehicleType} disabled={vehicleTypes.length === 0}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Seleccioná tu vehículo..." />
               </SelectTrigger>
               <SelectContent>
-                {proServices.length === 0 ? (
-                  <SelectItem value="__none__" disabled>
-                    No hay servicios configurados
-                  </SelectItem>
-                ) : (
-                  proServices.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))
-                )}
+                {vehicleTypes.map((v) => (
+                  <SelectItem key={v} value={v}>{v}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
 
-          {/* Calendar - Day selection */}
+          {/* Service */}
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+              <Wrench className="inline h-3 w-3 mr-1" /> Tipo de lavado
+            </label>
+            <Select value={serviceName} onValueChange={setServiceName} disabled={proServices.length === 0}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Seleccioná un servicio..." />
+              </SelectTrigger>
+              <SelectContent>
+                {proServices.map((s) => {
+                  const p = vehicleType ? s.prices[vehicleType] : null;
+                  return (
+                    <SelectItem key={s.name} value={s.name}>
+                      {s.name}{p ? ` — $${p.toLocaleString("es-AR")}` : ""}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Price summary */}
+          {totalPrice > 0 && (
+            <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-3 space-y-1">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Precio total</span>
+                <span className="font-bold text-foreground">${totalPrice.toLocaleString("es-AR")}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Seña (10%)</span>
+                <span className="font-bold text-primary">${depositAmount.toLocaleString("es-AR")}</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground pt-1 border-t border-primary/20">
+                El resto (${(totalPrice - depositAmount).toLocaleString("es-AR")}) se paga al finalizar el servicio.
+              </p>
+            </div>
+          )}
+
+          {/* Date */}
           <div>
             <label className="mb-2 block text-xs font-semibold text-muted-foreground">
-              <CalendarDays className="inline h-3 w-3 mr-1" />
-              Elegí un día
+              <CalendarDays className="inline h-3 w-3 mr-1" /> Día
             </label>
             {availableDates.length === 0 ? (
               <p className="text-sm text-muted-foreground rounded-lg bg-muted/50 p-3 text-center">
-                Este profesional no tiene horarios configurados aún.
+                Sin horarios configurados.
               </p>
             ) : (
               <div className="flex flex-wrap gap-2">
@@ -249,16 +306,15 @@ export default function ServiceRequestForm({
             )}
           </div>
 
-          {/* Time selection */}
+          {/* Time */}
           {selectedDate && (
             <div>
               <label className="mb-2 block text-xs font-semibold text-muted-foreground">
-                <Clock className="inline h-3 w-3 mr-1" />
-                Elegí un horario
+                <Clock className="inline h-3 w-3 mr-1" /> Horario
               </label>
               {timeSlots.length === 0 ? (
                 <p className="text-sm text-muted-foreground rounded-lg bg-muted/50 p-3 text-center">
-                  No hay horarios disponibles para este día.
+                  Sin horarios disponibles.
                 </p>
               ) : (
                 <div className="flex flex-wrap gap-2">
@@ -280,33 +336,32 @@ export default function ServiceRequestForm({
             </div>
           )}
 
-          {/* Description */}
+          {/* Comments */}
           <div>
             <label className="mb-1 block text-xs font-semibold text-muted-foreground">
-              Comentarios adicionales (Opcional)
+              Comentarios adicionales (opcional)
             </label>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Aclaraciones sobre el estado del vehículo, manchas específicas, etc."
-              rows={4}
+              rows={3}
               maxLength={1000}
             />
-            <p className="mt-1 text-right text-[10px] text-muted-foreground">{description.length}/1000</p>
           </div>
 
-          {/* Submit */}
           <Button
             onClick={handleSubmit}
-            disabled={loading || !selectedDate || !selectedTime || !serviceType}
+            disabled={loading || !selectedDate || !selectedTime || !vehicleType || !serviceName || totalPrice <= 0}
             className="w-full gap-2"
+            size="lg"
           >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            Enviar solicitud de servicio
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <DollarSign className="h-4 w-4" />}
+            Confirmar y Pagar Seña ${depositAmount > 0 ? depositAmount.toLocaleString("es-AR") : ""}
           </Button>
 
           <p className="text-[10px] text-muted-foreground text-center">
-            El profesional recibirá tu solicitud y te enviará un presupuesto. Estado inicial: "Pendiente de Aprobación".
+            Próximamente: pago con Mercado Pago. Por ahora, la reserva queda en estado "cotizada" y pagás directo al profesional.
           </p>
         </div>
       </DialogContent>
