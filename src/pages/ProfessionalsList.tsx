@@ -33,11 +33,11 @@ const ProfessionalsList = () => {
   useEffect(() => {
     const fetchProfessionals = async () => {
       setLoading(true);
-      // Use the public view which filters by available=true automatically
       const { data: profiles, error } = await supabase
-        .from("professional_profiles_public")
-        .select("id, user_id, full_name, rubro, descripcion, photo_url, verified, plan, created_at")
+        .from("professional_profiles")
+        .select("id, user_id, full_name, rubro, descripcion, photo_url, verified, neighborhood")
         .eq("rubro", category || "")
+        .eq("available", true)
         .not("rubro", "eq", "");
 
       if (error || !profiles) {
@@ -46,7 +46,7 @@ const ProfessionalsList = () => {
       }
 
       const withScores = await Promise.all(
-        profiles.map(async (p) => {
+        profiles.map(async (p: any) => {
           const { data } = await supabase.rpc("get_professional_score", {
             p_professional_id: p.user_id,
           });
