@@ -144,7 +144,7 @@ const ProfessionalsList = () => {
                       )}
                     </div>
                     <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
+                    <div className="flex items-center gap-3 mb-1 flex-wrap">
                       <h3 className="text-lg font-bold text-card-foreground">
                         {pro.full_name}
                       </h3>
@@ -154,6 +154,12 @@ const ProfessionalsList = () => {
                         </span>
                       )}
                     </div>
+                    {pro.neighborhood && (
+                      <div className="mb-2 inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2 py-0.5 text-xs font-bold text-secondary">
+                        <MapPin className="h-3 w-3" />
+                        {pro.neighborhood}
+                      </div>
+                    )}
 
                     <div className="flex items-center gap-2 mb-3">
                       {renderStars(pro.score.total_score)}
