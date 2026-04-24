@@ -165,50 +165,62 @@ export type Database = {
       }
       professional_profiles: {
         Row: {
+          address: string
           available: boolean
           created_at: string
           descripcion: string
           full_name: string
+          google_maps_url: string
           id: string
           matricula_url: string | null
+          neighborhood: string
           photo_url: string | null
           plan: string
           rubro: string
-          services: string[]
+          services: Json
           updated_at: string
           user_id: string
+          vehicle_types: string[]
           verified: boolean
           work_stations: number
         }
         Insert: {
+          address?: string
           available?: boolean
           created_at?: string
           descripcion?: string
           full_name?: string
+          google_maps_url?: string
           id?: string
           matricula_url?: string | null
+          neighborhood?: string
           photo_url?: string | null
           plan?: string
           rubro?: string
-          services?: string[]
+          services?: Json
           updated_at?: string
           user_id: string
+          vehicle_types?: string[]
           verified?: boolean
           work_stations?: number
         }
         Update: {
+          address?: string
           available?: boolean
           created_at?: string
           descripcion?: string
           full_name?: string
+          google_maps_url?: string
           id?: string
           matricula_url?: string | null
+          neighborhood?: string
           photo_url?: string | null
           plan?: string
           rubro?: string
-          services?: string[]
+          services?: Json
           updated_at?: string
           user_id?: string
+          vehicle_types?: string[]
           verified?: boolean
           work_stations?: number
         }

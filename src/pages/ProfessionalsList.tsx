@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Star, Zap, Shield, Award, ChevronRight, User } from "lucide-react";
+import { ArrowLeft, Star, Zap, Shield, Award, ChevronRight, User, MapPin } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
@@ -14,6 +14,7 @@ interface ProfessionalWithScore {
   descripcion: string;
   verified: boolean;
   photo_url: string | null;
+  neighborhood: string;
   score: {
     total_score: number;
     velocity: number;
@@ -32,11 +33,11 @@ const ProfessionalsList = () => {
   useEffect(() => {
     const fetchProfessionals = async () => {
       setLoading(true);
-      // Use the public view which filters by available=true automatically
       const { data: profiles, error } = await supabase
-        .from("professional_profiles_public")
-        .select("id, user_id, full_name, rubro, descripcion, photo_url, verified, plan, created_at")
+        .from("professional_profiles")
+        .select("id, user_id, full_name, rubro, descripcion, photo_url, verified, neighborhood")
         .eq("rubro", category || "")
+        .eq("available", true)
         .not("rubro", "eq", "");
 
       if (error || !profiles) {
@@ -45,7 +46,7 @@ const ProfessionalsList = () => {
       }
 
       const withScores = await Promise.all(
-        profiles.map(async (p) => {
+        profiles.map(async (p: any) => {
           const { data } = await supabase.rpc("get_professional_score", {
             p_professional_id: p.user_id,
           });
@@ -143,7 +144,7 @@ const ProfessionalsList = () => {
                       )}
                     </div>
                     <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
+                    <div className="flex items-center gap-3 mb-1 flex-wrap">
                       <h3 className="text-lg font-bold text-card-foreground">
                         {pro.full_name}
                       </h3>
@@ -153,6 +154,12 @@ const ProfessionalsList = () => {
                         </span>
                       )}
                     </div>
+                    {pro.neighborhood && (
+                      <div className="mb-2 inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2 py-0.5 text-xs font-bold text-secondary">
+                        <MapPin className="h-3 w-3" />
+                        {pro.neighborhood}
+                      </div>
+                    )}
 
                     <div className="flex items-center gap-2 mb-3">
                       {renderStars(pro.score.total_score)}
