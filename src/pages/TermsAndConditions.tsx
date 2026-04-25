@@ -42,9 +42,9 @@ const TermsAndConditions = () => {
           <p><strong>3.2. Política de 0% Comisión:</strong> FIX no percibe porcentaje ni comisión alguna sobre el valor total de los servicios realizados. La rentabilidad del trabajo es 100% propiedad del Profesional.</p>
           <p><strong>3.3. Ranking Meritocrático:</strong> El orden de aparición en las búsquedas se rige estrictamente por un algoritmo de mérito basado en:</p>
           <ul className="list-disc pl-6 space-y-1">
-            <li><strong>Velocidad:</strong> Tiempo de respuesta a solicitudes.</li>
-            <li><strong>Confiabilidad:</strong> Ratio de asistencia y cumplimiento de turnos.</li>
-            <li><strong>Excelencia:</strong> Valoraciones post-servicio de los Usuarios.</li>
+            <li><strong>Tiempo de respuesta:</strong> Velocidad para responder a solicitudes.</li>
+            <li><strong>Puntualidad y Compromiso:</strong> Ratio de asistencia y cumplimiento de turnos.</li>
+            <li><strong>Satisfacción del cliente:</strong> Valoraciones post-servicio de los Usuarios.</li>
           </ul>
           <p>FIX se reserva el derecho de dar de baja perfiles que afecten la integridad de la comunidad o mantengan estándares por debajo de los mínimos requeridos.</p>
 
