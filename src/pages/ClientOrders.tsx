@@ -748,6 +748,69 @@ const ClientOrders = () => {
               )}
             </DialogContent>
           </Dialog>
+
+          {/* Confirm cancel dialog */}
+          <Dialog open={!!confirmCancel} onOpenChange={(o) => !o && setConfirmCancel(null)}>
+            <DialogContent className="max-w-sm">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-destructive">
+                  <XCircle className="h-5 w-5" />
+                  ¿Dar de baja el turno?
+                </DialogTitle>
+              </DialogHeader>
+              {confirmCancel && (() => {
+                const hrs = hoursUntilAppointment(confirmCancel);
+                const within24h = hrs !== null && hrs < 24 && hrs > -1;
+                const losesDeposit = within24h && confirmCancel.deposit_paid;
+                return (
+                  <div className="space-y-4">
+                    {losesDeposit ? (
+                      <div className="rounded-lg bg-destructive/10 border border-destructive/30 p-3 text-sm text-destructive">
+                        ⚠️ Faltan menos de 24hs para el turno. Al cancelar ahora{" "}
+                        <strong>
+                          perdés la seña
+                          {confirmCancel.deposit_amount
+                            ? ` de $${confirmCancel.deposit_amount.toLocaleString("es-AR")}`
+                            : ""}
+                        </strong>.
+                      </div>
+                    ) : confirmCancel.deposit_paid ? (
+                      <p className="text-sm text-muted-foreground">
+                        Estás cancelando con más de 24hs de anticipación. La seña será reintegrada
+                        según los términos del servicio.
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        ¿Seguro querés cancelar este turno?
+                      </p>
+                    )}
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => setConfirmCancel(null)}
+                        disabled={cancellingId === confirmCancel.id}
+                      >
+                        Volver
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        className="flex-1"
+                        onClick={() => handleCancelConfirmed(confirmCancel)}
+                        disabled={cancellingId === confirmCancel.id}
+                      >
+                        {cancellingId === confirmCancel.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          "Sí, cancelar"
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })()}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </>
