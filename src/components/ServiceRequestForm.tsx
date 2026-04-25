@@ -334,17 +334,22 @@ export default function ServiceRequestForm({
                 </p>
               ) : (
                 <div className="flex flex-wrap gap-2">
-                  {timeSlots.map((t) => (
+                  {timeSlots.map(({ time: t, taken }) => (
                     <button
                       key={t}
-                      onClick={() => setSelectedTime(t)}
-                      className={`rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${
-                        selectedTime === t
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border bg-card text-card-foreground hover:border-primary/50"
+                      onClick={() => !taken && setSelectedTime(t)}
+                      disabled={taken}
+                      title={taken ? "Turno reservado por otro cliente" : undefined}
+                      className={`relative rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${
+                        taken
+                          ? "border-border bg-muted text-muted-foreground line-through cursor-not-allowed opacity-70"
+                          : selectedTime === t
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border bg-card text-card-foreground hover:border-primary/50"
                       }`}
                     >
                       {t}
+                      {taken && <span className="ml-1 text-[10px] font-bold">· reservado</span>}
                     </button>
                   ))}
                 </div>
