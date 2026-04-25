@@ -252,24 +252,6 @@ const ProfessionalProfile = () => {
             />
           </div>
 
-          {rubro === "Lavadero de Auto" && (
-            <div className="space-y-2">
-              <Label htmlFor="workStations">🚗 Estaciones de trabajo simultáneas</Label>
-              <Input
-                id="workStations"
-                type="number"
-                min={1}
-                max={20}
-                value={workStations}
-                onChange={(e) => setWorkStations(Number(e.target.value) || 1)}
-                required
-              />
-              <p className="text-xs text-muted-foreground">
-                Cantidad de autos que podés atender en paralelo en el mismo horario (boxes / lugares de trabajo).
-              </p>
-            </div>
-          )}
-
           <div className="space-y-2">
             <Label htmlFor="matricula">Matrícula / Habilitación</Label>
             <div className="flex items-center gap-3 rounded-xl border border-dashed border-border bg-muted/50 p-4">
