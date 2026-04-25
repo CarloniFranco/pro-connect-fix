@@ -44,7 +44,7 @@ const MobileQuickActions = () => {
     <button
       onClick={() => navigate("/mis-pedidos")}
       aria-label="Ver mis pedidos"
-      className="fixed bottom-5 right-4 z-40 flex h-14 items-center gap-2 rounded-full bg-primary px-5 text-primary-foreground shadow-lg shadow-primary/30 transition-transform active:scale-95 md:hidden"
+      className="fixed bottom-5 left-4 z-40 flex h-14 items-center gap-2 rounded-full bg-primary px-5 text-primary-foreground shadow-lg shadow-primary/30 transition-transform active:scale-95 md:hidden"
       style={{ paddingBottom: "max(0px, env(safe-area-inset-bottom))" }}
     >
       <ClipboardList className="h-5 w-5" />
