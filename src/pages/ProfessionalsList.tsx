@@ -622,8 +622,14 @@ const ProfessionalsList = () => {
                   </div>
                   <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors mt-2" />
                 </div>
+                {isUnavailable && (
+                  <div className="mt-3 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
+                    No disponible en la fecha seleccionada
+                  </div>
+                )}
               </motion.div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
