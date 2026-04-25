@@ -194,12 +194,15 @@ export default function MyServicesManager() {
             />
           </div>
           <div>
-            <Label htmlFor="neighborhood" className="text-xs">Barrio / Zona</Label>
+            <Label htmlFor="neighborhood" className="text-xs">
+              Barrio / Zona <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="neighborhood"
               value={neighborhood}
               onChange={(e) => setNeighborhood(e.target.value)}
               placeholder="Guaymallén, Mendoza"
+              required
             />
           </div>
           <div>
