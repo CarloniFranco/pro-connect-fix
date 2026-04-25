@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Star, Zap, Shield, Award, MessageSquare, User, MapPin, Clock, CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { format, addDays, isSameDay, parseISO } from "date-fns";
+import { format, addDays, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
