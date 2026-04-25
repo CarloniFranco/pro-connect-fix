@@ -190,24 +190,21 @@ const ProfessionalsList = () => {
     compute();
   }, [dateFilter, professionals]);
 
+  // Provincias del catálogo. Mendoza primero (mercado principal).
   const provinces = useMemo(() => {
-    const set = new Set<string>();
-    professionals.forEach((p) => {
-      if (p.province?.trim()) set.add(p.province.trim());
+    return [...PROVINCES].sort((a, b) => {
+      if (a === "Mendoza") return -1;
+      if (b === "Mendoza") return 1;
+      return a.localeCompare(b);
     });
-    return Array.from(set).sort();
-  }, [professionals]);
+  }, []);
 
+  // Todas las localidades del catálogo según provincia (sin filtrar "Otra" para que el pro
+  // que la cargó libre también matchee si el cliente la elige).
   const localities = useMemo(() => {
     if (provinceFilter === "all") return [];
-    const set = new Set<string>();
-    professionals
-      .filter((p) => p.province?.trim() === provinceFilter)
-      .forEach((p) => {
-        if (p.locality?.trim()) set.add(p.locality.trim());
-      });
-    return Array.from(set).sort();
-  }, [professionals, provinceFilter]);
+    return getLocalities(provinceFilter).filter((l) => l !== "Otra");
+  }, [provinceFilter]);
 
   const filtered = useMemo(() => {
     return professionals.filter((p) => {
