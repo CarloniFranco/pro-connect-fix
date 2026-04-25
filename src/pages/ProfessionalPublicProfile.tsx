@@ -45,6 +45,7 @@ interface BlockedSlot {
 const ProfessionalPublicProfile = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [score, setScore] = useState<ScoreData | null>(null);
@@ -55,53 +56,71 @@ const ProfessionalPublicProfile = () => {
   const [requestOpen, setRequestOpen] = useState(false);
   const [preselectedTime, setPreselectedTime] = useState<string>("");
 
-  const todayISO = new Date().toISOString().split("T")[0];
+  // Día que se está visualizando (por defecto: el filtrado o hoy)
+  const initialViewDate = useMemo(() => {
+    const dateParam = searchParams.get("date");
+    if (dateParam) {
+      const parsed = parseISO(dateParam);
+      if (!isNaN(parsed.getTime())) return parsed;
+    }
+    return new Date();
+  }, [searchParams]);
+  const [viewDate, setViewDate] = useState<Date>(initialViewDate);
+
+  const viewDateISO = format(viewDate, "yyyy-MM-dd");
+  const todayISO = format(new Date(), "yyyy-MM-dd");
+  const isToday = viewDateISO === todayISO;
 
   useEffect(() => {
     const fetchData = async () => {
       if (!userId) return;
       setLoading(true);
 
-      const [profileRes, scoreRes, reviewsRes, availRes, blockedRes] = await Promise.all([
+      const [profileRes, scoreRes, reviewsRes, availRes] = await Promise.all([
         supabase.from("professional_profiles").select("id, user_id, full_name, rubro, descripcion, photo_url, verified, plan, address, neighborhood, google_maps_url, work_stations").eq("user_id", userId).maybeSingle(),
         supabase.rpc("get_professional_score", { p_professional_id: userId }),
         supabase.from("reviews").select("*").eq("professional_id", userId).order("created_at", { ascending: false }),
         supabase.from("professional_availability").select("day_of_week, start_time, end_time").eq("professional_id", userId).eq("is_active", true),
-        supabase.from("blocked_slots").select("slot_date, slot_time, slot_status").eq("professional_id", userId).eq("slot_date", todayISO),
       ]);
 
       if (profileRes.data) setProfile(profileRes.data);
       if (scoreRes.data) setScore(scoreRes.data as unknown as ScoreData);
       if (reviewsRes.data) setReviews(reviewsRes.data);
       if (availRes.data) setAvailability(availRes.data);
-      if (blockedRes.data) setBlockedSlots(blockedRes.data as any);
       setLoading(false);
     };
 
     fetchData();
+  }, [userId]);
 
-    // Realtime: blocked_slots for today (so capacity updates live)
+  // Cargar slots bloqueados del día visualizado + realtime
+  useEffect(() => {
     if (!userId) return;
+
+    const loadBlocked = () => {
+      supabase
+        .from("blocked_slots")
+        .select("slot_date, slot_time, slot_status")
+        .eq("professional_id", userId)
+        .eq("slot_date", viewDateISO)
+        .then(({ data }) => setBlockedSlots((data as any) || []));
+    };
+
+    loadBlocked();
+
     const channel = supabase
-      .channel(`profile-blocked-${userId}`)
+      .channel(`profile-blocked-${userId}-${viewDateISO}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "blocked_slots", filter: `professional_id=eq.${userId}` },
-        () => {
-          supabase
-            .from("blocked_slots")
-            .select("slot_date, slot_time, slot_status")
-            .eq("professional_id", userId)
-            .eq("slot_date", todayISO)
-            .then(({ data }) => setBlockedSlots((data as any) || []));
-        }
+        loadBlocked,
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId, todayISO]);
+  }, [userId, viewDateISO]);
 
   const renderStars = (value: number) => (
     <div className="flex items-center gap-0.5">
