@@ -55,6 +55,15 @@ const AgendaOrders = () => {
   const [activeTab, setActiveTab] = useState<TabKey>("pendientes");
   const [selectedOrder, setSelectedOrder] = useState<ServiceRequest | null>(null);
   const [proProfile, setProProfile] = useState<{ full_name: string; rubro: string; work_stations: number } | null>(null);
+  const lavadero = isLavadero(proProfile?.rubro);
+  const tabs = lavadero ? allTabs.filter((t) => t.key !== "pendientes" && t.key !== "espera") : allTabs;
+
+  // Si es lavadero y el tab actual no aplica, saltar a confirmados
+  useEffect(() => {
+    if (lavadero && (activeTab === "pendientes" || activeTab === "espera")) {
+      setActiveTab("confirmados");
+    }
+  }, [lavadero, activeTab]);
 
   // Quote form state
   const [aiDescription, setAiDescription] = useState("");
