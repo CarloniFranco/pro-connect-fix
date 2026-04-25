@@ -639,10 +639,10 @@ const ClientOrders = () => {
                       ) : (
                         <div>
                           <p className="text-sm font-semibold text-foreground mb-1">
-                            ¿Cómo fue tu experiencia?
+                            ¿Cómo fue tu experiencia? <span className="text-destructive">*</span>
                           </p>
                           <p className="text-xs text-muted-foreground mb-3">
-                            Tu calificación ayuda a otros clientes y forma parte de la meritocracia del profesional.
+                            Tu calificación es <strong>obligatoria</strong> y ayuda a otros clientes. Forma parte de la meritocracia del profesional.
                           </p>
                           <StarRating value={reviewRating} onChange={setReviewRating} />
                           <Textarea
