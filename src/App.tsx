@@ -30,7 +30,7 @@ import CheckoutReturn from "./pages/CheckoutReturn.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import LegacyRedirect from "./pages/Auth.tsx";
 import LavaderoChat from "./components/LavaderoChat";
-import MobileQuickActions from "./components/MobileQuickActions";
+
 
 const queryClient = new QueryClient();
 
@@ -75,7 +75,6 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           <LavaderoChat />
-          <MobileQuickActions />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
