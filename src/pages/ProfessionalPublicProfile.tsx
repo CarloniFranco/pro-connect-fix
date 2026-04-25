@@ -14,6 +14,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import ServiceRequestForm from "@/components/ServiceRequestForm";
+import PortfolioGallery from "@/components/PortfolioGallery";
 
 interface ScoreData {
   total_score: number;
@@ -451,6 +452,9 @@ const ProfessionalPublicProfile = () => {
             ))}
           </div>
         </motion.div>
+
+        {/* Portfolio / Book de trabajos */}
+        {profile?.user_id && <PortfolioGallery professionalId={profile.user_id} />}
 
         {/* Reviews */}
         <motion.div
