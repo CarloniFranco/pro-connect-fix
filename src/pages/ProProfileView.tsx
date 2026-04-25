@@ -296,21 +296,21 @@ const ProProfileView = () => {
                       <Zap className="h-4 w-4 text-accent" />
                     </div>
                     <p className="text-lg font-bold text-foreground">{score.velocity}/5</p>
-                    <p className="text-xs text-muted-foreground">Velocidad</p>
+                    <p className="text-xs text-muted-foreground">Tiempo de respuesta</p>
                   </div>
                   <div className="rounded-xl bg-muted/50 p-4 text-center">
                     <div className="flex items-center justify-center gap-1 mb-1">
                       <CheckCircle className="h-4 w-4 text-secondary" />
                     </div>
                     <p className="text-lg font-bold text-foreground">{score.reliability}/5</p>
-                    <p className="text-xs text-muted-foreground">Cumplimiento</p>
+                    <p className="text-xs text-muted-foreground">Puntualidad y Compromiso</p>
                   </div>
                   <div className="rounded-xl bg-muted/50 p-4 text-center">
                     <div className="flex items-center justify-center gap-1 mb-1">
                       <Star className="h-4 w-4 text-accent fill-accent" />
                     </div>
                     <p className="text-lg font-bold text-foreground">{score.excellence}/5</p>
-                    <p className="text-xs text-muted-foreground">{score.review_count} reseñas</p>
+                    <p className="text-xs text-muted-foreground">Satisfacción del cliente ({score.review_count})</p>
                   </div>
                 </div>
               ) : (

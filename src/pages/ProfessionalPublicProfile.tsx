@@ -203,9 +203,9 @@ const ProfessionalPublicProfile = () => {
   }
 
   const metrics = [
-    { label: "Velocidad", value: score?.velocity || 3, icon: Zap, color: "text-accent" },
-    { label: "Confiabilidad", value: score?.reliability || 3, icon: Shield, color: "text-primary" },
-    { label: "Excelencia", value: score?.excellence || 3, icon: Award, color: "text-secondary" },
+    { label: "Tiempo de respuesta", value: score?.velocity || 3, icon: Zap, color: "text-accent" },
+    { label: "Puntualidad y Compromiso", value: score?.reliability || 3, icon: Shield, color: "text-primary" },
+    { label: "Satisfacción del cliente", value: score?.excellence || 3, icon: Award, color: "text-secondary" },
   ];
 
   const canRequest = user && user.id !== userId;
