@@ -225,21 +225,73 @@ const ProfessionalsList = () => {
     });
   }, [professionals, provinceFilter, localityFilter, availableUserIds]);
 
-  const mapPros: MapPro[] = useMemo(
-    () =>
-      filtered
-        .filter((p) => p.coords)
-        .map((p) => ({
+  const mapPros: MapPro[] = useMemo(() => {
+    // 1) Resolver coords: reales del pro o centroide de su localidad/provincia
+    const resolved = filtered
+      .map((p) => {
+        const coords =
+          p.coords ?? getLocalityCoords(p.province || "", p.locality || "");
+        if (!coords) return null;
+        return {
           user_id: p.user_id,
           full_name: p.full_name,
           neighborhood: p.locality || p.neighborhood,
           photo_url: p.photo_url,
           score: p.score.total_score,
-          lat: p.coords!.lat,
-          lng: p.coords!.lng,
-        })),
-    [filtered],
-  );
+          baseLat: Array.isArray(coords) ? coords[0] : coords.lat,
+          baseLng: Array.isArray(coords) ? coords[1] : coords.lng,
+          hasRealCoords: !!p.coords,
+        };
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null);
+
+    // 2) Agrupar por punto base (mismo centroide) y dispersar en círculo
+    //    para que múltiples pros en la misma localidad no se superpongan.
+    const groups = new Map<string, typeof resolved>();
+    resolved.forEach((r) => {
+      // Si tiene coords reales, no agrupar (usar tal cual)
+      if (r.hasRealCoords) {
+        groups.set(`${r.user_id}-real`, [r]);
+        return;
+      }
+      const key = `${r.baseLat.toFixed(4)},${r.baseLng.toFixed(4)}`;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(r);
+    });
+
+    const result: MapPro[] = [];
+    groups.forEach((group) => {
+      if (group.length === 1) {
+        const r = group[0];
+        result.push({
+          user_id: r.user_id,
+          full_name: r.full_name,
+          neighborhood: r.neighborhood,
+          photo_url: r.photo_url,
+          score: r.score,
+          lat: r.baseLat,
+          lng: r.baseLng,
+        });
+        return;
+      }
+      // Dispersar en círculo (~150-300m) alrededor del centroide
+      const radius = 0.0025; // ≈ 250m
+      group.forEach((r, i) => {
+        const angle = (2 * Math.PI * i) / group.length;
+        result.push({
+          user_id: r.user_id,
+          full_name: r.full_name,
+          neighborhood: r.neighborhood,
+          photo_url: r.photo_url,
+          score: r.score,
+          lat: r.baseLat + radius * Math.cos(angle),
+          lng: r.baseLng + radius * Math.sin(angle),
+        });
+      });
+    });
+
+    return result;
+  }, [filtered]);
 
   const renderStars = (score: number) => {
     const full = Math.floor(score);
