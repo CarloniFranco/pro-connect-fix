@@ -69,6 +69,17 @@ const Navbar = () => {
 
         {user ? (
           <div className="flex items-center gap-1">
+            {!isPro && (
+              <button
+                onClick={() => navigate("/mis-pedidos")}
+                title="Mis Pedidos"
+                aria-label="Mis Pedidos"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
+              >
+                <ClipboardList className="h-4 w-4" />
+                <span className="hidden sm:inline">Mis Pedidos</span>
+              </button>
+            )}
             <NotificationBell />
             <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -107,16 +118,10 @@ const Navbar = () => {
                   </DropdownMenuItem>
                 </>
               ) : (
-                <>
-                  <DropdownMenuItem onClick={() => navigate("/mi-perfil")}>
-                    <User className="mr-2 h-4 w-4" />
-                    Mi Perfil
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/mis-pedidos")}>
-                    <ClipboardList className="mr-2 h-4 w-4" />
-                    Mis Pedidos
-                  </DropdownMenuItem>
-                </>
+                <DropdownMenuItem onClick={() => navigate("/mi-perfil")}>
+                  <User className="mr-2 h-4 w-4" />
+                  Mi Perfil
+                </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
