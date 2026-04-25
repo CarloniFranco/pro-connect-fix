@@ -215,14 +215,23 @@ const ProfessionalsList = () => {
   const filtered = useMemo(() => {
     const provNorm = provinceFilter.trim().toLowerCase();
     const locNorm = localityFilter.trim().toLowerCase();
-    return professionals.filter((p) => {
+    const base = professionals.filter((p) => {
       if (provinceFilter !== "all" && (p.province || "").trim().toLowerCase() !== provNorm)
         return false;
       if (localityFilter !== "all" && (p.locality || "").trim().toLowerCase() !== locNorm)
         return false;
-      if (availableUserIds && !availableUserIds.has(p.user_id)) return false;
       return true;
     });
+    // Si hay filtro de fecha: no excluir, sólo mover los no disponibles al final
+    if (availableUserIds) {
+      return [...base].sort((a, b) => {
+        const aAv = availableUserIds.has(a.user_id) ? 0 : 1;
+        const bAv = availableUserIds.has(b.user_id) ? 0 : 1;
+        if (aAv !== bAv) return aAv - bAv;
+        return b.score.total_score - a.score.total_score;
+      });
+    }
+    return base;
   }, [professionals, provinceFilter, localityFilter, availableUserIds]);
 
   const mapPros: MapPro[] = useMemo(() => {
