@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { TrendingUp, CheckCircle, DollarSign } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,44 +10,75 @@ const MonthlyKPI = () => {
   const [pending, setPending] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
 
-  useEffect(() => {
+  const fetchKPIs = useCallback(async () => {
     if (!user) return;
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-    const fetchKPIs = async () => {
-      const { count: doneCount } = await supabase
-        .from("service_requests")
-        .select("*", { count: "exact", head: true })
-        .eq("professional_id", user.id)
-        .eq("status", "finalizada" as any)
-        .gte("completed_at", startOfMonth);
+    const { count: doneCount } = await supabase
+      .from("service_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("professional_id", user.id)
+      .eq("status", "finalizada" as any)
+      .gte("completed_at", startOfMonth);
 
-      const { count: activeCount } = await supabase
-        .from("service_requests")
-        .select("*", { count: "exact", head: true })
-        .eq("professional_id", user.id)
-        .in("status", ["nueva", "cotizada", "aceptada", "en_servicio"] as any);
+    const { count: activeCount } = await supabase
+      .from("service_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("professional_id", user.id)
+      .in("status", ["nueva", "cotizada", "aceptada", "en_servicio"] as any);
 
-      // Total revenue from all accepted/completed quotes
-      const { data: revenueData } = await supabase
-        .from("service_requests")
-        .select("quoted_amount")
-        .eq("professional_id", user.id)
-        .in("status", ["aceptada", "en_servicio", "finalizada"] as any)
-        .not("quoted_amount", "is", null);
+    // Ingresos confirmados del mes en curso:
+    // - aceptada / en_servicio creadas este mes
+    // - finalizada completadas este mes
+    const { data: confirmedThisMonth } = await supabase
+      .from("service_requests")
+      .select("quoted_amount")
+      .eq("professional_id", user.id)
+      .in("status", ["aceptada", "en_servicio"] as any)
+      .gte("created_at", startOfMonth)
+      .not("quoted_amount", "is", null);
 
-      const total = (revenueData || []).reduce(
-        (sum, r) => sum + (r.quoted_amount || 0),
-        0
-      );
+    const { data: finishedThisMonth } = await supabase
+      .from("service_requests")
+      .select("quoted_amount")
+      .eq("professional_id", user.id)
+      .eq("status", "finalizada" as any)
+      .gte("completed_at", startOfMonth)
+      .not("quoted_amount", "is", null);
 
-      setCompleted(doneCount || 0);
-      setPending(activeCount || 0);
-      setTotalRevenue(total);
-    };
-    fetchKPIs();
+    const total =
+      (confirmedThisMonth || []).reduce((s, r) => s + (Number(r.quoted_amount) || 0), 0) +
+      (finishedThisMonth || []).reduce((s, r) => s + (Number(r.quoted_amount) || 0), 0);
+
+    setCompleted(doneCount || 0);
+    setPending(activeCount || 0);
+    setTotalRevenue(total);
   }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    fetchKPIs();
+
+    // Realtime: refrescar al confirmarse / actualizarse / crearse servicios
+    const channel = supabase
+      .channel("kpi-service-requests")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "service_requests",
+          filter: `professional_id=eq.${user.id}`,
+        },
+        () => fetchKPIs()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, fetchKPIs]);
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(amount);
@@ -83,7 +114,7 @@ const MonthlyKPI = () => {
           </div>
           <div className="min-w-0">
             <p className="font-display text-lg font-bold text-foreground leading-tight">{formatCurrency(totalRevenue)}</p>
-            <p className="text-xs text-muted-foreground">Generado en FIX</p>
+            <p className="text-xs text-muted-foreground">Generado este mes</p>
           </div>
         </CardContent>
       </Card>
