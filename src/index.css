@@ -93,6 +93,26 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Fredoka', sans-serif;
   }
+
+  /* Mobile UX: evitar zoom automático en iOS al enfocar inputs (<16px lo dispara) */
+  @media (max-width: 767px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+  }
+
+  /* Mejor experiencia táctil: scroll suave + tap sin highlight feo */
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  /* Evitar overflow horizontal accidental en mobile */
+  body {
+    overflow-x: hidden;
+  }
 }
 
 @keyframes fixPulse {
