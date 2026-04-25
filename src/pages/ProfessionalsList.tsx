@@ -492,7 +492,7 @@ const ProfessionalsList = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                onClick={() => navigate(`/profesional/${pro.user_id}`)}
+                onClick={() => goToPro(pro.user_id)}
                 className="group cursor-pointer rounded-2xl border-2 border-border bg-card p-5 shadow-sm transition-all hover:shadow-lg hover:border-primary"
               >
                 <div className="flex items-start justify-between">
