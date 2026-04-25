@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import PortfolioManager from "@/components/dashboard/PortfolioManager";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -320,6 +321,8 @@ const ProProfileView = () => {
               )}
             </CardContent>
           </Card>
+
+          <PortfolioManager />
         </div>
       </div>
     </>
