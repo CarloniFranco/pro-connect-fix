@@ -215,14 +215,23 @@ const ProfessionalsList = () => {
   const filtered = useMemo(() => {
     const provNorm = provinceFilter.trim().toLowerCase();
     const locNorm = localityFilter.trim().toLowerCase();
-    return professionals.filter((p) => {
+    const base = professionals.filter((p) => {
       if (provinceFilter !== "all" && (p.province || "").trim().toLowerCase() !== provNorm)
         return false;
       if (localityFilter !== "all" && (p.locality || "").trim().toLowerCase() !== locNorm)
         return false;
-      if (availableUserIds && !availableUserIds.has(p.user_id)) return false;
       return true;
     });
+    // Si hay filtro de fecha: no excluir, sólo mover los no disponibles al final
+    if (availableUserIds) {
+      return [...base].sort((a, b) => {
+        const aAv = availableUserIds.has(a.user_id) ? 0 : 1;
+        const bAv = availableUserIds.has(b.user_id) ? 0 : 1;
+        if (aAv !== bAv) return aAv - bAv;
+        return b.score.total_score - a.score.total_score;
+      });
+    }
+    return base;
   }, [professionals, provinceFilter, localityFilter, availableUserIds]);
 
   const mapPros: MapPro[] = useMemo(() => {
@@ -539,14 +548,19 @@ const ProfessionalsList = () => {
           </>
         ) : (
           <div className="space-y-4">
-            {filtered.map((pro, i) => (
+            {filtered.map((pro, i) => {
+              const isUnavailable =
+                !!availableUserIds && !availableUserIds.has(pro.user_id);
+              return (
               <motion.div
                 key={pro.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
                 onClick={() => goToPro(pro.user_id)}
-                className="group cursor-pointer rounded-2xl border-2 border-border bg-card p-5 shadow-sm transition-all hover:shadow-lg hover:border-primary"
+                className={`group cursor-pointer rounded-2xl border-2 border-border bg-card p-5 shadow-sm transition-all hover:shadow-lg hover:border-primary ${
+                  isUnavailable ? "opacity-70" : ""
+                }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex gap-4 flex-1">
@@ -608,8 +622,14 @@ const ProfessionalsList = () => {
                   </div>
                   <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors mt-2" />
                 </div>
+                {isUnavailable && (
+                  <div className="mt-3 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
+                    No disponible en la fecha seleccionada
+                  </div>
+                )}
               </motion.div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
