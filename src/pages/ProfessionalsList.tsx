@@ -35,6 +35,7 @@ import ProfessionalsMap, { MapPro } from "@/components/ProfessionalsMap";
 import { parseGoogleMapsCoords } from "@/lib/parseGoogleMaps";
 import { cn } from "@/lib/utils";
 import { PROVINCES, getLocalities } from "@/lib/argentinaLocations";
+import { getLocalityCoords } from "@/lib/localityCoords";
 
 interface ProfessionalWithScore {
   id: string;
