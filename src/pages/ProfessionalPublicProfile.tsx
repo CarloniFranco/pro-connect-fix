@@ -133,10 +133,10 @@ const ProfessionalPublicProfile = () => {
     </div>
   );
 
-  // Today's slots grid
-  const todaySlots = (() => {
+  // Slots del día visualizado
+  const viewSlots = (() => {
     if (!profile) return [] as { time: string; status: "free" | "full" }[];
-    const dow = new Date().getDay();
+    const dow = viewDate.getDay();
     const dayAvail = availability.filter((a) => a.day_of_week === dow);
     if (dayAvail.length === 0) return [];
 
@@ -149,7 +149,7 @@ const ProfessionalPublicProfile = () => {
       });
 
     const stations = profile.work_stations || 1;
-    const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+    const nowMin = isToday ? new Date().getHours() * 60 + new Date().getMinutes() : -1;
     const out: { time: string; status: "free" | "full" }[] = [];
 
     dayAvail.forEach((slot) => {
