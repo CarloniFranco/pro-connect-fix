@@ -37,6 +37,7 @@ type ServiceRequest = {
   quoted_amount: number | null;
   quoted_details: string | null;
   scheduled_date: string | null;
+  scheduled_time: string | null;
   created_at: string;
   professional_id: string;
   deposit_amount: number | null;
@@ -148,6 +149,8 @@ const ClientOrders = () => {
   const [selectedRequest, setSelectedRequest] = useState<ServiceRequest | null>(null);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [confirmCancel, setConfirmCancel] = useState<ServiceRequest | null>(null);
 
   // Review form state
   const [reviewRating, setReviewRating] = useState(0);
@@ -176,7 +179,7 @@ const ClientOrders = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("service_requests")
-      .select("id, service_type, description, status, quoted_amount, quoted_details, scheduled_date, created_at, professional_id, deposit_amount, deposit_paid")
+      .select("id, service_type, description, status, quoted_amount, quoted_details, scheduled_date, scheduled_time, created_at, professional_id, deposit_amount, deposit_paid")
       .eq("client_user_id", user.id)
       .order("created_at", { ascending: false });
 
@@ -260,6 +263,45 @@ const ClientOrders = () => {
       return;
     }
     toast.success("Presupuesto rechazado");
+    setSelectedRequest(null);
+    loadRequests();
+  };
+
+  // Devuelve horas hasta el turno (puede ser negativo si ya pasó)
+  const hoursUntilAppointment = (req: ServiceRequest): number | null => {
+    if (!req.scheduled_date) return null;
+    const time = req.scheduled_time ? String(req.scheduled_time).slice(0, 5) : "00:00";
+    const dt = new Date(`${req.scheduled_date}T${time}:00`);
+    if (isNaN(dt.getTime())) return null;
+    return (dt.getTime() - Date.now()) / 36e5;
+  };
+
+  const handleCancelConfirmed = async (req: ServiceRequest) => {
+    setCancellingId(req.id);
+
+    // Liberar slots bloqueados
+    await supabase
+      .from("blocked_slots")
+      .delete()
+      .eq("service_request_id", req.id);
+
+    const { error } = await supabase
+      .from("service_requests")
+      .update({ status: "rechazada_cliente" as any })
+      .eq("id", req.id);
+
+    setCancellingId(null);
+    if (error) {
+      toast.error("Error al cancelar el turno");
+      return;
+    }
+    const hrs = hoursUntilAppointment(req);
+    if (hrs !== null && hrs < 24 && req.deposit_paid) {
+      toast.error("Turno cancelado. La seña no será reembolsada por cancelar con menos de 24hs.");
+    } else {
+      toast.success("Turno cancelado correctamente.");
+    }
+    setConfirmCancel(null);
     setSelectedRequest(null);
     loadRequests();
   };
@@ -591,13 +633,46 @@ const ClientOrders = () => {
                     </div>
                   )}
 
-                  {selectedRequest.status === "aceptada" && (
-                    <div className="rounded-lg bg-green-500/10 p-3 text-center">
-                      <p className="text-sm font-semibold text-green-700 dark:text-green-300">
-                        ✅ Turno confirmado — Te esperamos
-                      </p>
-                    </div>
-                  )}
+                  {selectedRequest.status === "aceptada" && (() => {
+                    const hrs = hoursUntilAppointment(selectedRequest);
+                    const within24h = hrs !== null && hrs < 24 && hrs > -1;
+                    const losesDeposit = within24h && selectedRequest.deposit_paid;
+                    return (
+                      <div className="space-y-3">
+                        <div className="rounded-lg bg-green-500/10 p-3 text-center">
+                          <p className="text-sm font-semibold text-green-700 dark:text-green-300">
+                            ✅ Turno confirmado — Te esperamos
+                          </p>
+                        </div>
+                        <div className="border-t border-border pt-3">
+                          {losesDeposit && (
+                            <div className="mb-2 rounded-lg bg-destructive/10 border border-destructive/30 p-3 text-xs text-destructive">
+                              ⚠️ Faltan menos de 24hs para el turno. Si lo cancelás ahora,{" "}
+                              <strong>perdés la seña</strong>
+                              {selectedRequest.deposit_amount
+                                ? ` de $${selectedRequest.deposit_amount.toLocaleString("es-AR")}`
+                                : ""}
+                              .
+                            </div>
+                          )}
+                          {!losesDeposit && selectedRequest.deposit_paid && (
+                            <p className="mb-2 text-xs text-muted-foreground">
+                              Si cancelás con menos de 24hs de anticipación, perdés la seña.
+                            </p>
+                          )}
+                          <Button
+                            variant="outline"
+                            className="w-full text-destructive border-destructive/40 hover:bg-destructive/5"
+                            onClick={() => setConfirmCancel(selectedRequest)}
+                            disabled={cancellingId === selectedRequest.id}
+                          >
+                            <XCircle className="h-4 w-4 mr-2" />
+                            Dar de baja el turno
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {selectedRequest.status === "en_servicio" && (
                     <div className="rounded-lg bg-primary/10 p-3 text-center">
@@ -671,6 +746,69 @@ const ClientOrders = () => {
                   )}
                 </div>
               )}
+            </DialogContent>
+          </Dialog>
+
+          {/* Confirm cancel dialog */}
+          <Dialog open={!!confirmCancel} onOpenChange={(o) => !o && setConfirmCancel(null)}>
+            <DialogContent className="max-w-sm">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-destructive">
+                  <XCircle className="h-5 w-5" />
+                  ¿Dar de baja el turno?
+                </DialogTitle>
+              </DialogHeader>
+              {confirmCancel && (() => {
+                const hrs = hoursUntilAppointment(confirmCancel);
+                const within24h = hrs !== null && hrs < 24 && hrs > -1;
+                const losesDeposit = within24h && confirmCancel.deposit_paid;
+                return (
+                  <div className="space-y-4">
+                    {losesDeposit ? (
+                      <div className="rounded-lg bg-destructive/10 border border-destructive/30 p-3 text-sm text-destructive">
+                        ⚠️ Faltan menos de 24hs para el turno. Al cancelar ahora{" "}
+                        <strong>
+                          perdés la seña
+                          {confirmCancel.deposit_amount
+                            ? ` de $${confirmCancel.deposit_amount.toLocaleString("es-AR")}`
+                            : ""}
+                        </strong>.
+                      </div>
+                    ) : confirmCancel.deposit_paid ? (
+                      <p className="text-sm text-muted-foreground">
+                        Estás cancelando con más de 24hs de anticipación. La seña será reintegrada
+                        según los términos del servicio.
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        ¿Seguro querés cancelar este turno?
+                      </p>
+                    )}
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => setConfirmCancel(null)}
+                        disabled={cancellingId === confirmCancel.id}
+                      >
+                        Volver
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        className="flex-1"
+                        onClick={() => handleCancelConfirmed(confirmCancel)}
+                        disabled={cancellingId === confirmCancel.id}
+                      >
+                        {cancellingId === confirmCancel.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          "Sí, cancelar"
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })()}
             </DialogContent>
           </Dialog>
         </div>
