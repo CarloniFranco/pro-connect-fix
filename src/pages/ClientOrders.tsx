@@ -159,6 +159,18 @@ const ClientOrders = () => {
     loadRequests();
   }, [user]);
 
+  // Pedido finalizado pendiente de reseña (obligatorio)
+  const pendingReviewRequest = requests.find(
+    (r) => r.status === "finalizada" && !reviewedIds.has(r.id)
+  ) || null;
+
+  // Auto-abrir el diálogo del pedido pendiente de reseña
+  useEffect(() => {
+    if (pendingReviewRequest && !selectedRequest) {
+      setSelectedRequest(pendingReviewRequest);
+    }
+  }, [pendingReviewRequest, selectedRequest]);
+
   const loadRequests = async () => {
     if (!user) return;
     setLoading(true);
@@ -431,9 +443,55 @@ const ClientOrders = () => {
             </div>
           )}
 
+          {/* Banner de reseña obligatoria */}
+          {pendingReviewRequest && (
+            <div className="mb-4 rounded-lg border border-accent/40 bg-accent/10 p-3 text-sm text-foreground">
+              <p className="font-semibold text-accent-foreground mb-1">⭐ Tenés una reseña pendiente</p>
+              <p className="text-xs text-muted-foreground">
+                Para seguir usando la plataforma, calificá tu último servicio finalizado.
+              </p>
+            </div>
+          )}
+
           {/* Detail Dialog */}
-          <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && setSelectedRequest(null)}>
-            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <Dialog
+            open={!!selectedRequest}
+            onOpenChange={(open) => {
+              if (!open) {
+                // Bloquear cierre si hay reseña pendiente sobre este pedido
+                if (
+                  selectedRequest &&
+                  selectedRequest.status === "finalizada" &&
+                  !reviewedIds.has(selectedRequest.id)
+                ) {
+                  toast.error("Por favor dejá tu reseña antes de cerrar.");
+                  return;
+                }
+                setSelectedRequest(null);
+              }
+            }}
+          >
+            <DialogContent
+              className="max-w-md max-h-[90vh] overflow-y-auto"
+              onPointerDownOutside={(e) => {
+                if (
+                  selectedRequest &&
+                  selectedRequest.status === "finalizada" &&
+                  !reviewedIds.has(selectedRequest.id)
+                ) {
+                  e.preventDefault();
+                }
+              }}
+              onEscapeKeyDown={(e) => {
+                if (
+                  selectedRequest &&
+                  selectedRequest.status === "finalizada" &&
+                  !reviewedIds.has(selectedRequest.id)
+                ) {
+                  e.preventDefault();
+                }
+              }}
+            >
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <Wrench className="h-5 w-5 text-primary" />
@@ -581,10 +639,10 @@ const ClientOrders = () => {
                       ) : (
                         <div>
                           <p className="text-sm font-semibold text-foreground mb-1">
-                            ¿Cómo fue tu experiencia?
+                            ¿Cómo fue tu experiencia? <span className="text-destructive">*</span>
                           </p>
                           <p className="text-xs text-muted-foreground mb-3">
-                            Tu calificación ayuda a otros clientes y forma parte de la meritocracia del profesional.
+                            Tu calificación es <strong>obligatoria</strong> y ayuda a otros clientes. Forma parte de la meritocracia del profesional.
                           </p>
                           <StarRating value={reviewRating} onChange={setReviewRating} />
                           <Textarea
