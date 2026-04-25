@@ -159,6 +159,18 @@ const ClientOrders = () => {
     loadRequests();
   }, [user]);
 
+  // Pedido finalizado pendiente de reseña (obligatorio)
+  const pendingReviewRequest = requests.find(
+    (r) => r.status === "finalizada" && !reviewedIds.has(r.id)
+  ) || null;
+
+  // Auto-abrir el diálogo del pedido pendiente de reseña
+  useEffect(() => {
+    if (pendingReviewRequest && !selectedRequest) {
+      setSelectedRequest(pendingReviewRequest);
+    }
+  }, [pendingReviewRequest, selectedRequest]);
+
   const loadRequests = async () => {
     if (!user) return;
     setLoading(true);
