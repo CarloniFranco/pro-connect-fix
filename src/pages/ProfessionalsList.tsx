@@ -13,6 +13,7 @@ import {
   Map as MapIcon,
   CalendarIcon,
   X,
+  Search,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
