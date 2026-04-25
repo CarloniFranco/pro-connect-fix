@@ -548,14 +548,19 @@ const ProfessionalsList = () => {
           </>
         ) : (
           <div className="space-y-4">
-            {filtered.map((pro, i) => (
+            {filtered.map((pro, i) => {
+              const isUnavailable =
+                !!availableUserIds && !availableUserIds.has(pro.user_id);
+              return (
               <motion.div
                 key={pro.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
                 onClick={() => goToPro(pro.user_id)}
-                className="group cursor-pointer rounded-2xl border-2 border-border bg-card p-5 shadow-sm transition-all hover:shadow-lg hover:border-primary"
+                className={`group cursor-pointer rounded-2xl border-2 border-border bg-card p-5 shadow-sm transition-all hover:shadow-lg hover:border-primary ${
+                  isUnavailable ? "opacity-70" : ""
+                }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex gap-4 flex-1">
