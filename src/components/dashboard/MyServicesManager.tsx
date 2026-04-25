@@ -225,6 +225,62 @@ export default function MyServicesManager() {
               placeholder="Av. San Martín 1234"
             />
           </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">
+                Provincia <span className="text-destructive">*</span>
+              </Label>
+              <Select
+                value={province}
+                onValueChange={(v) => {
+                  setProvince(v);
+                  setLocality("");
+                  setLocalityCustom("");
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Elegí una provincia" />
+                </SelectTrigger>
+                <SelectContent className="max-h-72">
+                  {PROVINCES.map((p) => (
+                    <SelectItem key={p} value={p}>
+                      {p}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">
+                Localidad <span className="text-destructive">*</span>
+              </Label>
+              <Select
+                value={locality}
+                onValueChange={setLocality}
+                disabled={!province}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={province ? "Elegí localidad" : "Primero la provincia"} />
+                </SelectTrigger>
+                <SelectContent className="max-h-72">
+                  {getLocalities(province).map((l) => (
+                    <SelectItem key={l} value={l}>
+                      {l}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {locality === "Otra" && (
+                <Input
+                  className="mt-2"
+                  value={localityCustom}
+                  onChange={(e) => setLocalityCustom(e.target.value)}
+                  placeholder="Escribí tu localidad"
+                  maxLength={60}
+                />
+              )}
+            </div>
+          </div>
           <div>
             <Label htmlFor="neighborhood" className="text-xs">
               Barrio / Zona <span className="text-destructive">*</span>
@@ -233,7 +289,7 @@ export default function MyServicesManager() {
               id="neighborhood"
               value={neighborhood}
               onChange={(e) => setNeighborhood(e.target.value)}
-              placeholder="Guaymallén, Mendoza"
+              placeholder="Ej: Dorrego, Cuarta sección"
               required
             />
           </div>
