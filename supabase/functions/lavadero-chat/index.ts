@@ -57,19 +57,23 @@ const tools = [
     function: {
       name: "check_availability",
       description:
-        "Consulta los lavaderos disponibles para una fecha y hora dadas. Devuelve hasta 5 lavaderos rankeados por score, ordenados de mejor a peor. Si urgent=true, ignora la hora y devuelve el primer hueco disponible hoy. Si professional_name está presente, filtra SOLO los profesionales cuyo nombre coincida (parcial, sin tildes, case-insensitive).",
+        "Consulta los lavaderos disponibles para una fecha y hora. Devuelve hasta 5 lavaderos rankeados por score con sus servicios cargados (precios por tipo de vehículo). Filtra por 'locality' (zona del usuario) cuando está presente. Si no hay lavaderos en esa zona, devuelve fallback con los más cercanos del país. Si urgent=true, ignora la hora y usa el primer hueco hoy. Si professional_name está presente, filtra solo a ese pro.",
       parameters: {
         type: "object",
         properties: {
-          date: { type: "string", description: "Fecha en formato YYYY-MM-DD" },
-          time: { type: "string", description: "Hora en formato HH:MM (24h)" },
+          date: { type: "string", description: "Fecha YYYY-MM-DD" },
+          time: { type: "string", description: "Hora HH:MM (24h)" },
+          locality: {
+            type: "string",
+            description: "Zona/localidad del usuario tal como la dijo. Ej: 'Palermo', 'Vicente Lopez', 'Caballito'.",
+          },
           urgent: {
             type: "boolean",
-            description: "Si es true, ignora la hora y devuelve el primer hueco disponible hoy.",
+            description: "Si true, ignora hora y devuelve primer hueco disponible hoy.",
           },
           professional_name: {
             type: "string",
-            description: "Nombre (o parte) del profesional que el usuario pidió específicamente. Ej: 'franco carloni'.",
+            description: "Nombre (parcial) del profesional pedido específicamente.",
           },
         },
         required: ["date"],
@@ -82,20 +86,24 @@ const tools = [
     function: {
       name: "create_request",
       description:
-        "Crea una solicitud de servicio de lavado a nombre del usuario logueado. CONFIRMA el turno directamente (sin seña). Solo llamar después de confirmación explícita del usuario.",
+        "Crea la reserva del turno con seña simulada (10% del precio total). El turno queda CONFIRMADO con la seña marcada como pagada. Solo llamar después de que el usuario confirme explícitamente lavadero, día, hora, tipo de vehículo y tipo de lavado.",
       parameters: {
         type: "object",
         properties: {
-          professional_id: { type: "string", description: "UUID del profesional devuelto por check_availability" },
+          professional_id: { type: "string", description: "UUID devuelto por check_availability" },
           professional_name: { type: "string" },
           date: { type: "string", description: "YYYY-MM-DD" },
           time: { type: "string", description: "HH:MM" },
-          description: {
+          vehicle_type: {
             type: "string",
-            description: "Descripción breve del servicio pedido por el usuario",
+            description: "Tipo de vehículo elegido (ej: 'Sedán', 'SUV', 'Camioneta'). Debe estar en vehicle_types del lavadero.",
+          },
+          service_name: {
+            type: "string",
+            description: "Nombre del lavado elegido (ej: 'Lavado completo'). Debe estar en services del lavadero.",
           },
         },
-        required: ["professional_id", "date", "time", "description"],
+        required: ["professional_id", "date", "time", "vehicle_type", "service_name"],
         additionalProperties: false,
       },
     },
