@@ -495,7 +495,7 @@ const ProfessionalPublicProfile = () => {
           rubro={profile.rubro}
           open={requestOpen}
           onOpenChange={setRequestOpen}
-          initialDate={preselectedTime ? todayISO : undefined}
+          initialDate={preselectedTime ? viewDateISO : undefined}
           initialTime={preselectedTime || undefined}
         />
       )}
