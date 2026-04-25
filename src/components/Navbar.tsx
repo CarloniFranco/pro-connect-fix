@@ -69,15 +69,6 @@ const Navbar = () => {
 
         {user ? (
           <div className="flex items-center gap-1">
-            {isPro && (
-              <button
-                onClick={() => navigate("/")}
-                className="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
-              >
-                <Search className="h-4 w-4" />
-                Solicitar servicio
-              </button>
-            )}
             <NotificationBell />
             <DropdownMenu>
             <DropdownMenuTrigger asChild>
