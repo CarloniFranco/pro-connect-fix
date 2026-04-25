@@ -443,9 +443,55 @@ const ClientOrders = () => {
             </div>
           )}
 
+          {/* Banner de reseña obligatoria */}
+          {pendingReviewRequest && (
+            <div className="mb-4 rounded-lg border border-accent/40 bg-accent/10 p-3 text-sm text-foreground">
+              <p className="font-semibold text-accent-foreground mb-1">⭐ Tenés una reseña pendiente</p>
+              <p className="text-xs text-muted-foreground">
+                Para seguir usando la plataforma, calificá tu último servicio finalizado.
+              </p>
+            </div>
+          )}
+
           {/* Detail Dialog */}
-          <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && setSelectedRequest(null)}>
-            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <Dialog
+            open={!!selectedRequest}
+            onOpenChange={(open) => {
+              if (!open) {
+                // Bloquear cierre si hay reseña pendiente sobre este pedido
+                if (
+                  selectedRequest &&
+                  selectedRequest.status === "finalizada" &&
+                  !reviewedIds.has(selectedRequest.id)
+                ) {
+                  toast.error("Por favor dejá tu reseña antes de cerrar.");
+                  return;
+                }
+                setSelectedRequest(null);
+              }
+            }}
+          >
+            <DialogContent
+              className="max-w-md max-h-[90vh] overflow-y-auto"
+              onPointerDownOutside={(e) => {
+                if (
+                  selectedRequest &&
+                  selectedRequest.status === "finalizada" &&
+                  !reviewedIds.has(selectedRequest.id)
+                ) {
+                  e.preventDefault();
+                }
+              }}
+              onEscapeKeyDown={(e) => {
+                if (
+                  selectedRequest &&
+                  selectedRequest.status === "finalizada" &&
+                  !reviewedIds.has(selectedRequest.id)
+                ) {
+                  e.preventDefault();
+                }
+              }}
+            >
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <Wrench className="h-5 w-5 text-primary" />
