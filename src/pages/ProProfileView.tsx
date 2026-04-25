@@ -296,7 +296,7 @@ const ProProfileView = () => {
                       <Zap className="h-4 w-4 text-accent" />
                     </div>
                     <p className="text-lg font-bold text-foreground">{score.velocity}/5</p>
-                    <p className="text-xs text-muted-foreground">Velocidad</p>
+                    <p className="text-xs text-muted-foreground">Tiempo de respuesta</p>
                   </div>
                   <div className="rounded-xl bg-muted/50 p-4 text-center">
                     <div className="flex items-center justify-center gap-1 mb-1">
