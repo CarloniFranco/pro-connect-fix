@@ -149,6 +149,8 @@ const ClientOrders = () => {
   const [selectedRequest, setSelectedRequest] = useState<ServiceRequest | null>(null);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [confirmCancel, setConfirmCancel] = useState<ServiceRequest | null>(null);
 
   // Review form state
   const [reviewRating, setReviewRating] = useState(0);
