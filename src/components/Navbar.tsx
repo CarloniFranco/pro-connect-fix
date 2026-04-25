@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Wrench, User, LogOut, ChevronDown, ClipboardList, Briefcase, CreditCard, Search } from "lucide-react";
+import { Wrench, User, LogOut, ChevronDown, ClipboardList, Briefcase, CreditCard } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -69,15 +69,6 @@ const Navbar = () => {
 
         {user ? (
           <div className="flex items-center gap-1">
-            {isPro && (
-              <button
-                onClick={() => navigate("/")}
-                className="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
-              >
-                <Search className="h-4 w-4" />
-                Solicitar servicio
-              </button>
-            )}
             <NotificationBell />
             <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -97,10 +88,6 @@ const Navbar = () => {
                   <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                     <Wrench className="mr-2 h-4 w-4" />
                     Mi Panel
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/")} className="sm:hidden">
-                    <Search className="mr-2 h-4 w-4" />
-                    Solicitar un Servicio
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/mi-perfil-pro")}>
                     <Briefcase className="mr-2 h-4 w-4" />
