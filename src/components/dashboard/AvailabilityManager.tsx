@@ -32,10 +32,22 @@ export default function AvailabilityManager() {
       .order("day_of_week")
       .order("start_time")
       .then(({ data }) => {
-        setSlots(data || []);
+        // Normalizar a HH:MM (la BD devuelve HH:MM:SS)
+        const normalized = (data || []).map((s: any) => ({
+          ...s,
+          start_time: String(s.start_time).slice(0, 5),
+          end_time: String(s.end_time).slice(0, 5),
+        }));
+        setSlots(normalized);
         setLoading(false);
       });
   }, [user]);
+
+  const toDbTime = (t: string) => {
+    // Asegurar formato HH:MM:SS sin importar si viene HH:MM o HH:MM:SS
+    const base = String(t).slice(0, 5);
+    return `${base}:00`;
+  };
 
   const addSlot = (dayOfWeek: number) => {
     setSlots((prev) => [
@@ -65,35 +77,51 @@ export default function AvailabilityManager() {
     if (!user) return;
     setSaving(true);
 
-    for (const slot of slots) {
+    let hadError = false;
+    const updated = [...slots];
+
+    for (let i = 0; i < updated.length; i++) {
+      const slot = updated[i];
       if (slot.id) {
-        await supabase
+        const { error } = await supabase
           .from("professional_availability")
           .update({
-            start_time: slot.start_time + ":00",
-            end_time: slot.end_time + ":00",
+            start_time: toDbTime(slot.start_time),
+            end_time: toDbTime(slot.end_time),
             is_active: slot.is_active,
           })
           .eq("id", slot.id);
+        if (error) {
+          hadError = true;
+          console.error("Update error:", error);
+        }
       } else {
         const { data, error } = await supabase
           .from("professional_availability")
           .insert({
             professional_id: user.id,
             day_of_week: slot.day_of_week,
-            start_time: slot.start_time + ":00",
-            end_time: slot.end_time + ":00",
+            start_time: toDbTime(slot.start_time),
+            end_time: toDbTime(slot.end_time),
             is_active: slot.is_active,
           })
           .select()
           .single();
-        if (data) slot.id = data.id;
-        if (error) console.error(error);
+        if (error) {
+          hadError = true;
+          console.error("Insert error:", error);
+        }
+        if (data) updated[i] = { ...slot, id: data.id };
       }
     }
 
+    setSlots(updated);
     setSaving(false);
-    toast.success("Disponibilidad guardada");
+    if (hadError) {
+      toast.error("Algunos horarios no se pudieron guardar");
+    } else {
+      toast.success("Disponibilidad guardada");
+    }
   };
 
   if (loading) {
