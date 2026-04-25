@@ -1,13 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Star, Zap, Shield, Award, MessageSquare, User, MapPin, Clock } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Star, Zap, Shield, Award, MessageSquare, User, MapPin, Clock, CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { format, addDays, isSameDay, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import ServiceRequestForm from "@/components/ServiceRequestForm";
 
 interface ScoreData {
