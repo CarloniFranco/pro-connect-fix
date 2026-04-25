@@ -261,7 +261,16 @@ const ProfessionalsList = () => {
     );
   };
 
+  const applyFilters = () => {
+    setProvinceFilter(pendingProvince);
+    setLocalityFilter(pendingLocality);
+    setDateFilter(pendingDate);
+  };
+
   const clearFilters = () => {
+    setPendingProvince("all");
+    setPendingLocality("all");
+    setPendingDate(undefined);
     setProvinceFilter("all");
     setLocalityFilter("all");
     setDateFilter(undefined);
@@ -269,6 +278,17 @@ const ProfessionalsList = () => {
 
   const hasActiveFilters =
     provinceFilter !== "all" || localityFilter !== "all" || !!dateFilter;
+  const hasPendingChanges =
+    pendingProvince !== provinceFilter ||
+    pendingLocality !== localityFilter ||
+    (pendingDate?.getTime() || 0) !== (dateFilter?.getTime() || 0);
+
+  const goToPro = (userId: string) => {
+    const params = new URLSearchParams();
+    if (dateFilter) params.set("date", format(dateFilter, "yyyy-MM-dd"));
+    const qs = params.toString();
+    navigate(`/profesional/${userId}${qs ? `?${qs}` : ""}`);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -297,10 +317,10 @@ const ProfessionalsList = () => {
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             {/* Provincia */}
             <Select
-              value={provinceFilter}
+              value={pendingProvince}
               onValueChange={(v) => {
-                setProvinceFilter(v);
-                setLocalityFilter("all");
+                setPendingProvince(v);
+                setPendingLocality("all");
               }}
             >
               <SelectTrigger>
@@ -321,16 +341,16 @@ const ProfessionalsList = () => {
 
             {/* Localidad */}
             <Select
-              value={localityFilter}
-              onValueChange={setLocalityFilter}
-              disabled={provinceFilter === "all" || localities.length === 0}
+              value={pendingLocality}
+              onValueChange={setPendingLocality}
+              disabled={pendingProvince === "all" || localities.length === 0}
             >
               <SelectTrigger>
                 <div className="flex items-center gap-2 truncate">
                   <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <SelectValue
                     placeholder={
-                      provinceFilter === "all" ? "Elegí provincia" : "Localidad"
+                      pendingProvince === "all" ? "Elegí provincia" : "Localidad"
                     }
                   />
                 </div>
@@ -352,18 +372,18 @@ const ProfessionalsList = () => {
                   variant="outline"
                   className={cn(
                     "justify-start font-normal",
-                    !dateFilter && "text-muted-foreground",
+                    !pendingDate && "text-muted-foreground",
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateFilter ? format(dateFilter, "d 'de' MMMM", { locale: es }) : "Día"}
+                  {pendingDate ? format(pendingDate, "d 'de' MMMM", { locale: es }) : "Día"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
-                  selected={dateFilter}
-                  onSelect={setDateFilter}
+                  selected={pendingDate}
+                  onSelect={setPendingDate}
                   disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
                   initialFocus
                   locale={es}
@@ -372,6 +392,17 @@ const ProfessionalsList = () => {
               </PopoverContent>
             </Popover>
           </div>
+
+          {/* Botón Buscar */}
+          <Button
+            onClick={applyFilters}
+            disabled={!hasPendingChanges}
+            className="w-full gap-2"
+            size="lg"
+          >
+            <Search className="h-4 w-4" />
+            Buscar profesionales
+          </Button>
 
           <div className="flex flex-wrap items-center gap-2 justify-between">
             {hasActiveFilters ? (
