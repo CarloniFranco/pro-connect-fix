@@ -310,7 +310,7 @@ const ProProfileView = () => {
                       <Star className="h-4 w-4 text-accent fill-accent" />
                     </div>
                     <p className="text-lg font-bold text-foreground">{score.excellence}/5</p>
-                    <p className="text-xs text-muted-foreground">{score.review_count} reseñas</p>
+                    <p className="text-xs text-muted-foreground">Satisfacción del cliente ({score.review_count})</p>
                   </div>
                 </div>
               ) : (
