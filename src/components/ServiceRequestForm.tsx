@@ -126,7 +126,7 @@ export default function ServiceRequestForm({
   })();
 
   const timeSlots = (() => {
-    if (!selectedDate) return [];
+    if (!selectedDate) return [] as { time: string; taken: boolean }[];
     const d = new Date(selectedDate + "T00:00:00");
     const dow = d.getDay();
     const dayAvailability = availability.filter((a) => a.day_of_week === dow);
@@ -139,16 +139,15 @@ export default function ServiceRequestForm({
         occupiedCount.set(key, (occupiedCount.get(key) || 0) + 1);
       });
 
-    const slots: string[] = [];
+    const slots: { time: string; taken: boolean }[] = [];
     dayAvailability.forEach((slot) => {
       const [startH, startM] = slot.start_time.split(":").map(Number);
       const [endH, endM] = slot.end_time.split(":").map(Number);
       let h = startH, m = startM;
       while (h < endH || (h === endH && m < endM)) {
         const timeStr = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-        if ((occupiedCount.get(timeStr) || 0) < workStations) {
-          slots.push(timeStr);
-        }
+        const taken = (occupiedCount.get(timeStr) || 0) >= workStations;
+        slots.push({ time: timeStr, taken });
         m += 60;
         if (m >= 60) { h++; m = 0; }
       }
