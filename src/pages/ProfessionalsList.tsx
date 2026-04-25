@@ -150,7 +150,16 @@ const ProfessionalsList = () => {
         worksToday.set(a.professional_id, { start: a.start_time, end: a.end_time });
       });
 
+      console.log("[Availability]", {
+        dateStr,
+        dayOfWeek,
+        totalPros: userIds.length,
+        prosWorkingToday: worksToday.size,
+      });
+
       if (worksToday.size === 0) {
+        // Nadie trabaja ese día: todos quedan marcados como "no disponibles"
+        // (Set vacío != null), pero NO se excluyen del listado.
         setAvailableUserIds(new Set());
         return;
       }
