@@ -140,18 +140,19 @@ function normalizeName(s: string): string {
 async function checkAvailability(args: {
   date: string;
   time?: string;
+  locality?: string;
   urgent?: boolean;
   professional_name?: string;
 }) {
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-  const { date, time, urgent, professional_name } = args;
+  const { date, time, locality, urgent, professional_name } = args;
 
   const targetDate = urgent ? new Date().toISOString().split("T")[0] : date;
   const dow = new Date(targetDate + "T12:00:00").getDay();
 
   const { data: prosAll } = await admin
     .from("professional_profiles")
-    .select("user_id, full_name, work_stations, available")
+    .select("user_id, full_name, work_stations, available, locality, neighborhood, services, vehicle_types")
     .eq("rubro", RUBRO)
     .eq("available", true);
 
@@ -181,6 +182,26 @@ async function checkAvailability(args: {
     nameFiltered = true;
   }
 
+  // Filter by locality (zona) if provided AND no name filter active
+  let localityFiltered = false;
+  let localityFallback = false;
+  if (locality && locality.trim() && !nameFiltered) {
+    const needle = normalizeName(locality);
+    const inZone = pros.filter((p) => {
+      const loc = normalizeName(p.locality || "");
+      const nbh = normalizeName(p.neighborhood || "");
+      return (loc && loc.includes(needle)) || (nbh && nbh.includes(needle)) ||
+             (needle.length > 3 && (loc.includes(needle) || nbh.includes(needle)));
+    });
+    if (inZone.length > 0) {
+      pros = inZone;
+      localityFiltered = true;
+    } else {
+      // No hay en la zona pedida → fallback a todos, marcamos para que el bot lo aclare
+      localityFallback = true;
+    }
+  }
+
   const proIds = pros.map((p) => p.user_id);
 
   const { data: avail } = await admin
@@ -190,7 +211,7 @@ async function checkAvailability(args: {
     .eq("day_of_week", dow)
     .eq("is_active", true);
 
-  // Count any blocked slot (paid OR pending) since now we confirm without deposit
+  // Count any blocked slot (paid OR pending)
   const { data: blocked } = await admin
     .from("blocked_slots")
     .select("professional_id, slot_time, slot_status")
@@ -246,6 +267,7 @@ async function checkAvailability(args: {
     }),
   );
   const scoreMap = new Map(scoredPros.map((s) => [s.user_id, s.score]));
+  const proById = new Map(pros.map((p) => [p.user_id, p]));
 
   let candidates: SlotRow[];
   if (urgent) {
@@ -269,19 +291,43 @@ async function checkAvailability(args: {
     candidates = allSlots.sort((a, b) => a.time.localeCompare(b.time));
   }
 
-  const top = candidates.slice(0, 10).map((s) => ({
-    professional_id: s.proId,
-    professional_name: s.proName,
-    date: targetDate,
-    time: s.time,
-    score: scoreMap.get(s.proId) ?? 3,
-  }));
+  // Quedarse con el mejor slot por profesional para no repetir el mismo lavadero
+  const seenPro = new Set<string>();
+  const uniquePerPro: SlotRow[] = [];
+  for (const s of candidates) {
+    if (seenPro.has(s.proId)) continue;
+    seenPro.add(s.proId);
+    uniquePerPro.push(s);
+  }
+
+  const top = uniquePerPro.slice(0, 10).map((s) => {
+    const pro = proById.get(s.proId);
+    const services = Array.isArray(pro?.services) ? (pro!.services as any[]) : [];
+    return {
+      professional_id: s.proId,
+      professional_name: s.proName,
+      locality: pro?.locality || null,
+      neighborhood: pro?.neighborhood || null,
+      vehicle_types: pro?.vehicle_types || [],
+      // Solo nombres + precios resumidos para que el LLM los muestre
+      services: services.map((sv: any) => ({
+        name: sv.name,
+        prices: sv.prices || {},
+      })),
+      date: targetDate,
+      time: s.time,
+      score: scoreMap.get(s.proId) ?? 3,
+    };
+  });
   top.sort((a, b) => (b.score as number) - (a.score as number));
 
   return {
     available: nameFiltered ? top : top.slice(0, 5),
     name_filtered: nameFiltered,
     name_searched: nameFiltered ? professional_name : null,
+    locality_filtered: localityFiltered,
+    locality_fallback: localityFallback,
+    locality_searched: locality || null,
     requested_time: time || null,
     requested_date: targetDate,
   };
