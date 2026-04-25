@@ -267,7 +267,44 @@ const ClientOrders = () => {
     loadRequests();
   };
 
-  const handleSubmitReview = async () => {
+  // Devuelve horas hasta el turno (puede ser negativo si ya pasó)
+  const hoursUntilAppointment = (req: ServiceRequest): number | null => {
+    if (!req.scheduled_date) return null;
+    const time = req.scheduled_time ? String(req.scheduled_time).slice(0, 5) : "00:00";
+    const dt = new Date(`${req.scheduled_date}T${time}:00`);
+    if (isNaN(dt.getTime())) return null;
+    return (dt.getTime() - Date.now()) / 36e5;
+  };
+
+  const handleCancelConfirmed = async (req: ServiceRequest) => {
+    setCancellingId(req.id);
+
+    // Liberar slots bloqueados
+    await supabase
+      .from("blocked_slots")
+      .delete()
+      .eq("service_request_id", req.id);
+
+    const { error } = await supabase
+      .from("service_requests")
+      .update({ status: "rechazada_cliente" as any })
+      .eq("id", req.id);
+
+    setCancellingId(null);
+    if (error) {
+      toast.error("Error al cancelar el turno");
+      return;
+    }
+    const hrs = hoursUntilAppointment(req);
+    if (hrs !== null && hrs < 24 && req.deposit_paid) {
+      toast.error("Turno cancelado. La seña no será reembolsada por cancelar con menos de 24hs.");
+    } else {
+      toast.success("Turno cancelado correctamente.");
+    }
+    setConfirmCancel(null);
+    setSelectedRequest(null);
+    loadRequests();
+  };
     if (!user || !selectedRequest || reviewRating < 0.5) {
       toast.error("Seleccioná una puntuación");
       return;
