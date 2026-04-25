@@ -174,10 +174,12 @@ export type Database = {
           id: string
           lat: number | null
           lng: number | null
+          locality: string
           matricula_url: string | null
           neighborhood: string
           photo_url: string | null
           plan: string
+          province: string
           rubro: string
           services: Json
           updated_at: string
@@ -196,10 +198,12 @@ export type Database = {
           id?: string
           lat?: number | null
           lng?: number | null
+          locality?: string
           matricula_url?: string | null
           neighborhood?: string
           photo_url?: string | null
           plan?: string
+          province?: string
           rubro?: string
           services?: Json
           updated_at?: string
@@ -218,10 +222,12 @@ export type Database = {
           id?: string
           lat?: number | null
           lng?: number | null
+          locality?: string
           matricula_url?: string | null
           neighborhood?: string
           photo_url?: string | null
           plan?: string
+          province?: string
           rubro?: string
           services?: Json
           updated_at?: string
