@@ -29,12 +29,14 @@ interface ServiceRequest {
 
 type TabKey = "pendientes" | "espera" | "confirmados" | "finalizados";
 
-const tabs: { key: TabKey; label: string; color: string }[] = [
+const allTabs: { key: TabKey; label: string; color: string }[] = [
   { key: "pendientes", label: "Pendientes", color: "bg-yellow-500" },
   { key: "espera", label: "Espera Seña", color: "bg-blue-500" },
   { key: "confirmados", label: "Confirmados", color: "bg-green-500" },
   { key: "finalizados", label: "Finalizados", color: "bg-muted-foreground" },
 ];
+
+const isLavadero = (rubro?: string) => (rubro || "").toLowerCase().includes("lavadero");
 
 const statusToTab: Record<OrderStatus, TabKey> = {
   nueva: "pendientes",
