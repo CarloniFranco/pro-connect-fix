@@ -25,6 +25,7 @@ function extractCoords(url: string): Coords | null {
 async function expandShortUrl(url: string): Promise<string> {
   let current = url;
   for (let i = 0; i < 5; i++) {
+    console.log(`[expand] iter=${i} url=${current}`);
     const res = await fetch(current, {
       method: "GET",
       redirect: "manual",
@@ -33,24 +34,25 @@ async function expandShortUrl(url: string): Promise<string> {
           "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
       },
     });
+    console.log(`[expand] status=${res.status}`);
     const location = res.headers.get("location");
+    console.log(`[expand] location=${location}`);
     if (location) {
       current = location.startsWith("http")
         ? location
         : new URL(location, current).toString();
-      // Si la nueva URL ya contiene coords, devolvemos ya
       if (extractCoords(current)) return current;
       continue;
     }
-    // Sin redirección: intentar leer el body
     try {
       const body = await res.text();
+      console.log(`[expand] body length=${body.length}`);
       const m =
         body.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) ||
         body.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
       if (m) return `https://maps.google.com/?q=${m[1]},${m[2]}`;
-    } catch (_) {
-      // ignore
+    } catch (e) {
+      console.error("[expand] body error", e);
     }
     return current;
   }
