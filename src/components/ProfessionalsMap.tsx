@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useNavigate } from "react-router-dom";
@@ -29,7 +28,6 @@ interface Props {
   pros: MapPro[];
 }
 
-/** Pin con foto del profesional dentro de un círculo + badge de score */
 const createPhotoIcon = (pro: MapPro) => {
   const initial = (pro.full_name || "?").charAt(0).toUpperCase();
   const inner = pro.photo_url
@@ -74,23 +72,44 @@ const renderStarsHtml = (score: number) => {
   return html;
 };
 
-/**
- * Maneja markers imperativamente con la API de Leaflet (no react-leaflet).
- * Esto evita el bug de cleanup "r is not a function" que ocurre cuando
- * react-leaflet intenta reconciliar <Marker>/<Popup> al cambiar el array.
- */
-const MarkersLayer = ({ pros }: { pros: MapPro[] }) => {
-  const map = useMap();
-  const navigate = useNavigate();
+const ProfessionalsMap = ({ pros }: Props) => {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<L.Map | null>(null);
   const layerRef = useRef<L.LayerGroup | null>(null);
+  const navigate = useNavigate();
 
+  // Init map once
   useEffect(() => {
-    if (!layerRef.current) {
-      layerRef.current = L.layerGroup().addTo(map);
-    }
-    const layer = layerRef.current;
-    layer.clearLayers();
+    if (!containerRef.current || mapRef.current) return;
 
+    const map = L.map(containerRef.current, {
+      center: [-32.8895, -68.8458], // Mendoza
+      zoom: 12,
+      scrollWheelZoom: true,
+    });
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
+
+    layerRef.current = L.layerGroup().addTo(map);
+    mapRef.current = map;
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+      layerRef.current = null;
+    };
+  }, []);
+
+  // Update markers when pros change
+  useEffect(() => {
+    const map = mapRef.current;
+    const layer = layerRef.current;
+    if (!map || !layer) return;
+
+    layer.clearLayers();
     if (pros.length === 0) return;
 
     pros.forEach((p) => {
@@ -137,46 +156,17 @@ const MarkersLayer = ({ pros }: { pros: MapPro[] }) => {
       marker.addTo(layer);
     });
 
-    // Auto fit bounds
     if (pros.length === 1) {
       map.setView([pros[0].lat, pros[0].lng], 13);
     } else {
       const bounds = L.latLngBounds(pros.map((p) => [p.lat, p.lng] as [number, number]));
       map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
     }
-  }, [pros, map, navigate]);
-
-  useEffect(() => {
-    return () => {
-      if (layerRef.current) {
-        layerRef.current.clearLayers();
-        layerRef.current.remove();
-        layerRef.current = null;
-      }
-    };
-  }, []);
-
-  return null;
-};
-
-const ProfessionalsMap = ({ pros }: Props) => {
-  // Default center: Mendoza, Argentina
-  const defaultCenter: [number, number] = [-32.8895, -68.8458];
+  }, [pros, navigate]);
 
   return (
     <div className="h-[60vh] w-full overflow-hidden rounded-2xl border-2 border-border shadow-md">
-      <MapContainer
-        center={defaultCenter}
-        zoom={12}
-        scrollWheelZoom={true}
-        style={{ height: "100%", width: "100%" }}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <MarkersLayer pros={pros} />
-      </MapContainer>
+      <div ref={containerRef} style={{ height: "100%", width: "100%" }} />
     </div>
   );
 };
