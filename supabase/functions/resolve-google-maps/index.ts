@@ -23,40 +23,32 @@ function extractCoords(url: string): Coords | null {
 }
 
 async function expandShortUrl(url: string): Promise<string> {
-  let current = url;
-  for (let i = 0; i < 5; i++) {
-    console.log(`[expand] iter=${i} url=${current}`);
-    const res = await fetch(current, {
+  console.log(`[expand] start url=${url}`);
+  try {
+    const res = await fetch(url, {
       method: "GET",
-      redirect: "manual",
+      redirect: "follow",
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
       },
     });
-    console.log(`[expand] status=${res.status}`);
-    const location = res.headers.get("location");
-    console.log(`[expand] location=${location}`);
-    if (location) {
-      current = location.startsWith("http")
-        ? location
-        : new URL(location, current).toString();
-      if (extractCoords(current)) return current;
-      continue;
-    }
-    try {
-      const body = await res.text();
-      console.log(`[expand] body length=${body.length}`);
-      const m =
-        body.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) ||
-        body.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
-      if (m) return `https://maps.google.com/?q=${m[1]},${m[2]}`;
-    } catch (e) {
-      console.error("[expand] body error", e);
-    }
-    return current;
+    console.log(`[expand] final url=${res.url} status=${res.status}`);
+    if (extractCoords(res.url)) return res.url;
+
+    // Intentar extraer del body
+    const body = await res.text();
+    console.log(`[expand] body length=${body.length}`);
+    const m =
+      body.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) ||
+      body.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) ||
+      body.match(/"(-?\d+\.\d+),(-?\d+\.\d+)"/);
+    if (m) return `https://maps.google.com/?q=${m[1]},${m[2]}`;
+    return res.url;
+  } catch (e) {
+    console.error("[expand] error", e);
+    return url;
   }
-  return current;
 }
 
 Deno.serve(async (req) => {
