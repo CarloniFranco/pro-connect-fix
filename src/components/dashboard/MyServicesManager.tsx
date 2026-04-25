@@ -48,7 +48,7 @@ export default function MyServicesManager() {
     if (!user) return;
     supabase
       .from("professional_profiles")
-      .select("address, neighborhood, google_maps_url, vehicle_types, services")
+      .select("address, neighborhood, province, locality, google_maps_url, vehicle_types, services")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -56,6 +56,16 @@ export default function MyServicesManager() {
         if (d) {
           setAddress(d.address || "");
           setNeighborhood(d.neighborhood || "");
+          setProvince(d.province || "");
+          // Si la localidad guardada no está en el listado fijo de la provincia → se trata como custom (Otra)
+          const loc = d.locality || "";
+          if (loc && d.province && getLocalities(d.province).includes(loc)) {
+            setLocality(loc);
+            setLocalityCustom("");
+          } else if (loc) {
+            setLocality("Otra");
+            setLocalityCustom(loc);
+          }
           setMapsUrl(d.google_maps_url || "");
           setVehicleTypes(d.vehicle_types?.length ? d.vehicle_types : DEFAULT_VEHICLES);
           setServices(Array.isArray(d.services) ? (d.services as ServiceItem[]) : []);
@@ -80,6 +90,15 @@ export default function MyServicesManager() {
   };
 
   const saveLocation = async () => {
+    if (!province) {
+      toast.error("Elegí una provincia");
+      return;
+    }
+    const finalLocality = locality === "Otra" ? localityCustom.trim() : locality;
+    if (!finalLocality) {
+      toast.error("Elegí una localidad");
+      return;
+    }
     if (!neighborhood.trim()) {
       toast.error("El barrio / zona es obligatorio");
       return;
@@ -106,6 +125,8 @@ export default function MyServicesManager() {
 
     const ok = await persist({
       address: address.trim(),
+      province,
+      locality: finalLocality,
       neighborhood: neighborhood.trim(),
       google_maps_url: url,
       ...coordsPatch,
