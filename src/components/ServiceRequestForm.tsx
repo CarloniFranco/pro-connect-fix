@@ -169,29 +169,46 @@ export default function ServiceRequestForm({
     if (totalPrice <= 0) { toast.error("Este servicio no tiene precio cargado para ese vehículo"); return; }
 
     setLoading(true);
-    const { error } = await supabase.from("service_requests").insert({
-      professional_id: professionalId,
-      client_user_id: user.id,
-      client_name: clientProfile?.full_name || user.email?.split("@")[0] || "Cliente",
-      client_phone: clientProfile?.phone || null,
-      client_address: clientProfile?.address || null,
-      service_type: `${serviceName} (${vehicleType})`,
-      description: description.trim(),
-      scheduled_date: selectedDate,
-      scheduled_time: selectedTime + ":00",
-      quoted_amount: totalPrice,
-      deposit_amount: depositAmount,
-      status: "cotizada",
-    } as any);
-    setLoading(false);
+    const { data: inserted, error } = await supabase
+      .from("service_requests")
+      .insert({
+        professional_id: professionalId,
+        client_user_id: user.id,
+        client_name: clientProfile?.full_name || user.email?.split("@")[0] || "Cliente",
+        client_phone: clientProfile?.phone || null,
+        client_address: clientProfile?.address || null,
+        service_type: `${serviceName} (${vehicleType})`,
+        description: description.trim(),
+        scheduled_date: selectedDate,
+        scheduled_time: selectedTime + ":00",
+        quoted_amount: totalPrice,
+        deposit_amount: depositAmount,
+        deposit_paid: true,
+        status: "aceptada",
+        responded_at: new Date().toISOString(),
+      } as any)
+      .select("id")
+      .single();
 
-    if (error) {
+    if (error || !inserted) {
+      setLoading(false);
       console.error(error);
-      toast.error("Error al enviar la solicitud");
+      toast.error("Error al confirmar la reserva");
       return;
     }
 
-    toast.success("¡Reserva creada! Pagá la seña para confirmar el turno.");
+    // Block the slot so nobody else can book it
+    const { error: slotError } = await supabase.from("blocked_slots").insert({
+      professional_id: professionalId,
+      service_request_id: inserted.id,
+      slot_date: selectedDate,
+      slot_time: selectedTime + ":00",
+      slot_status: "paid",
+    } as any);
+    if (slotError) console.error("blocked_slots error:", slotError);
+
+    setLoading(false);
+    toast.success("¡Turno confirmado! La seña quedó registrada.");
     onOpenChange(false);
     setDescription("");
     setSelectedDate("");
