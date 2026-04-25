@@ -1,13 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Star, Zap, Shield, Award, MessageSquare, User, MapPin, Clock } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Star, Zap, Shield, Award, MessageSquare, User, MapPin, Clock, CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { format, addDays, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import ServiceRequestForm from "@/components/ServiceRequestForm";
 
 interface ScoreData {
@@ -40,6 +45,7 @@ interface BlockedSlot {
 const ProfessionalPublicProfile = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [score, setScore] = useState<ScoreData | null>(null);
@@ -50,53 +56,71 @@ const ProfessionalPublicProfile = () => {
   const [requestOpen, setRequestOpen] = useState(false);
   const [preselectedTime, setPreselectedTime] = useState<string>("");
 
-  const todayISO = new Date().toISOString().split("T")[0];
+  // Día que se está visualizando (por defecto: el filtrado o hoy)
+  const initialViewDate = useMemo(() => {
+    const dateParam = searchParams.get("date");
+    if (dateParam) {
+      const parsed = parseISO(dateParam);
+      if (!isNaN(parsed.getTime())) return parsed;
+    }
+    return new Date();
+  }, [searchParams]);
+  const [viewDate, setViewDate] = useState<Date>(initialViewDate);
+
+  const viewDateISO = format(viewDate, "yyyy-MM-dd");
+  const todayISO = format(new Date(), "yyyy-MM-dd");
+  const isToday = viewDateISO === todayISO;
 
   useEffect(() => {
     const fetchData = async () => {
       if (!userId) return;
       setLoading(true);
 
-      const [profileRes, scoreRes, reviewsRes, availRes, blockedRes] = await Promise.all([
+      const [profileRes, scoreRes, reviewsRes, availRes] = await Promise.all([
         supabase.from("professional_profiles").select("id, user_id, full_name, rubro, descripcion, photo_url, verified, plan, address, neighborhood, google_maps_url, work_stations").eq("user_id", userId).maybeSingle(),
         supabase.rpc("get_professional_score", { p_professional_id: userId }),
         supabase.from("reviews").select("*").eq("professional_id", userId).order("created_at", { ascending: false }),
         supabase.from("professional_availability").select("day_of_week, start_time, end_time").eq("professional_id", userId).eq("is_active", true),
-        supabase.from("blocked_slots").select("slot_date, slot_time, slot_status").eq("professional_id", userId).eq("slot_date", todayISO),
       ]);
 
       if (profileRes.data) setProfile(profileRes.data);
       if (scoreRes.data) setScore(scoreRes.data as unknown as ScoreData);
       if (reviewsRes.data) setReviews(reviewsRes.data);
       if (availRes.data) setAvailability(availRes.data);
-      if (blockedRes.data) setBlockedSlots(blockedRes.data as any);
       setLoading(false);
     };
 
     fetchData();
+  }, [userId]);
 
-    // Realtime: blocked_slots for today (so capacity updates live)
+  // Cargar slots bloqueados del día visualizado + realtime
+  useEffect(() => {
     if (!userId) return;
+
+    const loadBlocked = () => {
+      supabase
+        .from("blocked_slots")
+        .select("slot_date, slot_time, slot_status")
+        .eq("professional_id", userId)
+        .eq("slot_date", viewDateISO)
+        .then(({ data }) => setBlockedSlots((data as any) || []));
+    };
+
+    loadBlocked();
+
     const channel = supabase
-      .channel(`profile-blocked-${userId}`)
+      .channel(`profile-blocked-${userId}-${viewDateISO}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "blocked_slots", filter: `professional_id=eq.${userId}` },
-        () => {
-          supabase
-            .from("blocked_slots")
-            .select("slot_date, slot_time, slot_status")
-            .eq("professional_id", userId)
-            .eq("slot_date", todayISO)
-            .then(({ data }) => setBlockedSlots((data as any) || []));
-        }
+        loadBlocked,
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId, todayISO]);
+  }, [userId, viewDateISO]);
 
   const renderStars = (value: number) => (
     <div className="flex items-center gap-0.5">
@@ -109,10 +133,10 @@ const ProfessionalPublicProfile = () => {
     </div>
   );
 
-  // Today's slots grid
-  const todaySlots = (() => {
+  // Slots del día visualizado
+  const viewSlots = (() => {
     if (!profile) return [] as { time: string; status: "free" | "full" }[];
-    const dow = new Date().getDay();
+    const dow = viewDate.getDay();
     const dayAvail = availability.filter((a) => a.day_of_week === dow);
     if (dayAvail.length === 0) return [];
 
@@ -125,7 +149,7 @@ const ProfessionalPublicProfile = () => {
       });
 
     const stations = profile.work_stations || 1;
-    const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+    const nowMin = isToday ? new Date().getHours() * 60 + new Date().getMinutes() : -1;
     const out: { time: string; status: "free" | "full" }[] = [];
 
     dayAvail.forEach((slot) => {
@@ -290,24 +314,93 @@ const ProfessionalPublicProfile = () => {
           </motion.div>
         )}
 
-        {/* TODAY'S AVAILABILITY GRID */}
+        {/* AVAILABILITY GRID — día visualizado (filtrado o hoy) */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           className="rounded-2xl border-2 border-border bg-card p-4 shadow-md mb-4"
         >
-          <div className="flex items-center gap-2 mb-3">
-            <Clock className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-bold text-card-foreground">Disponibilidad hoy</h2>
+          <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-bold text-card-foreground">
+                Disponibilidad{" "}
+                <span className="text-primary">
+                  {isToday ? "hoy" : format(viewDate, "EEEE d 'de' MMMM", { locale: es })}
+                </span>
+              </h2>
+            </div>
           </div>
-          {todaySlots.length === 0 ? (
-            <p className="text-sm text-muted-foreground rounded-lg bg-muted/50 p-3 text-center">
-              No hay horarios disponibles hoy. Tocá "Solicitar Servicio" para ver otros días.
-            </p>
+
+          {/* Selector de día */}
+          <div className="flex items-center gap-2 mb-3">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 flex-shrink-0"
+              onClick={() => {
+                const prev = addDays(viewDate, -1);
+                const todayStart = new Date();
+                todayStart.setHours(0, 0, 0, 0);
+                if (prev >= todayStart) setViewDate(prev);
+              }}
+              disabled={isToday}
+              aria-label="Día anterior"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="flex-1 justify-start font-normal h-8">
+                  <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                  {format(viewDate, "EEE d 'de' MMM", { locale: es })}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={viewDate}
+                  onSelect={(d) => d && setViewDate(d)}
+                  disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                  initialFocus
+                  locale={es}
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 flex-shrink-0"
+              onClick={() => setViewDate(addDays(viewDate, 1))}
+              aria-label="Día siguiente"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {viewSlots.length === 0 ? (
+            <div className="rounded-lg bg-muted/50 p-3 text-center space-y-2">
+              <p className="text-sm text-muted-foreground">
+                No hay horarios disponibles este día.
+              </p>
+              {!isToday && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => setViewDate(new Date())}
+                  className="h-auto p-0 text-xs"
+                >
+                  Ver disponibilidad de hoy
+                </Button>
+              )}
+            </div>
           ) : (
             <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-              {todaySlots.map((s) => (
+              {viewSlots.map((s) => (
                 <button
                   key={s.time}
                   onClick={() => s.status === "free" && handleSlotClick(s.time)}
@@ -326,7 +419,7 @@ const ProfessionalPublicProfile = () => {
           )}
           {canRequest ? (
             <Button onClick={() => { setPreselectedTime(""); setRequestOpen(true); }} variant="outline" className="w-full mt-3" size="sm">
-              Ver otros días
+              Ver más opciones / reservar
             </Button>
           ) : !user ? (
             <Button onClick={() => navigate("/login")} variant="outline" className="w-full mt-3" size="sm">
@@ -402,7 +495,7 @@ const ProfessionalPublicProfile = () => {
           rubro={profile.rubro}
           open={requestOpen}
           onOpenChange={setRequestOpen}
-          initialDate={preselectedTime ? todayISO : undefined}
+          initialDate={preselectedTime ? viewDateISO : undefined}
           initialTime={preselectedTime || undefined}
         />
       )}

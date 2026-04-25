@@ -13,6 +13,7 @@ import {
   Map as MapIcon,
   CalendarIcon,
   X,
+  Search,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
@@ -62,6 +63,11 @@ const ProfessionalsList = () => {
   const { category } = useParams<{ category: string }>();
   const [professionals, setProfessionals] = useState<ProfessionalWithScore[]>([]);
   const [loading, setLoading] = useState(true);
+  // Filtros pendientes (lo que el usuario va eligiendo)
+  const [pendingProvince, setPendingProvince] = useState<string>("all");
+  const [pendingLocality, setPendingLocality] = useState<string>("all");
+  const [pendingDate, setPendingDate] = useState<Date | undefined>(undefined);
+  // Filtros aplicados (sólo cambian al tocar "Buscar")
   const [provinceFilter, setProvinceFilter] = useState<string>("all");
   const [localityFilter, setLocalityFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
@@ -199,12 +205,11 @@ const ProfessionalsList = () => {
     });
   }, []);
 
-  // Todas las localidades del catálogo según provincia (sin filtrar "Otra" para que el pro
-  // que la cargó libre también matchee si el cliente la elige).
+  // Todas las localidades del catálogo según provincia pendiente.
   const localities = useMemo(() => {
-    if (provinceFilter === "all") return [];
-    return getLocalities(provinceFilter).filter((l) => l !== "Otra");
-  }, [provinceFilter]);
+    if (pendingProvince === "all") return [];
+    return getLocalities(pendingProvince).filter((l) => l !== "Otra");
+  }, [pendingProvince]);
 
   const filtered = useMemo(() => {
     const provNorm = provinceFilter.trim().toLowerCase();
@@ -256,7 +261,16 @@ const ProfessionalsList = () => {
     );
   };
 
+  const applyFilters = () => {
+    setProvinceFilter(pendingProvince);
+    setLocalityFilter(pendingLocality);
+    setDateFilter(pendingDate);
+  };
+
   const clearFilters = () => {
+    setPendingProvince("all");
+    setPendingLocality("all");
+    setPendingDate(undefined);
     setProvinceFilter("all");
     setLocalityFilter("all");
     setDateFilter(undefined);
@@ -264,6 +278,17 @@ const ProfessionalsList = () => {
 
   const hasActiveFilters =
     provinceFilter !== "all" || localityFilter !== "all" || !!dateFilter;
+  const hasPendingChanges =
+    pendingProvince !== provinceFilter ||
+    pendingLocality !== localityFilter ||
+    (pendingDate?.getTime() || 0) !== (dateFilter?.getTime() || 0);
+
+  const goToPro = (userId: string) => {
+    const params = new URLSearchParams();
+    if (dateFilter) params.set("date", format(dateFilter, "yyyy-MM-dd"));
+    const qs = params.toString();
+    navigate(`/profesional/${userId}${qs ? `?${qs}` : ""}`);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -292,10 +317,10 @@ const ProfessionalsList = () => {
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             {/* Provincia */}
             <Select
-              value={provinceFilter}
+              value={pendingProvince}
               onValueChange={(v) => {
-                setProvinceFilter(v);
-                setLocalityFilter("all");
+                setPendingProvince(v);
+                setPendingLocality("all");
               }}
             >
               <SelectTrigger>
@@ -316,16 +341,16 @@ const ProfessionalsList = () => {
 
             {/* Localidad */}
             <Select
-              value={localityFilter}
-              onValueChange={setLocalityFilter}
-              disabled={provinceFilter === "all" || localities.length === 0}
+              value={pendingLocality}
+              onValueChange={setPendingLocality}
+              disabled={pendingProvince === "all" || localities.length === 0}
             >
               <SelectTrigger>
                 <div className="flex items-center gap-2 truncate">
                   <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <SelectValue
                     placeholder={
-                      provinceFilter === "all" ? "Elegí provincia" : "Localidad"
+                      pendingProvince === "all" ? "Elegí provincia" : "Localidad"
                     }
                   />
                 </div>
@@ -347,18 +372,18 @@ const ProfessionalsList = () => {
                   variant="outline"
                   className={cn(
                     "justify-start font-normal",
-                    !dateFilter && "text-muted-foreground",
+                    !pendingDate && "text-muted-foreground",
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateFilter ? format(dateFilter, "d 'de' MMMM", { locale: es }) : "Día"}
+                  {pendingDate ? format(pendingDate, "d 'de' MMMM", { locale: es }) : "Día"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
-                  selected={dateFilter}
-                  onSelect={setDateFilter}
+                  selected={pendingDate}
+                  onSelect={setPendingDate}
                   disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
                   initialFocus
                   locale={es}
@@ -367,6 +392,17 @@ const ProfessionalsList = () => {
               </PopoverContent>
             </Popover>
           </div>
+
+          {/* Botón Buscar */}
+          <Button
+            onClick={applyFilters}
+            disabled={!hasPendingChanges}
+            className="w-full gap-2"
+            size="lg"
+          >
+            <Search className="h-4 w-4" />
+            Buscar profesionales
+          </Button>
 
           <div className="flex flex-wrap items-center gap-2 justify-between">
             {hasActiveFilters ? (
@@ -456,7 +492,7 @@ const ProfessionalsList = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                onClick={() => navigate(`/profesional/${pro.user_id}`)}
+                onClick={() => goToPro(pro.user_id)}
                 className="group cursor-pointer rounded-2xl border-2 border-border bg-card p-5 shadow-sm transition-all hover:shadow-lg hover:border-primary"
               >
                 <div className="flex items-start justify-between">
