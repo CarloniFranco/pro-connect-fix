@@ -59,10 +59,15 @@ const ProfessionalsList = () => {
             p_professional_id: p.user_id,
           });
           const scoreData = (data as unknown as ProfessionalWithScore["score"]) || { total_score: 3, velocity: 3, reliability: 3, excellence: 3, review_count: 0 };
+          // Coords: priorizamos lat/lng guardados, sino intentamos parsear el URL
+          const dbCoords =
+            p.lat != null && p.lng != null
+              ? { lat: Number(p.lat), lng: Number(p.lng) }
+              : null;
           return {
             ...p,
             score: scoreData,
-            coords: parseGoogleMapsCoords(p.google_maps_url || ""),
+            coords: dbCoords ?? parseGoogleMapsCoords(p.google_maps_url || ""),
           } as ProfessionalWithScore;
         })
       );
