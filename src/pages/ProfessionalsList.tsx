@@ -205,12 +205,11 @@ const ProfessionalsList = () => {
     });
   }, []);
 
-  // Todas las localidades del catálogo según provincia (sin filtrar "Otra" para que el pro
-  // que la cargó libre también matchee si el cliente la elige).
+  // Todas las localidades del catálogo según provincia pendiente.
   const localities = useMemo(() => {
-    if (provinceFilter === "all") return [];
-    return getLocalities(provinceFilter).filter((l) => l !== "Otra");
-  }, [provinceFilter]);
+    if (pendingProvince === "all") return [];
+    return getLocalities(pendingProvince).filter((l) => l !== "Otra");
+  }, [pendingProvince]);
 
   const filtered = useMemo(() => {
     const provNorm = provinceFilter.trim().toLowerCase();
