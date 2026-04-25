@@ -314,24 +314,93 @@ const ProfessionalPublicProfile = () => {
           </motion.div>
         )}
 
-        {/* TODAY'S AVAILABILITY GRID */}
+        {/* AVAILABILITY GRID — día visualizado (filtrado o hoy) */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           className="rounded-2xl border-2 border-border bg-card p-4 shadow-md mb-4"
         >
-          <div className="flex items-center gap-2 mb-3">
-            <Clock className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-bold text-card-foreground">Disponibilidad hoy</h2>
+          <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-bold text-card-foreground">
+                Disponibilidad{" "}
+                <span className="text-primary">
+                  {isToday ? "hoy" : format(viewDate, "EEEE d 'de' MMMM", { locale: es })}
+                </span>
+              </h2>
+            </div>
           </div>
-          {todaySlots.length === 0 ? (
-            <p className="text-sm text-muted-foreground rounded-lg bg-muted/50 p-3 text-center">
-              No hay horarios disponibles hoy. Tocá "Solicitar Servicio" para ver otros días.
-            </p>
+
+          {/* Selector de día */}
+          <div className="flex items-center gap-2 mb-3">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 flex-shrink-0"
+              onClick={() => {
+                const prev = addDays(viewDate, -1);
+                const todayStart = new Date();
+                todayStart.setHours(0, 0, 0, 0);
+                if (prev >= todayStart) setViewDate(prev);
+              }}
+              disabled={isToday}
+              aria-label="Día anterior"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="flex-1 justify-start font-normal h-8">
+                  <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                  {format(viewDate, "EEE d 'de' MMM", { locale: es })}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={viewDate}
+                  onSelect={(d) => d && setViewDate(d)}
+                  disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                  initialFocus
+                  locale={es}
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 flex-shrink-0"
+              onClick={() => setViewDate(addDays(viewDate, 1))}
+              aria-label="Día siguiente"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {viewSlots.length === 0 ? (
+            <div className="rounded-lg bg-muted/50 p-3 text-center space-y-2">
+              <p className="text-sm text-muted-foreground">
+                No hay horarios disponibles este día.
+              </p>
+              {!isToday && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => setViewDate(new Date())}
+                  className="h-auto p-0 text-xs"
+                >
+                  Ver disponibilidad de hoy
+                </Button>
+              )}
+            </div>
           ) : (
             <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-              {todaySlots.map((s) => (
+              {viewSlots.map((s) => (
                 <button
                   key={s.time}
                   onClick={() => s.status === "free" && handleSlotClick(s.time)}
@@ -350,7 +419,7 @@ const ProfessionalPublicProfile = () => {
           )}
           {canRequest ? (
             <Button onClick={() => { setPreselectedTime(""); setRequestOpen(true); }} variant="outline" className="w-full mt-3" size="sm">
-              Ver otros días
+              Ver más opciones / reservar
             </Button>
           ) : !user ? (
             <Button onClick={() => navigate("/login")} variant="outline" className="w-full mt-3" size="sm">
