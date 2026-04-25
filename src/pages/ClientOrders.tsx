@@ -37,6 +37,7 @@ type ServiceRequest = {
   quoted_amount: number | null;
   quoted_details: string | null;
   scheduled_date: string | null;
+  scheduled_time: string | null;
   created_at: string;
   professional_id: string;
   deposit_amount: number | null;
