@@ -540,15 +540,15 @@ const ProfessionalsList = () => {
                       <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
                         <span className="inline-flex items-center gap-1">
                           <Zap className="h-3 w-3 text-accent" />
-                          Velocidad: {pro.score.velocity}/5
+                          Tiempo de respuesta: {pro.score.velocity}/5
                         </span>
                         <span className="inline-flex items-center gap-1">
                           <Shield className="h-3 w-3 text-primary" />
-                          Confiabilidad: {pro.score.reliability}/5
+                          Puntualidad y Compromiso: {pro.score.reliability}/5
                         </span>
                         <span className="inline-flex items-center gap-1">
                           <Award className="h-3 w-3 text-secondary" />
-                          Excelencia: {pro.score.excellence}/5
+                          Satisfacción del cliente: {pro.score.excellence}/5
                         </span>
                       </div>
                     </div>
