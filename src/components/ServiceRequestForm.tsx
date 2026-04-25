@@ -126,7 +126,7 @@ export default function ServiceRequestForm({
   })();
 
   const timeSlots = (() => {
-    if (!selectedDate) return [];
+    if (!selectedDate) return [] as { time: string; taken: boolean }[];
     const d = new Date(selectedDate + "T00:00:00");
     const dow = d.getDay();
     const dayAvailability = availability.filter((a) => a.day_of_week === dow);
@@ -139,16 +139,15 @@ export default function ServiceRequestForm({
         occupiedCount.set(key, (occupiedCount.get(key) || 0) + 1);
       });
 
-    const slots: string[] = [];
+    const slots: { time: string; taken: boolean }[] = [];
     dayAvailability.forEach((slot) => {
       const [startH, startM] = slot.start_time.split(":").map(Number);
       const [endH, endM] = slot.end_time.split(":").map(Number);
       let h = startH, m = startM;
       while (h < endH || (h === endH && m < endM)) {
         const timeStr = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-        if ((occupiedCount.get(timeStr) || 0) < workStations) {
-          slots.push(timeStr);
-        }
+        const taken = (occupiedCount.get(timeStr) || 0) >= workStations;
+        slots.push({ time: timeStr, taken });
         m += 60;
         if (m >= 60) { h++; m = 0; }
       }
@@ -335,17 +334,22 @@ export default function ServiceRequestForm({
                 </p>
               ) : (
                 <div className="flex flex-wrap gap-2">
-                  {timeSlots.map((t) => (
+                  {timeSlots.map(({ time: t, taken }) => (
                     <button
                       key={t}
-                      onClick={() => setSelectedTime(t)}
-                      className={`rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${
-                        selectedTime === t
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border bg-card text-card-foreground hover:border-primary/50"
+                      onClick={() => !taken && setSelectedTime(t)}
+                      disabled={taken}
+                      title={taken ? "Turno reservado por otro cliente" : undefined}
+                      className={`relative rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${
+                        taken
+                          ? "border-border bg-muted text-muted-foreground line-through cursor-not-allowed opacity-70"
+                          : selectedTime === t
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border bg-card text-card-foreground hover:border-primary/50"
                       }`}
                     >
                       {t}
+                      {taken && <span className="ml-1 text-[10px] font-bold">· reservado</span>}
                     </button>
                   ))}
                 </div>
