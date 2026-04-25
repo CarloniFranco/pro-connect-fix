@@ -8,6 +8,7 @@ import AgendaOrders from "@/components/dashboard/AgendaOrders";
 import BudgetGenerator from "@/components/dashboard/BudgetGenerator";
 import AvailabilityManager from "@/components/dashboard/AvailabilityManager";
 import MyServicesManager from "@/components/dashboard/MyServicesManager";
+import WorkStationsManager from "@/components/dashboard/WorkStationsManager";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
