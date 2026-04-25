@@ -207,9 +207,13 @@ const ProfessionalsList = () => {
   }, [provinceFilter]);
 
   const filtered = useMemo(() => {
+    const provNorm = provinceFilter.trim().toLowerCase();
+    const locNorm = localityFilter.trim().toLowerCase();
     return professionals.filter((p) => {
-      if (provinceFilter !== "all" && p.province?.trim() !== provinceFilter) return false;
-      if (localityFilter !== "all" && p.locality?.trim() !== localityFilter) return false;
+      if (provinceFilter !== "all" && (p.province || "").trim().toLowerCase() !== provNorm)
+        return false;
+      if (localityFilter !== "all" && (p.locality || "").trim().toLowerCase() !== locNorm)
+        return false;
       if (availableUserIds && !availableUserIds.has(p.user_id)) return false;
       return true;
     });
