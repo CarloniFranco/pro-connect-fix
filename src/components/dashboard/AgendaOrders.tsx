@@ -29,12 +29,14 @@ interface ServiceRequest {
 
 type TabKey = "pendientes" | "espera" | "confirmados" | "finalizados";
 
-const tabs: { key: TabKey; label: string; color: string }[] = [
+const allTabs: { key: TabKey; label: string; color: string }[] = [
   { key: "pendientes", label: "Pendientes", color: "bg-yellow-500" },
   { key: "espera", label: "Espera Seña", color: "bg-blue-500" },
   { key: "confirmados", label: "Confirmados", color: "bg-green-500" },
   { key: "finalizados", label: "Finalizados", color: "bg-muted-foreground" },
 ];
+
+const isLavadero = (rubro?: string) => (rubro || "").toLowerCase().includes("lavadero");
 
 const statusToTab: Record<OrderStatus, TabKey> = {
   nueva: "pendientes",
@@ -53,6 +55,15 @@ const AgendaOrders = () => {
   const [activeTab, setActiveTab] = useState<TabKey>("pendientes");
   const [selectedOrder, setSelectedOrder] = useState<ServiceRequest | null>(null);
   const [proProfile, setProProfile] = useState<{ full_name: string; rubro: string; work_stations: number } | null>(null);
+  const lavadero = isLavadero(proProfile?.rubro);
+  const tabs = lavadero ? allTabs.filter((t) => t.key !== "pendientes" && t.key !== "espera") : allTabs;
+
+  // Si es lavadero y el tab actual no aplica, saltar a confirmados
+  useEffect(() => {
+    if (lavadero && (activeTab === "pendientes" || activeTab === "espera")) {
+      setActiveTab("confirmados");
+    }
+  }, [lavadero, activeTab]);
 
   // Quote form state
   const [aiDescription, setAiDescription] = useState("");
