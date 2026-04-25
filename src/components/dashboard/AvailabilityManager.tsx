@@ -32,10 +32,22 @@ export default function AvailabilityManager() {
       .order("day_of_week")
       .order("start_time")
       .then(({ data }) => {
-        setSlots(data || []);
+        // Normalizar a HH:MM (la BD devuelve HH:MM:SS)
+        const normalized = (data || []).map((s: any) => ({
+          ...s,
+          start_time: String(s.start_time).slice(0, 5),
+          end_time: String(s.end_time).slice(0, 5),
+        }));
+        setSlots(normalized);
         setLoading(false);
       });
   }, [user]);
+
+  const toDbTime = (t: string) => {
+    // Asegurar formato HH:MM:SS sin importar si viene HH:MM o HH:MM:SS
+    const base = String(t).slice(0, 5);
+    return `${base}:00`;
+  };
 
   const addSlot = (dayOfWeek: number) => {
     setSlots((prev) => [
