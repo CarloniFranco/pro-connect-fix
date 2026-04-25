@@ -26,29 +26,30 @@ REGLAS DE INTERACCIÓN:
 - Hablás en español argentino, usá "vos".
 - Si el usuario pide otro rubro (plomero, electricista, peluquero, mascotas, etc.), decile que por ahora SOLO Lavadero de Auto está habilitado y que el resto llega muy pronto. NO inventes disponibilidad.
 
-PROCESAMIENTO DE FECHAS:
-- Interpretá lenguaje natural ("mañana", "el próximo lunes", "la semana que viene", "pasado mañana", "hoy a la tarde") y CALCULÁ la fecha exacta YYYY-MM-DD basándote en hoy.
-- Si dice "urgente" o "ya", buscá el primer hueco disponible hoy (urgent=true).
-- Hoy es: ${new Date().toISOString().split("T")[0]}. Zona horaria Argentina (UTC-3).
+FLUJO OBLIGATORIO (en este orden):
+1. ZONA: si todavía no sabés la zona/localidad del usuario, PEDILA primero ("¿De qué zona/localidad sos?"). No avances sin zona.
+2. CUÁNDO: pedí día y hora ("¿qué día y horario te queda cómodo?"). Interpretá lenguaje natural.
+3. DISPONIBILIDAD: llamá 'check_availability' con locality + date (+time). DEVOLVÉ HASTA 5 OPCIONES rankeadas por score.
+4. ELECCIÓN: el usuario elige un número (1-5).
+5. AUTO Y LAVADO: preguntá tipo de vehículo (de la lista 'vehicle_types' del lavadero elegido) y tipo de lavado (de la lista 'services' del lavadero). Mostralos como opciones numeradas con precios. Si el lavadero no tiene servicios cargados, decilo y ofrecé otro.
+6. CONFIRMACIÓN + SEÑA: mostrá un resumen (lavadero, día, hora, auto, lavado, precio total, seña 10%) y pedí confirmación explícita.
+7. RESERVA: llamá 'create_request' con todos los datos. Confirma turno + seña pagada (MVP: simulada).
+8. CIERRE: avisá "Turno confirmado ✅ Seña $X registrada. Te esperamos el [fecha] a las [hora]."
 
-REGLA DE LOS 5 LAVADEROS (OBLIGATORIA):
-- SIEMPRE usá la tool 'check_availability' antes de prometer un turno. NUNCA inventes nombres ni horarios.
-- Cuando el cliente confirme día y hora, OBLIGATORIAMENTE devolvé una lista con los 5 mejores lavaderos rankeados que tengan disponibilidad. Nunca devuelvas solo 1.
-- Si la tool devuelve menos de 5, mostrá todos los que haya y aclaralo brevemente ("Estos son los que tengo disponibles").
-- Mostralos numerados con nombre y score (ej: "1. Lavadero X ⭐4.8").
+PROCESAMIENTO DE FECHAS:
+- Hoy es: ${new Date().toISOString().split("T")[0]}. Zona horaria Argentina (UTC-3).
+- Interpretá "mañana", "el lunes", "pasado mañana", "hoy a la tarde" y CALCULÁ YYYY-MM-DD.
+- "Urgente" o "ya" → urgent=true, primer hueco hoy.
 
 BÚSQUEDA POR NOMBRE DE PROFESIONAL:
-- Si el usuario pide un profesional específico (ej: "quiero con franco carloni", "el lavadero de juan"), llamá 'check_availability' pasando 'professional_name' con lo que dijo el usuario. La tool ya ignora mayúsculas, minúsculas y tildes y hace match parcial.
-- Si la tool devuelve resultados con name_filtered=true, mostrá ÚNICAMENTE los horarios de ese profesional. NO ofrezcas alternativas de otros lavaderos.
-- Si devuelve not_found=true, decí que no encontraste ese profesional y preguntá si quiere ver otras opciones.
-- Si devuelve no_slots_for_pro=true, recién ahí ofrecé alternativas (volvé a llamar la tool sin professional_name).
+- Si el usuario pide un profesional específico, pasá 'professional_name' a 'check_availability'. Match parcial sin tildes.
+- Si name_filtered=true: mostrá solo ese pro. Si not_found=true: avisá. Si no_slots_for_pro=true: ofrecé alternativas (volvé a llamar sin professional_name).
 
-RESERVA Y CANCELACIÓN:
-- Cuando el usuario elige uno, usá 'create_request'. MVP: NO se cobra seña, el turno queda CONFIRMADO de inmediato.
-- Si dice "cancelo", "no", "mejor no", "cancelar", "rechazo" después de crear un pedido, usá 'cancel_request' con el request_id de la última solicitud.
-- Si 'create_request' devuelve { needs_login: true }, pedile que se loguee/registre (NO reintentes la tool).
-- Después de crear: confirmá el turno y decile que el lavadero le manda el presupuesto al chat.
-- No menciones IDs ni detalles técnicos.`;
+REGLAS IMPORTANTES:
+- NUNCA inventes precios, lavaderos, horarios ni servicios. Todo viene de las tools.
+- NUNCA muestres IDs (UUIDs) al usuario.
+- Si 'create_request' devuelve { needs_login: true }, pedile que se loguee/registre. NO reintentes.
+- Si dice "cancelo" / "no" / "mejor no" después de reservar, usá 'cancel_request'.`;
 
 const tools = [
   {
@@ -56,19 +57,23 @@ const tools = [
     function: {
       name: "check_availability",
       description:
-        "Consulta los lavaderos disponibles para una fecha y hora dadas. Devuelve hasta 5 lavaderos rankeados por score, ordenados de mejor a peor. Si urgent=true, ignora la hora y devuelve el primer hueco disponible hoy. Si professional_name está presente, filtra SOLO los profesionales cuyo nombre coincida (parcial, sin tildes, case-insensitive).",
+        "Consulta los lavaderos disponibles para una fecha y hora. Devuelve hasta 5 lavaderos rankeados por score con sus servicios cargados (precios por tipo de vehículo). Filtra por 'locality' (zona del usuario) cuando está presente. Si no hay lavaderos en esa zona, devuelve fallback con los más cercanos del país. Si urgent=true, ignora la hora y usa el primer hueco hoy. Si professional_name está presente, filtra solo a ese pro.",
       parameters: {
         type: "object",
         properties: {
-          date: { type: "string", description: "Fecha en formato YYYY-MM-DD" },
-          time: { type: "string", description: "Hora en formato HH:MM (24h)" },
+          date: { type: "string", description: "Fecha YYYY-MM-DD" },
+          time: { type: "string", description: "Hora HH:MM (24h)" },
+          locality: {
+            type: "string",
+            description: "Zona/localidad del usuario tal como la dijo. Ej: 'Palermo', 'Vicente Lopez', 'Caballito'.",
+          },
           urgent: {
             type: "boolean",
-            description: "Si es true, ignora la hora y devuelve el primer hueco disponible hoy.",
+            description: "Si true, ignora hora y devuelve primer hueco disponible hoy.",
           },
           professional_name: {
             type: "string",
-            description: "Nombre (o parte) del profesional que el usuario pidió específicamente. Ej: 'franco carloni'.",
+            description: "Nombre (parcial) del profesional pedido específicamente.",
           },
         },
         required: ["date"],
@@ -81,20 +86,24 @@ const tools = [
     function: {
       name: "create_request",
       description:
-        "Crea una solicitud de servicio de lavado a nombre del usuario logueado. CONFIRMA el turno directamente (sin seña). Solo llamar después de confirmación explícita del usuario.",
+        "Crea la reserva del turno con seña simulada (10% del precio total). El turno queda CONFIRMADO con la seña marcada como pagada. Solo llamar después de que el usuario confirme explícitamente lavadero, día, hora, tipo de vehículo y tipo de lavado.",
       parameters: {
         type: "object",
         properties: {
-          professional_id: { type: "string", description: "UUID del profesional devuelto por check_availability" },
+          professional_id: { type: "string", description: "UUID devuelto por check_availability" },
           professional_name: { type: "string" },
           date: { type: "string", description: "YYYY-MM-DD" },
           time: { type: "string", description: "HH:MM" },
-          description: {
+          vehicle_type: {
             type: "string",
-            description: "Descripción breve del servicio pedido por el usuario",
+            description: "Tipo de vehículo elegido (ej: 'Sedán', 'SUV', 'Camioneta'). Debe estar en vehicle_types del lavadero.",
+          },
+          service_name: {
+            type: "string",
+            description: "Nombre del lavado elegido (ej: 'Lavado completo'). Debe estar en services del lavadero.",
           },
         },
-        required: ["professional_id", "date", "time", "description"],
+        required: ["professional_id", "date", "time", "vehicle_type", "service_name"],
         additionalProperties: false,
       },
     },
@@ -131,18 +140,19 @@ function normalizeName(s: string): string {
 async function checkAvailability(args: {
   date: string;
   time?: string;
+  locality?: string;
   urgent?: boolean;
   professional_name?: string;
 }) {
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-  const { date, time, urgent, professional_name } = args;
+  const { date, time, locality, urgent, professional_name } = args;
 
   const targetDate = urgent ? new Date().toISOString().split("T")[0] : date;
   const dow = new Date(targetDate + "T12:00:00").getDay();
 
   const { data: prosAll } = await admin
     .from("professional_profiles")
-    .select("user_id, full_name, work_stations, available")
+    .select("user_id, full_name, work_stations, available, locality, neighborhood, services, vehicle_types")
     .eq("rubro", RUBRO)
     .eq("available", true);
 
@@ -172,6 +182,26 @@ async function checkAvailability(args: {
     nameFiltered = true;
   }
 
+  // Filter by locality (zona) if provided AND no name filter active
+  let localityFiltered = false;
+  let localityFallback = false;
+  if (locality && locality.trim() && !nameFiltered) {
+    const needle = normalizeName(locality);
+    const inZone = pros.filter((p) => {
+      const loc = normalizeName(p.locality || "");
+      const nbh = normalizeName(p.neighborhood || "");
+      return (loc && loc.includes(needle)) || (nbh && nbh.includes(needle)) ||
+             (needle.length > 3 && (loc.includes(needle) || nbh.includes(needle)));
+    });
+    if (inZone.length > 0) {
+      pros = inZone;
+      localityFiltered = true;
+    } else {
+      // No hay en la zona pedida → fallback a todos, marcamos para que el bot lo aclare
+      localityFallback = true;
+    }
+  }
+
   const proIds = pros.map((p) => p.user_id);
 
   const { data: avail } = await admin
@@ -181,7 +211,7 @@ async function checkAvailability(args: {
     .eq("day_of_week", dow)
     .eq("is_active", true);
 
-  // Count any blocked slot (paid OR pending) since now we confirm without deposit
+  // Count any blocked slot (paid OR pending)
   const { data: blocked } = await admin
     .from("blocked_slots")
     .select("professional_id, slot_time, slot_status")
@@ -237,6 +267,7 @@ async function checkAvailability(args: {
     }),
   );
   const scoreMap = new Map(scoredPros.map((s) => [s.user_id, s.score]));
+  const proById = new Map(pros.map((p) => [p.user_id, p]));
 
   let candidates: SlotRow[];
   if (urgent) {
@@ -260,19 +291,43 @@ async function checkAvailability(args: {
     candidates = allSlots.sort((a, b) => a.time.localeCompare(b.time));
   }
 
-  const top = candidates.slice(0, 10).map((s) => ({
-    professional_id: s.proId,
-    professional_name: s.proName,
-    date: targetDate,
-    time: s.time,
-    score: scoreMap.get(s.proId) ?? 3,
-  }));
+  // Quedarse con el mejor slot por profesional para no repetir el mismo lavadero
+  const seenPro = new Set<string>();
+  const uniquePerPro: SlotRow[] = [];
+  for (const s of candidates) {
+    if (seenPro.has(s.proId)) continue;
+    seenPro.add(s.proId);
+    uniquePerPro.push(s);
+  }
+
+  const top = uniquePerPro.slice(0, 10).map((s) => {
+    const pro = proById.get(s.proId);
+    const services = Array.isArray(pro?.services) ? (pro!.services as any[]) : [];
+    return {
+      professional_id: s.proId,
+      professional_name: s.proName,
+      locality: pro?.locality || null,
+      neighborhood: pro?.neighborhood || null,
+      vehicle_types: pro?.vehicle_types || [],
+      // Solo nombres + precios resumidos para que el LLM los muestre
+      services: services.map((sv: any) => ({
+        name: sv.name,
+        prices: sv.prices || {},
+      })),
+      date: targetDate,
+      time: s.time,
+      score: scoreMap.get(s.proId) ?? 3,
+    };
+  });
   top.sort((a, b) => (b.score as number) - (a.score as number));
 
   return {
     available: nameFiltered ? top : top.slice(0, 5),
     name_filtered: nameFiltered,
     name_searched: nameFiltered ? professional_name : null,
+    locality_filtered: localityFiltered,
+    locality_fallback: localityFallback,
+    locality_searched: locality || null,
     requested_time: time || null,
     requested_date: targetDate,
   };
@@ -284,7 +339,8 @@ async function createRequest(
     professional_name?: string;
     date: string;
     time: string;
-    description: string;
+    vehicle_type: string;
+    service_name: string;
   },
   authHeader: string | null,
 ) {
@@ -292,12 +348,14 @@ async function createRequest(
     return { needs_login: true, message: "El usuario debe iniciar sesión para confirmar." };
   }
 
-  // Validate professional_id is a real UUID before hitting DB
   if (!args.professional_id || !UUID_RE.test(args.professional_id)) {
     return { error: "ID de profesional inválido. Volvé a consultar disponibilidad." };
   }
   if (!args.date || !args.time) {
     return { error: "Fecha y hora son obligatorias." };
+  }
+  if (!args.vehicle_type || !args.service_name) {
+    return { error: "Faltan tipo de vehículo y/o tipo de lavado." };
   }
 
   const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -312,15 +370,46 @@ async function createRequest(
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-  // Verify pro exists & is car wash
+  // Verify pro exists & is car wash + get services/vehicle_types
   const { data: pro } = await admin
     .from("professional_profiles")
-    .select("user_id, rubro")
+    .select("user_id, rubro, services, vehicle_types")
     .eq("user_id", args.professional_id)
     .maybeSingle();
   if (!pro || pro.rubro !== RUBRO) {
     return { error: "El profesional no está disponible." };
   }
+
+  // Validate vehicle_type belongs to pro
+  const vehicleTypes: string[] = Array.isArray(pro.vehicle_types) ? pro.vehicle_types : [];
+  const matchedVehicle = vehicleTypes.find(
+    (v) => normalizeName(v) === normalizeName(args.vehicle_type),
+  );
+  if (!matchedVehicle) {
+    return {
+      error: `Este lavadero no atiende '${args.vehicle_type}'. Tipos disponibles: ${vehicleTypes.join(", ") || "ninguno"}.`,
+    };
+  }
+
+  // Validate service exists and get price for that vehicle
+  const services: any[] = Array.isArray(pro.services) ? (pro.services as any[]) : [];
+  const matchedService = services.find(
+    (s) => normalizeName(s.name || "") === normalizeName(args.service_name),
+  );
+  if (!matchedService) {
+    return {
+      error: `El lavado '${args.service_name}' no existe en este lavadero. Servicios: ${services.map((s) => s.name).join(", ") || "ninguno"}.`,
+    };
+  }
+  const totalPrice = Number(
+    matchedService.prices?.[matchedVehicle] ?? 0,
+  );
+  if (!totalPrice || totalPrice <= 0) {
+    return {
+      error: `Este lavadero no tiene precio cargado para ${matchedVehicle} en ${matchedService.name}. Elegí otro lavadero.`,
+    };
+  }
+  const depositAmount = Math.round(totalPrice * 0.1);
 
   const { data: profile } = await admin
     .from("client_profiles")
@@ -328,7 +417,6 @@ async function createRequest(
     .eq("user_id", userId)
     .maybeSingle();
 
-  // Insert request as ACEPTADA directly (MVP: no deposit step)
   const nowIso = new Date().toISOString();
   const { data: inserted, error } = await userClient
     .from("service_requests")
@@ -338,13 +426,16 @@ async function createRequest(
       client_name: profile?.full_name || (claimsData.claims.email as string)?.split("@")[0] || "Cliente",
       client_phone: profile?.phone || null,
       client_address: profile?.address || null,
-      service_type: RUBRO,
-      description: args.description,
+      service_type: `${matchedService.name} (${matchedVehicle})`,
+      description: `${matchedService.name} - ${matchedVehicle}`,
       scheduled_date: args.date,
       scheduled_time: args.time + ":00",
+      quoted_amount: totalPrice,
+      deposit_amount: depositAmount,
+      deposit_paid: true,
       status: "aceptada",
       responded_at: nowIso,
-    })
+    } as any)
     .select("id")
     .single();
 
@@ -353,7 +444,6 @@ async function createRequest(
     return { error: error?.message || "No se pudo crear la solicitud." };
   }
 
-  // Block the slot as 'paid' so capacity counts even without real payment
   const { error: blockErr } = await admin
     .from("blocked_slots")
     .insert({
@@ -372,6 +462,10 @@ async function createRequest(
     professional_name: args.professional_name,
     date: args.date,
     time: args.time,
+    vehicle_type: matchedVehicle,
+    service_name: matchedService.name,
+    total_price: totalPrice,
+    deposit_amount: depositAmount,
   };
 }
 

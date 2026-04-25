@@ -14,7 +14,7 @@ const ACTIVE_REQ_KEY = "fix_chat_active_request";
 const INITIAL_MSG: Msg = {
   role: "assistant",
   content:
-    "¡Hola! Soy Fix Bot 🚗. Te ayudo a reservar tu turno de lavadero de autos. Decime cuándo lo necesitás (ej: \"hoy a las 15hs\" o \"mañana temprano\").",
+    "¡Hola! Soy **Fix Bot** 🚗\n\nReservá tu turno de lavadero en 1 minuto. Para arrancar contame:\n\n📍 **¿De qué zona/localidad sos?**\n📅 **¿Qué día y horario te queda cómodo?**\n\nEj: \"Soy de Palermo, mañana a las 15hs\"",
 };
 
 export default function LavaderoChat() {
