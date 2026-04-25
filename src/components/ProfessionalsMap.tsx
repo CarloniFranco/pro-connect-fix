@@ -85,6 +85,7 @@ const ProfessionalsMap = ({ pros }: Props) => {
   return (
     <div className="h-[60vh] w-full overflow-hidden rounded-2xl border-2 border-border shadow-md">
       <MapContainer
+        key={pros.map((p) => p.user_id).join("-") || "empty"}
         center={defaultCenter}
         zoom={12}
         scrollWheelZoom={true}
