@@ -107,6 +107,7 @@ const Dashboard = () => {
         <CalendarAgenda />
         <AgendaOrders />
         <MyServicesManager />
+        <WorkStationsManager />
         <AvailabilityManager />
       </main>
 
