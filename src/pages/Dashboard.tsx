@@ -9,7 +9,6 @@ import BudgetGenerator from "@/components/dashboard/BudgetGenerator";
 import AvailabilityManager from "@/components/dashboard/AvailabilityManager";
 import MyServicesManager from "@/components/dashboard/MyServicesManager";
 import WorkStationsManager from "@/components/dashboard/WorkStationsManager";
-import PortfolioManager from "@/components/dashboard/PortfolioManager";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -110,7 +109,6 @@ const Dashboard = () => {
         <MyServicesManager />
         <WorkStationsManager />
         <AvailabilityManager />
-        <PortfolioManager />
       </main>
 
       <BudgetGenerator />
