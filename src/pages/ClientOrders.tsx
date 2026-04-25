@@ -633,13 +633,46 @@ const ClientOrders = () => {
                     </div>
                   )}
 
-                  {selectedRequest.status === "aceptada" && (
-                    <div className="rounded-lg bg-green-500/10 p-3 text-center">
-                      <p className="text-sm font-semibold text-green-700 dark:text-green-300">
-                        ✅ Turno confirmado — Te esperamos
-                      </p>
-                    </div>
-                  )}
+                  {selectedRequest.status === "aceptada" && (() => {
+                    const hrs = hoursUntilAppointment(selectedRequest);
+                    const within24h = hrs !== null && hrs < 24 && hrs > -1;
+                    const losesDeposit = within24h && selectedRequest.deposit_paid;
+                    return (
+                      <div className="space-y-3">
+                        <div className="rounded-lg bg-green-500/10 p-3 text-center">
+                          <p className="text-sm font-semibold text-green-700 dark:text-green-300">
+                            ✅ Turno confirmado — Te esperamos
+                          </p>
+                        </div>
+                        <div className="border-t border-border pt-3">
+                          {losesDeposit && (
+                            <div className="mb-2 rounded-lg bg-destructive/10 border border-destructive/30 p-3 text-xs text-destructive">
+                              ⚠️ Faltan menos de 24hs para el turno. Si lo cancelás ahora,{" "}
+                              <strong>perdés la seña</strong>
+                              {selectedRequest.deposit_amount
+                                ? ` de $${selectedRequest.deposit_amount.toLocaleString("es-AR")}`
+                                : ""}
+                              .
+                            </div>
+                          )}
+                          {!losesDeposit && selectedRequest.deposit_paid && (
+                            <p className="mb-2 text-xs text-muted-foreground">
+                              Si cancelás con menos de 24hs de anticipación, perdés la seña.
+                            </p>
+                          )}
+                          <Button
+                            variant="outline"
+                            className="w-full text-destructive border-destructive/40 hover:bg-destructive/5"
+                            onClick={() => setConfirmCancel(selectedRequest)}
+                            disabled={cancellingId === selectedRequest.id}
+                          >
+                            <XCircle className="h-4 w-4 mr-2" />
+                            Dar de baja el turno
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {selectedRequest.status === "en_servicio" && (
                     <div className="rounded-lg bg-primary/10 p-3 text-center">
