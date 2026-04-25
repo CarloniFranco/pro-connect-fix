@@ -24,31 +24,58 @@ function extractCoords(url: string): Coords | null {
 
 async function expandShortUrl(url: string): Promise<string> {
   console.log(`[expand] start url=${url}`);
-  try {
-    const res = await fetch(url, {
-      method: "GET",
-      redirect: "follow",
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      },
-    });
-    console.log(`[expand] final url=${res.url} status=${res.status}`);
-    if (extractCoords(res.url)) return res.url;
+  let current = url;
 
-    // Intentar extraer del body
-    const body = await res.text();
-    console.log(`[expand] body length=${body.length}`);
-    const m =
-      body.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) ||
-      body.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) ||
-      body.match(/"(-?\d+\.\d+),(-?\d+\.\d+)"/);
-    if (m) return `https://maps.google.com/?q=${m[1]},${m[2]}`;
-    return res.url;
-  } catch (e) {
-    console.error("[expand] error", e);
-    return url;
+  // Iterar redirecciones manualmente probando todos los headers
+  for (let i = 0; i < 6; i++) {
+    try {
+      const res = await fetch(current, {
+        method: "HEAD",
+        redirect: "manual",
+        headers: {
+          "User-Agent": "curl/8.0.0",
+          "Accept": "*/*",
+        },
+      });
+      console.log(`[expand] iter=${i} status=${res.status} url=${current}`);
+
+      // Buscar location en cualquier header (case-insensitive)
+      let location: string | null = null;
+      for (const [k, v] of res.headers) {
+        if (k.toLowerCase() === "location") {
+          location = v;
+          break;
+        }
+      }
+      console.log(`[expand] location=${location}`);
+
+      if (!location) {
+        // No hay redirect, intentar GET y leer body
+        const r2 = await fetch(current, {
+          method: "GET",
+          redirect: "follow",
+          headers: { "User-Agent": "curl/8.0.0" },
+        });
+        const body = await r2.text();
+        console.log(`[expand] body length=${body.length}`);
+        const m =
+          body.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) ||
+          body.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) ||
+          body.match(/\[null,null,(-?\d+\.\d+),(-?\d+\.\d+)\]/);
+        if (m) return `https://maps.google.com/?q=${m[1]},${m[2]}`;
+        return current;
+      }
+
+      current = location.startsWith("http")
+        ? location
+        : new URL(location, current).toString();
+      if (extractCoords(current)) return current;
+    } catch (e) {
+      console.error(`[expand] iter=${i} error`, e);
+      return current;
+    }
   }
+  return current;
 }
 
 Deno.serve(async (req) => {
