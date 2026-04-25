@@ -200,6 +200,10 @@ const ProfessionalsList = () => {
         }
       });
 
+      console.log("[Availability] result:", {
+        availableCount: result.size,
+        availableIds: Array.from(result),
+      });
       setAvailableUserIds(result);
     };
 
