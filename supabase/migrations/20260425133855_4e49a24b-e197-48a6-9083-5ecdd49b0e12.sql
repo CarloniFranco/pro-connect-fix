@@ -1,0 +1,3 @@
+ALTER TABLE public.professional_profiles
+ADD COLUMN IF NOT EXISTS lat NUMERIC,
+ADD COLUMN IF NOT EXISTS lng NUMERIC;

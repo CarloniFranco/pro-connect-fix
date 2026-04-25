@@ -172,6 +172,8 @@ export type Database = {
           full_name: string
           google_maps_url: string
           id: string
+          lat: number | null
+          lng: number | null
           matricula_url: string | null
           neighborhood: string
           photo_url: string | null
@@ -192,6 +194,8 @@ export type Database = {
           full_name?: string
           google_maps_url?: string
           id?: string
+          lat?: number | null
+          lng?: number | null
           matricula_url?: string | null
           neighborhood?: string
           photo_url?: string | null
@@ -212,6 +216,8 @@ export type Database = {
           full_name?: string
           google_maps_url?: string
           id?: string
+          lat?: number | null
+          lng?: number | null
           matricula_url?: string | null
           neighborhood?: string
           photo_url?: string | null

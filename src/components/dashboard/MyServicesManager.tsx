@@ -69,10 +69,35 @@ export default function MyServicesManager() {
   };
 
   const saveLocation = async () => {
+    if (!neighborhood.trim()) {
+      toast.error("El barrio / zona es obligatorio");
+      return;
+    }
+    const url = mapsUrl.trim();
+    let coordsPatch: { lat?: number | null; lng?: number | null } = { lat: null, lng: null };
+
+    if (url) {
+      try {
+        const { data, error } = await supabase.functions.invoke("resolve-google-maps", {
+          body: { url },
+        });
+        if (!error && data?.coords) {
+          coordsPatch = { lat: data.coords.lat, lng: data.coords.lng };
+        } else {
+          toast.warning(
+            "No pudimos extraer las coordenadas del link. Tu perfil se guarda igual, pero no aparecerás en el mapa hasta que pegues un link válido de Google Maps.",
+          );
+        }
+      } catch (e) {
+        console.error("resolve-google-maps", e);
+      }
+    }
+
     const ok = await persist({
       address: address.trim(),
       neighborhood: neighborhood.trim(),
-      google_maps_url: mapsUrl.trim(),
+      google_maps_url: url,
+      ...coordsPatch,
     });
     if (ok) toast.success("Ubicación guardada");
   };
@@ -169,12 +194,15 @@ export default function MyServicesManager() {
             />
           </div>
           <div>
-            <Label htmlFor="neighborhood" className="text-xs">Barrio / Zona</Label>
+            <Label htmlFor="neighborhood" className="text-xs">
+              Barrio / Zona <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="neighborhood"
               value={neighborhood}
               onChange={(e) => setNeighborhood(e.target.value)}
               placeholder="Guaymallén, Mendoza"
+              required
             />
           </div>
           <div>
