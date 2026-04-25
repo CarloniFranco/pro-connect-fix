@@ -30,6 +30,9 @@ export default function MyServicesManager() {
 
   // Location
   const [address, setAddress] = useState("");
+  const [province, setProvince] = useState("");
+  const [locality, setLocality] = useState("");
+  const [localityCustom, setLocalityCustom] = useState("");
   const [neighborhood, setNeighborhood] = useState("");
   const [mapsUrl, setMapsUrl] = useState("");
 
