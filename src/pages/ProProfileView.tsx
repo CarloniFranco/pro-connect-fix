@@ -303,7 +303,7 @@ const ProProfileView = () => {
                       <CheckCircle className="h-4 w-4 text-secondary" />
                     </div>
                     <p className="text-lg font-bold text-foreground">{score.reliability}/5</p>
-                    <p className="text-xs text-muted-foreground">Cumplimiento</p>
+                    <p className="text-xs text-muted-foreground">Puntualidad y Compromiso</p>
                   </div>
                   <div className="rounded-xl bg-muted/50 p-4 text-center">
                     <div className="flex items-center justify-center gap-1 mb-1">
