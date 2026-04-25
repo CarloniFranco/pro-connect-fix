@@ -305,6 +305,8 @@ const ClientOrders = () => {
     setSelectedRequest(null);
     loadRequests();
   };
+
+  const handleSubmitReview = async () => {
     if (!user || !selectedRequest || reviewRating < 0.5) {
       toast.error("Seleccioná una puntuación");
       return;
