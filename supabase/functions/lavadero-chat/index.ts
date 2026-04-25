@@ -339,7 +339,8 @@ async function createRequest(
     professional_name?: string;
     date: string;
     time: string;
-    description: string;
+    vehicle_type: string;
+    service_name: string;
   },
   authHeader: string | null,
 ) {
@@ -347,12 +348,14 @@ async function createRequest(
     return { needs_login: true, message: "El usuario debe iniciar sesión para confirmar." };
   }
 
-  // Validate professional_id is a real UUID before hitting DB
   if (!args.professional_id || !UUID_RE.test(args.professional_id)) {
     return { error: "ID de profesional inválido. Volvé a consultar disponibilidad." };
   }
   if (!args.date || !args.time) {
     return { error: "Fecha y hora son obligatorias." };
+  }
+  if (!args.vehicle_type || !args.service_name) {
+    return { error: "Faltan tipo de vehículo y/o tipo de lavado." };
   }
 
   const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -367,15 +370,46 @@ async function createRequest(
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-  // Verify pro exists & is car wash
+  // Verify pro exists & is car wash + get services/vehicle_types
   const { data: pro } = await admin
     .from("professional_profiles")
-    .select("user_id, rubro")
+    .select("user_id, rubro, services, vehicle_types")
     .eq("user_id", args.professional_id)
     .maybeSingle();
   if (!pro || pro.rubro !== RUBRO) {
     return { error: "El profesional no está disponible." };
   }
+
+  // Validate vehicle_type belongs to pro
+  const vehicleTypes: string[] = Array.isArray(pro.vehicle_types) ? pro.vehicle_types : [];
+  const matchedVehicle = vehicleTypes.find(
+    (v) => normalizeName(v) === normalizeName(args.vehicle_type),
+  );
+  if (!matchedVehicle) {
+    return {
+      error: `Este lavadero no atiende '${args.vehicle_type}'. Tipos disponibles: ${vehicleTypes.join(", ") || "ninguno"}.`,
+    };
+  }
+
+  // Validate service exists and get price for that vehicle
+  const services: any[] = Array.isArray(pro.services) ? (pro.services as any[]) : [];
+  const matchedService = services.find(
+    (s) => normalizeName(s.name || "") === normalizeName(args.service_name),
+  );
+  if (!matchedService) {
+    return {
+      error: `El lavado '${args.service_name}' no existe en este lavadero. Servicios: ${services.map((s) => s.name).join(", ") || "ninguno"}.`,
+    };
+  }
+  const totalPrice = Number(
+    matchedService.prices?.[matchedVehicle] ?? 0,
+  );
+  if (!totalPrice || totalPrice <= 0) {
+    return {
+      error: `Este lavadero no tiene precio cargado para ${matchedVehicle} en ${matchedService.name}. Elegí otro lavadero.`,
+    };
+  }
+  const depositAmount = Math.round(totalPrice * 0.1);
 
   const { data: profile } = await admin
     .from("client_profiles")
@@ -383,7 +417,6 @@ async function createRequest(
     .eq("user_id", userId)
     .maybeSingle();
 
-  // Insert request as ACEPTADA directly (MVP: no deposit step)
   const nowIso = new Date().toISOString();
   const { data: inserted, error } = await userClient
     .from("service_requests")
@@ -393,13 +426,16 @@ async function createRequest(
       client_name: profile?.full_name || (claimsData.claims.email as string)?.split("@")[0] || "Cliente",
       client_phone: profile?.phone || null,
       client_address: profile?.address || null,
-      service_type: RUBRO,
-      description: args.description,
+      service_type: `${matchedService.name} (${matchedVehicle})`,
+      description: `${matchedService.name} - ${matchedVehicle}`,
       scheduled_date: args.date,
       scheduled_time: args.time + ":00",
+      quoted_amount: totalPrice,
+      deposit_amount: depositAmount,
+      deposit_paid: true,
       status: "aceptada",
       responded_at: nowIso,
-    })
+    } as any)
     .select("id")
     .single();
 
@@ -408,7 +444,6 @@ async function createRequest(
     return { error: error?.message || "No se pudo crear la solicitud." };
   }
 
-  // Block the slot as 'paid' so capacity counts even without real payment
   const { error: blockErr } = await admin
     .from("blocked_slots")
     .insert({
@@ -427,6 +462,10 @@ async function createRequest(
     professional_name: args.professional_name,
     date: args.date,
     time: args.time,
+    vehicle_type: matchedVehicle,
+    service_name: matchedService.name,
+    total_price: totalPrice,
+    deposit_amount: depositAmount,
   };
 }
 
