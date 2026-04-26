@@ -235,11 +235,11 @@ function parseMarkdownToBlocks(md: string): { type: "h" | "p" | "li"; text: stri
     const line = raw.trim();
     if (!line) continue;
     if (/^#{1,6}\s/.test(line)) {
-      blocks.push({ type: "h", text: line.replace(/^#{1,6}\s+\**/, "").replace(/\*+/g, "") });
+      blocks.push({ type: "h", text: sanitizeForPdf(line.replace(/^#{1,6}\s+\**/, "").replace(/\*+/g, "")) });
     } else if (/^[-*•]\s/.test(line)) {
-      blocks.push({ type: "li", text: line.replace(/^[-*•]\s+/, "").replace(/\*+/g, "") });
+      blocks.push({ type: "li", text: sanitizeForPdf(line.replace(/^[-*•]\s+/, "").replace(/\*+/g, "")) });
     } else {
-      blocks.push({ type: "p", text: line.replace(/\*+/g, "") });
+      blocks.push({ type: "p", text: sanitizeForPdf(line.replace(/\*+/g, "")) });
     }
   }
   return blocks;
