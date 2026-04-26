@@ -83,41 +83,85 @@ const MonthlyKPI = () => {
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(amount);
 
+  // Compact currency for mobile (e.g. $1.2M, $350k) so it never overflows.
+  const formatCurrencyCompact = (amount: number) => {
+    if (amount >= 1_000_000) {
+      const v = amount / 1_000_000;
+      return `$${v.toFixed(v >= 10 ? 0 : 1).replace(".", ",")}M`;
+    }
+    if (amount >= 1_000) {
+      const v = amount / 1_000;
+      return `$${v.toFixed(v >= 100 ? 0 : 0).replace(".", ",")}k`;
+    }
+    return formatCurrency(amount);
+  };
+
+  const cards = [
+    {
+      icon: CheckCircle,
+      iconBg: "bg-primary/15",
+      iconColor: "text-primary",
+      value: String(completed),
+      label: "Finalizados",
+      sublabel: "este mes",
+    },
+    {
+      icon: TrendingUp,
+      iconBg: "bg-secondary/15",
+      iconColor: "text-secondary",
+      value: String(pending),
+      label: "En curso",
+      sublabel: "",
+    },
+    {
+      icon: DollarSign,
+      iconBg: "bg-accent/20",
+      iconColor: "text-accent-foreground",
+      // Compact on mobile, full on >=sm
+      valueMobile: formatCurrencyCompact(totalRevenue),
+      value: formatCurrency(totalRevenue),
+      label: "Generado",
+      sublabel: "este mes",
+      isCurrency: true,
+    },
+  ];
+
   return (
-    <div className="grid grid-cols-3 gap-3">
-      <Card>
-        <CardContent className="flex items-center gap-3 p-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15">
-            <CheckCircle className="h-5 w-5 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <p className="font-display text-2xl font-bold text-foreground">{completed}</p>
-            <p className="text-xs text-muted-foreground">Finalizados este mes</p>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent className="flex items-center gap-3 p-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary/15">
-            <TrendingUp className="h-5 w-5 text-secondary" />
-          </div>
-          <div className="min-w-0">
-            <p className="font-display text-2xl font-bold text-foreground">{pending}</p>
-            <p className="text-xs text-muted-foreground">En curso</p>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent className="flex items-center gap-3 p-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/20">
-            <DollarSign className="h-5 w-5 text-accent-foreground" />
-          </div>
-          <div className="min-w-0">
-            <p className="font-display text-lg font-bold text-foreground leading-tight">{formatCurrency(totalRevenue)}</p>
-            <p className="text-xs text-muted-foreground">Generado este mes</p>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="grid grid-cols-3 gap-2 sm:gap-3">
+      {cards.map((c, i) => {
+        const Icon = c.icon;
+        return (
+          <Card key={i} className="overflow-hidden">
+            <CardContent className="flex flex-col items-start gap-2 p-3 sm:flex-row sm:items-center sm:gap-3 sm:p-4">
+              <div
+                className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full ${c.iconBg}`}
+              >
+                <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${c.iconColor}`} />
+              </div>
+              <div className="min-w-0 w-full">
+                {c.isCurrency ? (
+                  <>
+                    <p className="font-display text-base sm:hidden font-bold text-foreground leading-tight tabular-nums">
+                      {c.valueMobile}
+                    </p>
+                    <p className="hidden sm:block font-display text-lg font-bold text-foreground leading-tight tabular-nums truncate">
+                      {c.value}
+                    </p>
+                  </>
+                ) : (
+                  <p className="font-display text-xl sm:text-2xl font-bold text-foreground leading-tight tabular-nums">
+                    {c.value}
+                  </p>
+                )}
+                <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">
+                  {c.label}
+                  {c.sublabel ? <span className="hidden sm:inline"> {c.sublabel}</span> : null}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 };
