@@ -547,10 +547,11 @@ export async function generateProReportPdf(data: ProReportData, report: string) 
     }
     y = drawSectionTitle(doc, y, "Últimas reseñas", COLORS.secondary);
     data.ultimasReseñas.forEach((r) => {
-      const stars = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
+      const filled = Math.max(0, Math.min(5, r.rating));
+      const stars = `${r.rating}/5  ` + "*".repeat(filled) + ".".repeat(5 - filled);
       doc.setFillColor(COLORS.bg);
       doc.setDrawColor(COLORS.border);
-      const text = r.comment || "(Sin comentario)";
+      const text = sanitizeForPdf(r.comment || "(Sin comentario)");
       const lines = doc.splitTextToSize(text, w - 28 - 6);
       const boxH = Math.max(14, 8 + lines.length * 4.5);
       if (y + boxH > h - 22) {
