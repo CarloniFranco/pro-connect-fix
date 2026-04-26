@@ -210,6 +210,111 @@ async function listProfessionals(args: { locality: string }) {
   };
 }
 
+async function computeSlotAvailability(professional_id: string, date: string, time: string) {
+  const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+  const { data: pro } = await admin
+    .from("professional_profiles")
+    .select("user_id, full_name, work_stations, rubro")
+    .eq("user_id", professional_id)
+    .maybeSingle();
+  if (!pro || pro.rubro !== RUBRO) {
+    return { ok: false as const, reason: "El profesional no está disponible." };
+  }
+
+  const dow = new Date(date + "T12:00:00").getDay();
+  const { data: avail } = await admin
+    .from("professional_availability")
+    .select("start_time, end_time")
+    .eq("professional_id", professional_id)
+    .eq("day_of_week", dow)
+    .eq("is_active", true);
+
+  if (!avail || avail.length === 0) {
+    return {
+      ok: true as const,
+      available: false,
+      reason: `${pro.full_name} no atiende ese día.`,
+      suggestions: [] as string[],
+      pro_name: pro.full_name,
+    };
+  }
+
+  // Build all hourly slots from availability windows
+  const allSlots: string[] = [];
+  for (const a of avail) {
+    const [sh, sm] = a.start_time.split(":").map(Number);
+    const [eh, em] = a.end_time.split(":").map(Number);
+    let h = sh, m = sm;
+    while (h < eh || (h === eh && m < em)) {
+      allSlots.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+      m += 60;
+      if (m >= 60) { h++; m = 0; }
+    }
+  }
+
+  // Count occupancy
+  const { data: blocked } = await admin
+    .from("blocked_slots")
+    .select("slot_time, slot_status")
+    .eq("professional_id", professional_id)
+    .eq("slot_date", date)
+    .in("slot_status", ["paid", "pending"]);
+
+  const occMap = new Map<string, number>();
+  blocked?.forEach((b) => {
+    const k = b.slot_time.slice(0, 5);
+    occMap.set(k, (occMap.get(k) || 0) + 1);
+  });
+
+  const stations = pro.work_stations || 1;
+  const freeSlots = allSlots.filter((t) => (occMap.get(t) || 0) < stations);
+
+  const requested = time.length >= 5 ? time.slice(0, 5) : time;
+  const isInWindow = allSlots.includes(requested);
+  const free = isInWindow && (occMap.get(requested) || 0) < stations;
+
+  if (free) {
+    return { ok: true as const, available: true, pro_name: pro.full_name };
+  }
+
+  return {
+    ok: true as const,
+    available: false,
+    reason: !isInWindow
+      ? `${pro.full_name} no atiende a las ${requested} ese día.`
+      : `${pro.full_name} ya tiene tomado ese horario.`,
+    suggestions: freeSlots.slice(0, 6),
+    pro_name: pro.full_name,
+  };
+}
+
+async function checkSlot(args: { professional_id: string; date: string; time: string }) {
+  if (!UUID_RE.test(args.professional_id)) {
+    return { error: "ID de profesional inválido." };
+  }
+  const r = await computeSlotAvailability(args.professional_id, args.date, args.time);
+  if (!r.ok) return { error: r.reason };
+  if (r.available) {
+    return {
+      available: true,
+      professional_name: r.pro_name,
+      date: args.date,
+      time: args.time,
+    };
+  }
+  return {
+    available: false,
+    reason: r.reason,
+    suggestions: r.suggestions,
+    suggestions_text: r.suggestions.length
+      ? `${r.reason} Horarios libres ese día: ${r.suggestions.join(", ")}.`
+      : `${r.reason} No quedan horarios libres ese día.`,
+    professional_name: r.pro_name,
+    date: args.date,
+  };
+}
+
 async function bookSlot(
   args: {
     professional_id: string;
@@ -262,6 +367,18 @@ async function bookSlot(
     return { error: `No hay precio cargado para ${matchedVehicle} en ${matchedService.name}.` };
   }
   const depositAmount = Math.round(totalPrice * 0.1);
+
+  // Re-check availability server-side before inserting
+  const avCheck = await computeSlotAvailability(args.professional_id, args.date, args.time);
+  if (avCheck.ok && !avCheck.available) {
+    return {
+      error: avCheck.reason,
+      suggestions: avCheck.suggestions,
+      suggestions_text: avCheck.suggestions.length
+        ? `${avCheck.reason} Horarios libres: ${avCheck.suggestions.join(", ")}.`
+        : `${avCheck.reason} No quedan horarios libres ese día.`,
+    };
+  }
 
   const { data: profile } = await admin
     .from("client_profiles")
