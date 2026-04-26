@@ -217,12 +217,12 @@ const ProfessionalPublicProfile = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto max-w-2xl px-4 pt-24 pb-16">
+      <div className="container mx-auto max-w-2xl px-3 pt-20 pb-12 sm:px-4 sm:pt-24 sm:pb-16">
         <motion.button
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           onClick={() => navigate(-1)}
-          className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline"
+          className="mb-3 inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline"
         >
           <ArrowLeft className="h-4 w-4" /> Volver
         </motion.button>
