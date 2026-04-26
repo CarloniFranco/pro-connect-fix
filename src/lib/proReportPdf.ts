@@ -317,11 +317,11 @@ export async function generateProReportPdf(data: ProReportData, report: string) 
   doc.setFontSize(9);
   doc.setTextColor(COLORS.muted);
   const subtitle =
-    [data.profesional, data.rubro, data.localidad].filter(Boolean).join(" · ") ||
+    [data.profesional, data.rubro, data.localidad].filter(Boolean).join(" - ") ||
     "Profesional FIX";
-  doc.text(subtitle, 14, y);
+  doc.text(sanitizeForPdf(subtitle), 14, y);
   y += 5;
-  doc.text(`Período: ${fmtDate(data.desde)} → ${fmtDate(data.hasta)}`, 14, y);
+  doc.text(`Período: ${fmtDate(data.desde)} - ${fmtDate(data.hasta)}`, 14, y);
   y += 8;
 
   // KPI cards
