@@ -5,7 +5,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import MonthlyKPI from "@/components/dashboard/MonthlyKPI";
 import CalendarAgenda from "@/components/dashboard/CalendarAgenda";
 import AgendaOrders from "@/components/dashboard/AgendaOrders";
-import BudgetGenerator from "@/components/dashboard/BudgetGenerator";
 import AvailabilityManager from "@/components/dashboard/AvailabilityManager";
 import MyServicesManager from "@/components/dashboard/MyServicesManager";
 import WorkStationsManager from "@/components/dashboard/WorkStationsManager";
@@ -110,8 +109,6 @@ const Dashboard = () => {
         <WorkStationsManager />
         <AvailabilityManager />
       </main>
-
-      <BudgetGenerator />
     </div>
   );
 };
