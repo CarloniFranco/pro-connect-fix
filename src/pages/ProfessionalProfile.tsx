@@ -214,14 +214,17 @@ const ProfessionalProfile = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="fullName">Nombre completo</Label>
+            <Label htmlFor="fullName">Nombre del profesional o del negocio</Label>
             <Input
               id="fullName"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Juan Pérez"
+              placeholder="Ej: Juan Pérez o Lavadero El Rápido"
               required
             />
+            <p className="text-xs text-muted-foreground">
+              Es como te van a ver tus clientes en FIX. Podés usar tu nombre o el nombre de tu negocio/lavadero.
+            </p>
           </div>
 
           <div className="space-y-2">
