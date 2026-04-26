@@ -31,11 +31,11 @@ FLUJO OBLIGATORIO (en este orden):
 2. CUÁNDO: pedí día y hora ("¿qué día y horario te queda cómodo?"). Interpretá lenguaje natural.
 3. DISPONIBILIDAD: llamá 'check_availability' con locality + date (+time). DEVOLVÉ HASTA 5 OPCIONES rankeadas por score.
 4. ELECCIÓN: el usuario elige un número (1-5).
-5. AUTO Y LAVADO: una vez elegido el lavadero, COPIÁ Y PEGÁ EXACTAMENTE el campo 'menu_text' que vino en el JSON del tool para ESE lavadero. NO reescribas, NO traduzcas, NO inventes opciones, NO agregues servicios extra. Solo pegás 'menu_text' tal cual viene, precedido por una línea como: "Para *<nombre del lavadero>*, estas son las opciones:". Si menu_text dice que no hay servicios o vehículos cargados, ofrecé otro lavadero.
-   - Después de que el usuario elija auto, recordá el precio del lavado para ESE auto leyendo 'services[].prices[vehículo]' del mismo lavadero.
-6. CONFIRMACIÓN + SEÑA: mostrá un resumen (lavadero, día, hora, auto, lavado, precio total, seña 10%) y pedí confirmación explícita.
-7. RESERVA: llamá 'create_request' con todos los datos. Confirma turno + seña pagada (MVP: simulada).
-8. CIERRE: avisá "Turno confirmado ✅ Seña $X registrada. Te esperamos el [fecha] a las [hora]."
+5. VEHÍCULO: una vez elegido el lavadero, COPIÁ Y PEGÁ EXACTAMENTE el campo 'vehicle_menu_text' de ESE lavadero. En este paso está PROHIBIDO mostrar servicios o precios. Solo pedí que elija vehículo.
+6. SERVICIO: recién cuando el usuario elija vehículo, llamá 'get_services_for_vehicle' con professional_id + vehicle_type. COPIÁ Y PEGÁ EXACTAMENTE 'services_text'. No inventes, no reescribas. Pedí que elija lavado.
+7. CONFIRMACIÓN + SEÑA: mostrá un resumen (lavadero, día, hora, auto, lavado, precio total, seña 10%) y pedí confirmación explícita.
+8. RESERVA: llamá 'create_request' con todos los datos. Confirma turno + seña pagada (MVP: simulada).
+9. CIERRE: avisá "Turno confirmado ✅ Seña $X registrada. Te esperamos el [fecha] a las [hora]."
 
 PROCESAMIENTO DE FECHAS:
 - Hoy es: ${new Date().toISOString().split("T")[0]}. Zona horaria Argentina (UTC-3).
@@ -48,7 +48,8 @@ BÚSQUEDA POR NOMBRE DE PROFESIONAL:
 
 REGLAS IMPORTANTES (ANTI-ALUCINACIÓN):
 - NUNCA inventes precios, lavaderos, horarios, vehículos ni servicios. TODO viene del JSON de las tools.
-- Para listar autos y lavados, SIEMPRE pegás el 'menu_text' del lavadero elegido tal cual. Está prohibido escribir tu propia versión de esa lista.
+- Para listar vehículos, SIEMPRE pegás 'vehicle_menu_text' tal cual y NO mostrás servicios todavía.
+- Para listar lavados/precios, SIEMPRE llamás primero 'get_services_for_vehicle' y pegás 'services_text' tal cual.
 - Si el JSON dice vehicle_types: ["Sedán","SUV","Camioneta","Moto"], hay 4 opciones, ni más ni menos. Si dice services con nombres "lavado completo / lavado interior / lavado Exterior / Pulido", esos son los únicos lavados. Está PROHIBIDO mencionar "lavado de chasis", "lavado de motor", "encerado", o cualquier servicio que no esté en el JSON.
 - NUNCA muestres IDs (UUIDs) al usuario.
 - Si 'create_request' devuelve { needs_login: true }, pedile que se loguee/registre. NO reintentes.
@@ -80,6 +81,23 @@ const tools = [
           },
         },
         required: ["date"],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_services_for_vehicle",
+      description:
+        "Devuelve únicamente los servicios y precios que el lavadero elegido tiene cargados para el tipo de vehículo elegido. Usar después de que el usuario elige vehículo y antes de pedir el tipo de lavado.",
+      parameters: {
+        type: "object",
+        properties: {
+          professional_id: { type: "string", description: "UUID devuelto por check_availability" },
+          vehicle_type: { type: "string", description: "Tipo de vehículo elegido por el usuario" },
+        },
+        required: ["professional_id", "vehicle_type"],
         additionalProperties: false,
       },
     },
@@ -308,30 +326,11 @@ async function checkAvailability(args: {
     const services = Array.isArray(pro?.services) ? (pro!.services as any[]) : [];
     const vehicleTypes: string[] = Array.isArray(pro?.vehicle_types) ? pro!.vehicle_types : [];
 
-    // Build deterministic menu text the LLM must paste verbatim.
+    // Build deterministic vehicle text the LLM must paste verbatim.
     const vehiclesLine = vehicleTypes.length
       ? vehicleTypes.map((v, i) => `${i + 1}) ${v}`).join("  ")
       : "(este lavadero no tiene tipos de vehículo cargados)";
-
-    const servicesLines = services.length
-      ? services
-          .map((sv: any, i: number) => {
-            const prices = sv.prices || {};
-            const priceList = vehicleTypes
-              .map((v) => {
-                const p = Number(prices[v] ?? 0);
-                return p > 0 ? `${v} $${p.toLocaleString("es-AR")}` : null;
-              })
-              .filter(Boolean)
-              .join(" · ");
-            return `${i + 1}) ${sv.name}${priceList ? ` — ${priceList}` : ""}`;
-          })
-          .join("\n")
-      : "(este lavadero no tiene servicios cargados)";
-
-    const menu_text =
-      `🚗 Tipo de vehículo:\n${vehiclesLine}\n\n` +
-      `🧼 Tipo de lavado:\n${servicesLines}`;
+    const vehicle_menu_text = `🚗 Tipo de vehículo:\n${vehiclesLine}`;
 
     return {
       professional_id: s.proId,
@@ -343,7 +342,7 @@ async function checkAvailability(args: {
         name: sv.name,
         prices: sv.prices || {},
       })),
-      menu_text,
+      vehicle_menu_text,
       date: targetDate,
       time: s.time,
       score: scoreMap.get(s.proId) ?? 3,
@@ -499,6 +498,57 @@ async function createRequest(
   };
 }
 
+async function getServicesForVehicle(args: { professional_id: string; vehicle_type: string }) {
+  if (!args.professional_id || !UUID_RE.test(args.professional_id)) {
+    return { error: "ID de profesional inválido. Volvé a elegir lavadero." };
+  }
+
+  const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  const { data: pro } = await admin
+    .from("professional_profiles")
+    .select("user_id, full_name, rubro, services, vehicle_types")
+    .eq("user_id", args.professional_id)
+    .maybeSingle();
+
+  if (!pro || pro.rubro !== RUBRO) {
+    return { error: "El profesional no está disponible." };
+  }
+
+  const vehicleTypes: string[] = Array.isArray(pro.vehicle_types) ? pro.vehicle_types : [];
+  const matchedVehicle = vehicleTypes.find((v) => normalizeName(v) === normalizeName(args.vehicle_type));
+  if (!matchedVehicle) {
+    return {
+      error: `Ese vehículo no está cargado para ${pro.full_name}. Opciones: ${vehicleTypes.join(", ") || "ninguna"}.`,
+      vehicle_menu_text: `🚗 Tipo de vehículo:\n${vehicleTypes.map((v, i) => `${i + 1}) ${v}`).join("  ")}`,
+    };
+  }
+
+  const services: any[] = Array.isArray(pro.services) ? (pro.services as any[]) : [];
+  const availableServices = services
+    .map((sv: any) => ({ name: sv.name, price: Number(sv.prices?.[matchedVehicle] ?? 0) }))
+    .filter((sv) => sv.name && sv.price > 0);
+
+  if (availableServices.length === 0) {
+    return {
+      professional_id: pro.user_id,
+      professional_name: pro.full_name,
+      vehicle_type: matchedVehicle,
+      services: [],
+      services_text: `🧼 Tipo de lavado para ${matchedVehicle}:\n(este lavadero no tiene servicios con precio cargado para ${matchedVehicle})`,
+    };
+  }
+
+  return {
+    professional_id: pro.user_id,
+    professional_name: pro.full_name,
+    vehicle_type: matchedVehicle,
+    services: availableServices,
+    services_text: `🧼 Tipo de lavado para ${matchedVehicle}:\n${availableServices
+      .map((sv, i) => `${i + 1}) ${sv.name} — $${sv.price.toLocaleString("es-AR")}`)
+      .join("\n")}`,
+  };
+}
+
 async function cancelRequest(
   args: { request_id: string },
   authHeader: string | null,
@@ -635,6 +685,8 @@ Deno.serve(async (req) => {
           const args = JSON.parse(call.function.arguments || "{}");
           if (call.function.name === "check_availability") {
             result = await checkAvailability(args);
+          } else if (call.function.name === "get_services_for_vehicle") {
+            result = await getServicesForVehicle(args);
           } else if (call.function.name === "create_request") {
             result = await createRequest(args, authHeader);
             if (result?.success && result.request_id) {
