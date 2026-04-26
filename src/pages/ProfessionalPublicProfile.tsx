@@ -56,6 +56,7 @@ const ProfessionalPublicProfile = () => {
   const [loading, setLoading] = useState(true);
   const [requestOpen, setRequestOpen] = useState(false);
   const [preselectedTime, setPreselectedTime] = useState<string>("");
+  const [descExpanded, setDescExpanded] = useState(false);
 
   // Día que se está visualizando (por defecto: el filtrado o hoy)
   const initialViewDate = useMemo(() => {
