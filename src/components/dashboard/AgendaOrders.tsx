@@ -426,14 +426,30 @@ const AgendaOrders = () => {
               <Button onClick={() => handleStartService(o)} disabled={saving} className="w-full gap-2">
                 <CheckCircle2 className="h-4 w-4" /> Iniciar Servicio
               </Button>
+              <Button
+                onClick={() => { setCancelReason(""); setCancelDialogOpen(true); }}
+                variant="outline"
+                className="w-full gap-2 border-destructive/30 text-destructive hover:bg-destructive/10"
+              >
+                <Ban className="h-4 w-4" /> Cancelar turno
+              </Button>
             </div>
           )}
 
           {/* En servicio: finalize */}
           {o.status === "en_servicio" && (
-            <Button onClick={() => handleFinalize(o)} disabled={saving} className="w-full gap-2 bg-green-600 hover:bg-green-700">
-              <CheckCircle2 className="h-4 w-4" /> Finalizar Trabajo
-            </Button>
+            <div className="space-y-2">
+              <Button onClick={() => handleFinalize(o)} disabled={saving} className="w-full gap-2 bg-green-600 hover:bg-green-700">
+                <CheckCircle2 className="h-4 w-4" /> Finalizar Trabajo
+              </Button>
+              <Button
+                onClick={() => { setCancelReason(""); setCancelDialogOpen(true); }}
+                variant="outline"
+                className="w-full gap-2 border-destructive/30 text-destructive hover:bg-destructive/10"
+              >
+                <Ban className="h-4 w-4" /> Cancelar turno
+              </Button>
+            </div>
           )}
 
           {/* Finalizada */}
