@@ -362,7 +362,7 @@ export default function AvailabilityManager() {
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <div className="flex flex-1 gap-1 overflow-x-auto pb-1">
+          <div className="no-scrollbar flex flex-1 gap-1 overflow-x-auto pb-1">
             {weekDays.map((date) => {
               const dISO = toISODate(date);
               const isSel = dISO === selectedDateISO;

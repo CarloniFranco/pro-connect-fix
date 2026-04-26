@@ -540,7 +540,7 @@ const AgendaOrders = () => {
           <ClipboardList className="h-5 w-5 text-secondary" />
           Agenda de Pedidos
         </CardTitle>
-        <div className="flex gap-2 pt-2 overflow-x-auto">
+        <div className="no-scrollbar flex gap-2 pt-2 overflow-x-auto -mx-1 px-1">
           {tabs.map((t) => {
             const count = orders.filter((o) => statusToTab[o.status] === t.key).length;
             return (
