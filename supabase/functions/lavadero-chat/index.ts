@@ -23,6 +23,7 @@ REGLAS CRÍTICAS (ANTI-ALUCINACIÓN):
 - Para mostrar vehículos o servicios de un profesional, copiá EXACTO los campos 'vehicles_text' o 'services_text' que devuelve la tool. NO mencionés ningún vehículo o servicio que no esté ahí.
 - Está PROHIBIDO sugerir "lavado de chasis", "lavado de motor", "encerado", "SUV" si no aparecen literalmente en el JSON.
 - NUNCA muestres UUIDs al usuario.
+- NUNCA digas "no está disponible ese día/hora" sin haber llamado 'check_slot'. Si check_slot devuelve available=true, NO digas que no está disponible.
 
 FLUJO (en orden):
 1. ZONA: si todavía no la sabés, pedila ("¿De qué zona/localidad sos?"). No avances sin zona.
@@ -30,9 +31,10 @@ FLUJO (en orden):
 3. VEHÍCULO: cuando elija profesional, pegá 'vehicles_text' tal cual de ese profesional. Pedí que elija vehículo. Prohibido mostrar servicios todavía.
 4. SERVICIO: cuando elija vehículo, pegá 'services_text' del profesional para ESE vehículo (filtrá vos manualmente leyendo 'services[].prices[vehículo]' de la tool). Solo nombres + precios que estén en el JSON.
 5. DÍA Y HORA: pedí día y hora ("¿qué día y horario te queda cómodo?").
-6. CONFIRMACIÓN: mostrá resumen (lavadero, día, hora, vehículo, servicio, precio total, seña 10%) y pedí "sí" explícito.
-7. RESERVA: llamá 'book_slot'. Confirmá: "Turno confirmado ✅ Seña $X registrada. Te esperamos el [día] a las [hora]. Mirá tu pedido: [Ver pedido](/mis-pedidos)".
-8. CANCELAR: si pide cancelar después de reservar, llamá 'cancel_booking'.
+6. CHEQUEO: ANTES de pedir confirmación, llamá 'check_slot' con professional_id + date + time. Si available=false, mostrá los 'suggestions' (horarios reales libres) y pedí que elija otro. Si available=true, seguí.
+7. CONFIRMACIÓN: mostrá resumen (lavadero, día, hora, vehículo, servicio, precio total, seña 10%) y pedí "sí" explícito.
+8. RESERVA: cuando confirme con "sí", llamá 'book_slot' DIRECTAMENTE. NO vuelvas a chequear disponibilidad por tu cuenta. Si book_slot devuelve success=true, confirmá: "Turno confirmado ✅ Seña $X registrada. Te esperamos el [día] a las [hora]. Mirá tu pedido: [Ver pedido](/mis-pedidos)".
+9. CANCELAR: si pide cancelar después de reservar, llamá 'cancel_booking'.
 
 Hoy: ${new Date().toISOString().split("T")[0]}. Zona horaria Argentina (UTC-3).
 Si pide otro rubro (plomero, mascota, etc.), avisá que solo Lavadero de Auto está habilitado.
@@ -60,6 +62,24 @@ const tools = [
           locality: { type: "string", description: "Zona/localidad del usuario tal como la dijo" },
         },
         required: ["locality"],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "check_slot",
+      description:
+        "Verifica si el profesional atiende ese día y hora y si tiene cupo libre. Devuelve available=true/false y, si está ocupado, una lista de horarios libres reales para ese día.",
+      parameters: {
+        type: "object",
+        properties: {
+          professional_id: { type: "string" },
+          date: { type: "string", description: "YYYY-MM-DD" },
+          time: { type: "string", description: "HH:MM (24h)" },
+        },
+        required: ["professional_id", "date", "time"],
         additionalProperties: false,
       },
     },
@@ -190,6 +210,111 @@ async function listProfessionals(args: { locality: string }) {
   };
 }
 
+async function computeSlotAvailability(professional_id: string, date: string, time: string) {
+  const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+  const { data: pro } = await admin
+    .from("professional_profiles")
+    .select("user_id, full_name, work_stations, rubro")
+    .eq("user_id", professional_id)
+    .maybeSingle();
+  if (!pro || pro.rubro !== RUBRO) {
+    return { ok: false as const, reason: "El profesional no está disponible." };
+  }
+
+  const dow = new Date(date + "T12:00:00").getDay();
+  const { data: avail } = await admin
+    .from("professional_availability")
+    .select("start_time, end_time")
+    .eq("professional_id", professional_id)
+    .eq("day_of_week", dow)
+    .eq("is_active", true);
+
+  if (!avail || avail.length === 0) {
+    return {
+      ok: true as const,
+      available: false,
+      reason: `${pro.full_name} no atiende ese día.`,
+      suggestions: [] as string[],
+      pro_name: pro.full_name,
+    };
+  }
+
+  // Build all hourly slots from availability windows
+  const allSlots: string[] = [];
+  for (const a of avail) {
+    const [sh, sm] = a.start_time.split(":").map(Number);
+    const [eh, em] = a.end_time.split(":").map(Number);
+    let h = sh, m = sm;
+    while (h < eh || (h === eh && m < em)) {
+      allSlots.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+      m += 60;
+      if (m >= 60) { h++; m = 0; }
+    }
+  }
+
+  // Count occupancy
+  const { data: blocked } = await admin
+    .from("blocked_slots")
+    .select("slot_time, slot_status")
+    .eq("professional_id", professional_id)
+    .eq("slot_date", date)
+    .in("slot_status", ["paid", "pending"]);
+
+  const occMap = new Map<string, number>();
+  blocked?.forEach((b) => {
+    const k = b.slot_time.slice(0, 5);
+    occMap.set(k, (occMap.get(k) || 0) + 1);
+  });
+
+  const stations = pro.work_stations || 1;
+  const freeSlots = allSlots.filter((t) => (occMap.get(t) || 0) < stations);
+
+  const requested = time.length >= 5 ? time.slice(0, 5) : time;
+  const isInWindow = allSlots.includes(requested);
+  const free = isInWindow && (occMap.get(requested) || 0) < stations;
+
+  if (free) {
+    return { ok: true as const, available: true, pro_name: pro.full_name };
+  }
+
+  return {
+    ok: true as const,
+    available: false,
+    reason: !isInWindow
+      ? `${pro.full_name} no atiende a las ${requested} ese día.`
+      : `${pro.full_name} ya tiene tomado ese horario.`,
+    suggestions: freeSlots.slice(0, 6),
+    pro_name: pro.full_name,
+  };
+}
+
+async function checkSlot(args: { professional_id: string; date: string; time: string }) {
+  if (!UUID_RE.test(args.professional_id)) {
+    return { error: "ID de profesional inválido." };
+  }
+  const r = await computeSlotAvailability(args.professional_id, args.date, args.time);
+  if (!r.ok) return { error: r.reason };
+  if (r.available) {
+    return {
+      available: true,
+      professional_name: r.pro_name,
+      date: args.date,
+      time: args.time,
+    };
+  }
+  return {
+    available: false,
+    reason: r.reason,
+    suggestions: r.suggestions ?? [],
+    suggestions_text: (r.suggestions ?? []).length
+      ? `${r.reason} Horarios libres ese día: ${(r.suggestions ?? []).join(", ")}.`
+      : `${r.reason} No quedan horarios libres ese día.`,
+    professional_name: r.pro_name,
+    date: args.date,
+  };
+}
+
 async function bookSlot(
   args: {
     professional_id: string;
@@ -242,6 +367,19 @@ async function bookSlot(
     return { error: `No hay precio cargado para ${matchedVehicle} en ${matchedService.name}.` };
   }
   const depositAmount = Math.round(totalPrice * 0.1);
+
+  // Re-check availability server-side before inserting
+  const avCheck = await computeSlotAvailability(args.professional_id, args.date, args.time);
+  if (avCheck.ok && !avCheck.available) {
+    const sugg = avCheck.suggestions ?? [];
+    return {
+      error: avCheck.reason,
+      suggestions: sugg,
+      suggestions_text: sugg.length
+        ? `${avCheck.reason} Horarios libres: ${sugg.join(", ")}.`
+        : `${avCheck.reason} No quedan horarios libres ese día.`,
+    };
+  }
 
   const { data: profile } = await admin
     .from("client_profiles")
@@ -402,6 +540,8 @@ Deno.serve(async (req) => {
           const args = JSON.parse(call.function.arguments || "{}");
           if (call.function.name === "list_professionals") {
             result = await listProfessionals(args);
+          } else if (call.function.name === "check_slot") {
+            result = await checkSlot(args);
           } else if (call.function.name === "book_slot") {
             result = await bookSlot(args, authHeader);
             if (result?.success) lastCreatedRequestId = result.request_id;
