@@ -45,6 +45,20 @@ const AIReportGenerator = () => {
     }
   };
 
+  const handleDownloadPdf = async () => {
+    if (!reportData || !report) return;
+    setDownloading(true);
+    try {
+      await generateProReportPdf(reportData, report);
+      toast.success("PDF descargado");
+    } catch (e: any) {
+      console.error(e);
+      toast.error("Error al generar el PDF");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <>
       <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
