@@ -260,36 +260,34 @@ const ProfessionalPublicProfile = () => {
           </div>
         </motion.div>
 
-        {/* LOCATION + MAP */}
+        {/* LOCATION */}
         {(profile.address || profile.neighborhood) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
-            className="rounded-2xl border-2 border-border bg-card overflow-hidden shadow-md mb-4"
+            className="rounded-2xl border-2 border-border bg-card p-3 shadow-md mb-3"
           >
-            <div className="p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-2 flex-1">
-                  <MapPin className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <div>
-                    {profile.neighborhood && (
-                      <p className="text-sm font-bold text-foreground">{profile.neighborhood}</p>
-                    )}
-                    {profile.address && (
-                      <p className="text-sm text-muted-foreground">{profile.address}</p>
-                    )}
-                  </div>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2 flex-1 min-w-0">
+                <MapPin className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                <div className="min-w-0">
+                  {profile.neighborhood && (
+                    <p className="text-sm font-bold text-foreground truncate">{profile.neighborhood}</p>
+                  )}
+                  {profile.address && (
+                    <p className="text-xs text-muted-foreground truncate">{profile.address}</p>
+                  )}
                 </div>
-                <a
-                  href={mapsLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs font-bold text-primary hover:underline whitespace-nowrap"
-                >
-                  Cómo llegar →
-                </a>
               </div>
+              <a
+                href={mapsLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-bold text-primary hover:underline whitespace-nowrap"
+              >
+                Cómo llegar →
+              </a>
             </div>
           </motion.div>
         )}
@@ -300,9 +298,19 @@ const ProfessionalPublicProfile = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08 }}
-            className="rounded-2xl border-2 border-border bg-card p-4 shadow-md mb-4"
+            className="rounded-2xl border-2 border-border bg-card p-4 shadow-md mb-3"
           >
-            <p className="text-sm text-muted-foreground leading-relaxed">{profile.descripcion}</p>
+            <p className={`text-sm text-muted-foreground leading-relaxed ${descExpanded ? "" : "line-clamp-3"}`}>
+              {profile.descripcion}
+            </p>
+            {profile.descripcion.length > 150 && (
+              <button
+                onClick={() => setDescExpanded((v) => !v)}
+                className="mt-2 text-xs font-bold text-primary hover:underline"
+              >
+                {descExpanded ? "Ver menos" : "Ver más"}
+              </button>
+            )}
           </motion.div>
         )}
 
