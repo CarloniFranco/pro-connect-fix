@@ -61,7 +61,7 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -70,22 +70,26 @@ const Register = () => {
         },
       });
       if (error) {
-        if (error.message.includes("already registered")) {
-          throw new Error("Este email ya está registrado.");
+        if (error.message.toLowerCase().includes("already registered") || error.message.toLowerCase().includes("user already")) {
+          throw new Error("Este email ya está registrado. Intentá iniciar sesión.");
+        }
+        if (error.message.toLowerCase().includes("password")) {
+          throw new Error("La contraseña debe tener al menos 6 caracteres.");
+        }
+        if (error.message.toLowerCase().includes("invalid") && error.message.toLowerCase().includes("email")) {
+          throw new Error("El email no es válido.");
         }
         throw error;
       }
-      toast.success("¡Cuenta creada! Revisá tu email para confirmar.");
+      toast.success("¡Cuenta creada! Bienvenido a FIX 🎉");
+      // Si la sesión ya está activa (auto-confirm), el AuthContext + useEffect arriba redirigen solos.
+      // Si no, intentar login para iniciar sesión inmediata.
+      if (!data.session) {
+        await supabase.auth.signInWithPassword({ email, password });
+      }
     } catch (error: any) {
       console.error("Auth error:", error);
-      const isPreview = window.location.hostname.includes("lovableproject.com");
-      toast.error(
-        error.message?.includes("ya está registrado")
-          ? "Este email ya está registrado. Intentá iniciar sesión."
-          : isPreview
-            ? "En la vista previa el alta por email puede fallar. Probalo desde la versión publicada."
-            : "Error de autenticación. Intentá nuevamente."
-      );
+      toast.error(error.message || "Error al crear la cuenta. Intentá nuevamente.");
     } finally {
       setLoading(false);
     }
