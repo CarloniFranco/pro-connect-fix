@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Sparkles, Loader2, Calendar, FileText, X } from "lucide-react";
+import { Sparkles, Loader2, Calendar, FileText, Download } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { generateProReportPdf, type ProReportData } from "@/lib/proReportPdf";
 
 type Period = "week" | "month" | "year";
 
@@ -19,7 +20,9 @@ const AIReportGenerator = () => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState<Period | null>(null);
   const [report, setReport] = useState<string>("");
+  const [reportData, setReportData] = useState<ProReportData | null>(null);
   const [periodLabel, setPeriodLabel] = useState<string>("");
+  const [downloading, setDownloading] = useState(false);
 
   const generate = async (period: Period) => {
     setLoading(period);
