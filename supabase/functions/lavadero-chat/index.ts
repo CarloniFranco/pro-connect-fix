@@ -326,30 +326,11 @@ async function checkAvailability(args: {
     const services = Array.isArray(pro?.services) ? (pro!.services as any[]) : [];
     const vehicleTypes: string[] = Array.isArray(pro?.vehicle_types) ? pro!.vehicle_types : [];
 
-    // Build deterministic menu text the LLM must paste verbatim.
+    // Build deterministic vehicle text the LLM must paste verbatim.
     const vehiclesLine = vehicleTypes.length
       ? vehicleTypes.map((v, i) => `${i + 1}) ${v}`).join("  ")
       : "(este lavadero no tiene tipos de vehículo cargados)";
-
-    const servicesLines = services.length
-      ? services
-          .map((sv: any, i: number) => {
-            const prices = sv.prices || {};
-            const priceList = vehicleTypes
-              .map((v) => {
-                const p = Number(prices[v] ?? 0);
-                return p > 0 ? `${v} $${p.toLocaleString("es-AR")}` : null;
-              })
-              .filter(Boolean)
-              .join(" · ");
-            return `${i + 1}) ${sv.name}${priceList ? ` — ${priceList}` : ""}`;
-          })
-          .join("\n")
-      : "(este lavadero no tiene servicios cargados)";
-
-    const menu_text =
-      `🚗 Tipo de vehículo:\n${vehiclesLine}\n\n` +
-      `🧼 Tipo de lavado:\n${servicesLines}`;
+    const vehicle_menu_text = `🚗 Tipo de vehículo:\n${vehiclesLine}`;
 
     return {
       professional_id: s.proId,
@@ -361,7 +342,7 @@ async function checkAvailability(args: {
         name: sv.name,
         prices: sv.prices || {},
       })),
-      menu_text,
+      vehicle_menu_text,
       date: targetDate,
       time: s.time,
       score: scoreMap.get(s.proId) ?? 3,
