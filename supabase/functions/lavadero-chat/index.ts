@@ -333,6 +333,60 @@ async function checkSlot(args: { professional_id: string; date: string; time: st
   };
 }
 
+async function getServicesForVehicle(args: { professional_id: string; vehicle_type: string }) {
+  if (!UUID_RE.test(args.professional_id)) {
+    return { error: "ID de profesional inválido. Volvé a elegir lavadero." };
+  }
+  const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  const { data: pro } = await admin
+    .from("professional_profiles")
+    .select("user_id, full_name, rubro, services, vehicle_types")
+    .eq("user_id", args.professional_id)
+    .maybeSingle();
+
+  if (!pro || pro.rubro !== RUBRO) {
+    return { error: "El profesional no está disponible." };
+  }
+
+  const vehicleTypes: string[] = Array.isArray(pro.vehicle_types) ? pro.vehicle_types : [];
+  const matchedVehicle = vehicleTypes.find((v) => normalize(v) === normalize(args.vehicle_type));
+  if (!matchedVehicle) {
+    return {
+      error: `Ese vehículo no está cargado para ${pro.full_name}. Opciones: ${vehicleTypes.join(", ") || "ninguna"}.`,
+    };
+  }
+
+  const services: any[] = Array.isArray(pro.services) ? (pro.services as any[]) : [];
+  const available = services
+    .map((sv: any) => ({
+      name: String(sv.name || "").trim(),
+      price: Number(sv.prices?.[matchedVehicle] ?? 0),
+    }))
+    .filter((sv) => sv.name && sv.price > 0);
+
+  if (available.length === 0) {
+    return {
+      professional_id: pro.user_id,
+      professional_name: pro.full_name,
+      vehicle_type: matchedVehicle,
+      services: [],
+      services_text: `🧼 Servicios para ${matchedVehicle} en ${pro.full_name}:\n(este lavadero no tiene precios cargados para ${matchedVehicle})`,
+    };
+  }
+
+  return {
+    professional_id: pro.user_id,
+    professional_name: pro.full_name,
+    vehicle_type: matchedVehicle,
+    services: available,
+    services_text:
+      `🧼 Servicios para ${matchedVehicle} en ${pro.full_name}:\n` +
+      available
+        .map((sv, i) => `${i + 1}) ${sv.name} — $${sv.price.toLocaleString("es-AR")}`)
+        .join("\n"),
+  };
+}
+
 async function bookSlot(
   args: {
     professional_id: string;
