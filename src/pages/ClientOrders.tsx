@@ -177,6 +177,20 @@ const ClientOrders = () => {
     }
   }, [pendingReviewRequest, selectedRequest]);
 
+  // Auto-abrir el diálogo del pedido pasado por query param (?request=<id>)
+  useEffect(() => {
+    const requestId = searchParams.get("request");
+    if (!requestId || requests.length === 0) return;
+    const target = requests.find((r) => r.id === requestId);
+    if (target) {
+      setSelectedRequest(target);
+      // Limpiar el query param para no reabrir al cerrar
+      const next = new URLSearchParams(searchParams);
+      next.delete("request");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, requests, setSearchParams]);
+
   const loadRequests = async () => {
     if (!user) return;
     setLoading(true);
