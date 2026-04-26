@@ -42,6 +42,8 @@ type ServiceRequest = {
   professional_id: string;
   deposit_amount: number | null;
   deposit_paid: boolean;
+  cancellation_reason: string | null;
+  cancelled_by: string | null;
 };
 
 const statusLabels: Record<string, string> = {
