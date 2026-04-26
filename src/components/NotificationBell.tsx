@@ -17,6 +17,7 @@ interface Notification {
   link: string | null;
   is_read: boolean;
   created_at: string;
+  service_request_id: string | null;
 }
 
 const NotificationBell = () => {
