@@ -614,6 +614,8 @@ Deno.serve(async (req) => {
             result = await listProfessionals(args);
           } else if (call.function.name === "check_slot") {
             result = await checkSlot(args);
+          } else if (call.function.name === "get_services_for_vehicle") {
+            result = await getServicesForVehicle(args);
           } else if (call.function.name === "book_slot") {
             result = await bookSlot(args, authHeader);
             if (result?.success) lastCreatedRequestId = result.request_id;
