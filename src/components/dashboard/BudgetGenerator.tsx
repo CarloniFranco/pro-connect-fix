@@ -126,10 +126,11 @@ const BudgetGenerator = () => {
       {/* Floating button */}
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-accent px-5 py-3 font-display text-sm font-bold text-accent-foreground shadow-lg transition-transform hover:scale-105 active:scale-95"
+        aria-label="Generar presupuesto con IA"
+        title="Generar presupuesto con IA"
+        className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg transition-transform hover:scale-105 active:scale-95"
       >
-        <Sparkles className="h-5 w-5" />
-        IA: Generar Presupuesto
+        <Sparkles className="h-6 w-6" />
       </button>
 
       <Dialog open={open} onOpenChange={handleClose}>
