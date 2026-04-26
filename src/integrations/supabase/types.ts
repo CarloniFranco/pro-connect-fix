@@ -300,6 +300,8 @@ export type Database = {
       }
       service_requests: {
         Row: {
+          cancellation_reason: string | null
+          cancelled_by: string | null
           client_address: string | null
           client_name: string
           client_phone: string | null
@@ -324,6 +326,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cancellation_reason?: string | null
+          cancelled_by?: string | null
           client_address?: string | null
           client_name?: string
           client_phone?: string | null
@@ -348,6 +352,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cancellation_reason?: string | null
+          cancelled_by?: string | null
           client_address?: string | null
           client_name?: string
           client_phone?: string | null

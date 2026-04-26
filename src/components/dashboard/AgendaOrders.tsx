@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { ClipboardList, Loader2, ChevronRight, Phone, MapPin, CheckCircle2, XCircle, Clock, Send, FileText, ArrowLeft, Brain, Sparkles } from "lucide-react";
+import { ClipboardList, Loader2, ChevronRight, Phone, MapPin, CheckCircle2, XCircle, Clock, Send, FileText, ArrowLeft, Brain, Sparkles, AlertTriangle, Ban } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -74,6 +76,38 @@ const AgendaOrders = () => {
   const [scheduledTime, setScheduledTime] = useState("");
   const [saving, setSaving] = useState(false);
   const [generatingBudget, setGeneratingBudget] = useState(false);
+
+  // Cancel-confirmed-turn modal state
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelling, setCancelling] = useState(false);
+
+  const handleCancelConfirmed = async () => {
+    if (!selectedOrder) return;
+    if (!cancelReason.trim() || cancelReason.trim().length < 10) {
+      toast.error("Por favor, contanos brevemente el motivo (mínimo 10 caracteres)");
+      return;
+    }
+    setCancelling(true);
+    const { error } = await supabase
+      .from("service_requests")
+      .update({
+        status: "rechazada_profesional" as any,
+        cancellation_reason: cancelReason.trim(),
+        cancelled_by: "professional",
+      } as any)
+      .eq("id", selectedOrder.id);
+    setCancelling(false);
+    if (error) {
+      toast.error("Error al cancelar el turno");
+      return;
+    }
+    toast.success("Turno cancelado. El cliente fue notificado.");
+    setCancelDialogOpen(false);
+    setCancelReason("");
+    setSelectedOrder(null);
+    fetchOrders();
+  };
 
   const fetchOrders = async () => {
     if (!user) return;
@@ -392,14 +426,30 @@ const AgendaOrders = () => {
               <Button onClick={() => handleStartService(o)} disabled={saving} className="w-full gap-2">
                 <CheckCircle2 className="h-4 w-4" /> Iniciar Servicio
               </Button>
+              <Button
+                onClick={() => { setCancelReason(""); setCancelDialogOpen(true); }}
+                variant="outline"
+                className="w-full gap-2 border-destructive/30 text-destructive hover:bg-destructive/10"
+              >
+                <Ban className="h-4 w-4" /> Cancelar turno
+              </Button>
             </div>
           )}
 
           {/* En servicio: finalize */}
           {o.status === "en_servicio" && (
-            <Button onClick={() => handleFinalize(o)} disabled={saving} className="w-full gap-2 bg-green-600 hover:bg-green-700">
-              <CheckCircle2 className="h-4 w-4" /> Finalizar Trabajo
-            </Button>
+            <div className="space-y-2">
+              <Button onClick={() => handleFinalize(o)} disabled={saving} className="w-full gap-2 bg-green-600 hover:bg-green-700">
+                <CheckCircle2 className="h-4 w-4" /> Finalizar Trabajo
+              </Button>
+              <Button
+                onClick={() => { setCancelReason(""); setCancelDialogOpen(true); }}
+                variant="outline"
+                className="w-full gap-2 border-destructive/30 text-destructive hover:bg-destructive/10"
+              >
+                <Ban className="h-4 w-4" /> Cancelar turno
+              </Button>
+            </div>
           )}
 
           {/* Finalizada */}
@@ -423,6 +473,62 @@ const AgendaOrders = () => {
             </div>
           )}
         </CardContent>
+
+        {/* Cancel-confirmed-turn Dialog */}
+        <Dialog open={cancelDialogOpen} onOpenChange={(v) => { if (!cancelling) setCancelDialogOpen(v); }}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 font-display">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                Cancelar turno confirmado
+              </DialogTitle>
+              <DialogDescription className="text-left space-y-2 pt-2">
+                <span className="block">
+                  Vas a cancelar el turno de <strong>{o.client_name}</strong>{o.scheduled_date && (
+                    <> el <strong>{new Date(o.scheduled_date + "T00:00:00").toLocaleDateString("es-AR")}</strong>{o.scheduled_time && <> a las <strong>{o.scheduled_time.slice(0,5)}</strong></>}</>
+                  )}.
+                </span>
+                <span className="block rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+                  ⚠️ <strong>Importante:</strong> cancelar un turno ya confirmado afecta tu <strong>ranking de confiabilidad</strong> y baja tu puntuación. Al cliente se le notificará la cancelación con un pedido de disculpas y se le reintegrará la seña.
+                </span>
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-muted-foreground">
+                Motivo de la cancelación <span className="text-destructive">*</span>
+              </label>
+              <Textarea
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="Ej: Tuve un imprevisto familiar, problema de salud, falla técnica del equipo, etc."
+                rows={4}
+                maxLength={300}
+                disabled={cancelling}
+              />
+              <p className="text-[10px] text-muted-foreground text-right">
+                {cancelReason.length}/300 — el cliente verá este motivo
+              </p>
+            </div>
+            <DialogFooter className="gap-2 sm:gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setCancelDialogOpen(false)}
+                disabled={cancelling}
+              >
+                Volver
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleCancelConfirmed}
+                disabled={cancelling || cancelReason.trim().length < 10}
+                className="gap-2"
+              >
+                {cancelling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Ban className="h-4 w-4" />}
+                {cancelling ? "Cancelando..." : "Confirmar cancelación"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </Card>
     );
   }
