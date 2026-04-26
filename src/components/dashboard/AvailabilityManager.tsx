@@ -337,47 +337,70 @@ export default function AvailabilityManager() {
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Botón de cierre rápido + navegación semana */}
+        {/* Botón cierre rápido */}
         <div className="flex flex-wrap items-center justify-between gap-2">
           <Button onClick={closeToday} disabled={saving} variant="destructive" size="sm" className="gap-1.5">
             <Power className="h-3.5 w-3.5" />
             Cerrar agenda de hoy
           </Button>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => {
-                const d = new Date(weekStart);
-                d.setDate(d.getDate() - 7);
-                setWeekStart(d);
-              }}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <span className="px-2 text-xs font-semibold text-foreground">{weekLabel}</span>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => {
-                const d = new Date(weekStart);
-                d.setDate(d.getDate() + 7);
-                setWeekStart(d);
-              }}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 text-xs"
-              onClick={() => setWeekStart(startOfWeek(new Date()))}
-            >
-              Hoy
-            </Button>
+          <span className="text-[11px] text-muted-foreground">
+            {weekDays[0].getDate()}/{weekDays[0].getMonth() + 1} – {weekDays[6].getDate()}/{weekDays[6].getMonth() + 1}
+          </span>
+        </div>
+
+        {/* Selector de día — chips horizontales */}
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onClick={() => {
+              const d = new Date(weekStart);
+              d.setDate(d.getDate() - 7);
+              setWeekStart(d);
+            }}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex flex-1 gap-1 overflow-x-auto pb-1">
+            {weekDays.map((date) => {
+              const dISO = toISODate(date);
+              const isSel = dISO === selectedDateISO;
+              const isHoy = toISODate(new Date()) === dISO;
+              return (
+                <button
+                  key={dISO}
+                  type="button"
+                  onClick={() => setSelectedDateISO(dISO)}
+                  className={cn(
+                    "flex min-w-[52px] shrink-0 flex-col items-center rounded-md border px-2 py-1.5 text-[11px] font-semibold transition-colors",
+                    isSel
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : isHoy
+                        ? "border-primary/40 bg-primary/5 text-foreground hover:bg-primary/10"
+                        : "border-border bg-background text-muted-foreground hover:bg-muted/40",
+                  )}
+                >
+                  <span className="text-[10px] uppercase tracking-wide opacity-80">
+                    {DAYS_SHORT[date.getDay()]}
+                  </span>
+                  <span className="text-sm font-bold leading-tight">{date.getDate()}</span>
+                </button>
+              );
+            })}
           </div>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onClick={() => {
+              const d = new Date(weekStart);
+              d.setDate(d.getDate() + 7);
+              setWeekStart(d);
+            }}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
 
         {/* Leyenda */}
@@ -393,110 +416,139 @@ export default function AvailabilityManager() {
           </span>
         </div>
 
-        {/* Calendario semanal — horas en columna, estaciones en fila */}
-        <div className="space-y-1.5">
-          {weekDays.map((date) => {
-            const dateISO = toISODate(date);
-            const daySlotTimes = slotsForDay(date);
-            const isHoy = toISODate(new Date()) === dateISO;
-            return (
-              <div
-                key={dateISO}
-                className={cn(
-                  "rounded-md border",
-                  isHoy ? "border-primary/40 bg-primary/5" : "border-border",
-                )}
-              >
-                <div className="flex items-center justify-between border-b border-border/60 px-2 py-1">
-                  <span className="text-[11px] font-semibold text-foreground">
-                    {DAYS_SHORT[date.getDay()]} {date.getDate()}/{date.getMonth() + 1}
-                    {isHoy && <span className="ml-1 text-[10px] text-primary">· hoy</span>}
-                  </span>
-                  {daySlotTimes.length === 0 && (
-                    <span className="text-[10px] text-muted-foreground">Sin horario</span>
-                  )}
-                </div>
+        {/* Matriz: estaciones (filas) × horas (columnas) */}
+        {(() => {
+          const selectedDate = new Date(selectedDateISO + "T12:00:00");
+          const dayTimes = slotsForDay(selectedDate);
+          const isHoyDay = toISODate(new Date()) === selectedDateISO;
 
-                {daySlotTimes.length > 0 && (
-                  <div className="divide-y divide-border/40">
-                    {daySlotTimes.map((time) => {
-                      const key = `${dateISO}|${time}`;
-                      const cur = occupancyMap.get(key) || { manual: [], reservas: [] };
-                      const reservasCount = cur.reservas.length;
-                      const manualCount = cur.manual.length;
-                      const free = Math.max(0, stations - reservasCount - manualCount);
-                      const past = isPast(date, time);
-                      return (
-                        <div
-                          key={time}
-                          className={cn(
-                            "flex items-center gap-2 px-2 py-1",
-                            past ? "opacity-40" : "hover:bg-muted/30",
-                          )}
-                        >
-                          <span className="w-10 shrink-0 font-mono text-[11px] font-semibold text-muted-foreground">
-                            {time}
-                          </span>
-                          <div className="flex flex-1 items-center gap-1">
-                            {Array.from({ length: stations }).map((_, sIdx) => {
-                              const isReserva = sIdx < reservasCount;
-                              const isManual = !isReserva && sIdx < reservasCount + manualCount;
-                              const isFree = !isReserva && !isManual;
-                              const busy = busyKey === `${key}-${sIdx}`;
-                              return (
-                                <button
-                                  key={sIdx}
-                                  type="button"
-                                  disabled={past || busy || isReserva}
-                                  onClick={() => toggleStation(date, time, sIdx)}
-                                  title={
-                                    isReserva
-                                      ? "Reservado por cliente"
-                                      : isManual
-                                        ? "Bloqueado por vos · tocá para liberar"
-                                        : "Libre · tocá para bloquear"
-                                  }
-                                  className={cn(
-                                    "flex h-6 w-6 shrink-0 items-center justify-center rounded border transition-all",
-                                    isReserva &&
-                                      "border-primary bg-primary text-primary-foreground cursor-not-allowed",
-                                    isManual &&
-                                      "border-accent bg-accent text-accent-foreground hover:bg-accent/90",
-                                    isFree &&
-                                      "border-border bg-background text-muted-foreground hover:border-accent hover:bg-accent/10",
-                                    past && "cursor-not-allowed",
-                                  )}
-                                >
-                                  {busy ? (
-                                    <Loader2 className="h-3 w-3 animate-spin" />
-                                  ) : isManual ? (
-                                    <Lock className="h-3 w-3" />
-                                  ) : (
-                                    <Car className="h-3 w-3" />
-                                  )}
-                                </button>
-                              );
-                            })}
-                          </div>
-                          <span
-                            className={cn(
-                              "shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold tabular-nums",
-                              free === 0
-                                ? "bg-destructive/10 text-destructive"
-                                : "bg-muted text-muted-foreground",
-                            )}
-                          >
-                            {free}/{stations}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+          if (dayTimes.length === 0) {
+            return (
+              <div className="rounded-lg border border-dashed border-border p-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Sin horario base configurado para este día.
+                </p>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Configurá el rango de atención abajo en "Horario semanal base".
+                </p>
               </div>
             );
-          })}
-        </div>
+          }
+
+          return (
+            <div className="rounded-lg border border-border bg-card">
+              <div className="border-b border-border/60 px-3 py-2">
+                <span className="text-xs font-semibold text-foreground">
+                  {DAYS_LONG[selectedDate.getDay()]} {selectedDate.getDate()}/{selectedDate.getMonth() + 1}
+                  {isHoyDay && <span className="ml-1.5 text-[10px] text-primary">· hoy</span>}
+                </span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-[11px]">
+                  <thead>
+                    <tr>
+                      <th className="sticky left-0 z-10 w-20 border-r border-border bg-muted/60 px-2 py-1.5 text-left font-semibold text-muted-foreground">
+                        Estación
+                      </th>
+                      {dayTimes.map((time) => (
+                        <th
+                          key={time}
+                          className="min-w-[44px] border-l border-border/40 bg-muted/40 px-1 py-1.5 text-center font-mono font-semibold text-muted-foreground"
+                        >
+                          {time}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Array.from({ length: stations }).map((_, sIdx) => (
+                      <tr key={sIdx} className="border-t border-border/40">
+                        <td className="sticky left-0 z-10 border-r border-border bg-card px-2 py-1.5 font-semibold text-foreground">
+                          <div className="flex items-center gap-1.5">
+                            <Car className="h-3 w-3 text-primary" />
+                            <span>Est. {sIdx + 1}</span>
+                          </div>
+                        </td>
+                        {dayTimes.map((time) => {
+                          const key = `${selectedDateISO}|${time}`;
+                          const cur = occupancyMap.get(key) || { manual: [], reservas: [] };
+                          const reservasCount = cur.reservas.length;
+                          const manualCount = cur.manual.length;
+                          const isReserva = sIdx < reservasCount;
+                          const isManual = !isReserva && sIdx < reservasCount + manualCount;
+                          const isFree = !isReserva && !isManual;
+                          const past = isPast(selectedDate, time);
+                          const busy = busyKey === `${key}-${sIdx}`;
+                          return (
+                            <td key={time} className="border-l border-border/40 p-0.5">
+                              <button
+                                type="button"
+                                disabled={past || busy || isReserva}
+                                onClick={() => toggleStation(selectedDate, time, sIdx)}
+                                title={
+                                  isReserva
+                                    ? "Reservado por cliente"
+                                    : isManual
+                                      ? "Bloqueado por vos · tocá para liberar"
+                                      : "Libre · tocá para bloquear"
+                                }
+                                className={cn(
+                                  "flex h-8 w-full items-center justify-center rounded transition-all",
+                                  isReserva &&
+                                    "bg-primary text-primary-foreground cursor-not-allowed",
+                                  isManual &&
+                                    "bg-accent text-accent-foreground hover:bg-accent/90",
+                                  isFree &&
+                                    "border border-dashed border-border/60 bg-background text-muted-foreground/40 hover:border-accent hover:bg-accent/10 hover:text-accent",
+                                  past && "cursor-not-allowed opacity-40",
+                                )}
+                              >
+                                {busy ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : isReserva ? (
+                                  <Car className="h-3.5 w-3.5" />
+                                ) : isManual ? (
+                                  <Lock className="h-3.5 w-3.5" />
+                                ) : null}
+                              </button>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                    {/* Fila resumen: libres por columna */}
+                    <tr className="border-t-2 border-border bg-muted/30">
+                      <td className="sticky left-0 z-10 border-r border-border bg-muted/60 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        Libres
+                      </td>
+                      {dayTimes.map((time) => {
+                        const key = `${selectedDateISO}|${time}`;
+                        const cur = occupancyMap.get(key) || { manual: [], reservas: [] };
+                        const free = Math.max(0, stations - cur.reservas.length - cur.manual.length);
+                        return (
+                          <td
+                            key={time}
+                            className={cn(
+                              "border-l border-border/40 px-1 py-1 text-center font-mono font-bold tabular-nums",
+                              free === 0 ? "text-destructive" : "text-foreground",
+                            )}
+                          >
+                            {free}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <p className="border-t border-border/60 px-3 py-1.5 text-[10px] text-muted-foreground">
+                Deslizá horizontalmente para ver más horas →
+              </p>
+            </div>
+          );
+        })()}
 
         {/* Configuración del horario base (colapsable) */}
         <div className="rounded-lg border border-border">
