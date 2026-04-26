@@ -103,15 +103,87 @@
     }
   }
 
-  /* Mejor experiencia táctil: scroll suave + tap sin highlight feo */
+  /* Mejor experiencia táctil: scroll suave, tap sin highlight, mejor render texto */
   html {
     -webkit-tap-highlight-color: transparent;
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
-  /* Evitar overflow horizontal accidental en mobile */
   body {
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior-y: none;
+  }
+
+  /* Soporte safe-area para notch en iOS */
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Botones y links táctiles: mínimo 44px alto recomendado por Apple HIG */
+  button,
+  a,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+
+  /* Evitar selección accidental al tocar (ej: doble tap zoom) */
+  button,
+  [role="button"] {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Mejor scroll con momentum en iOS para contenedores con overflow */
+  .overflow-x-auto,
+  .overflow-y-auto,
+  .overflow-auto,
+  [data-scroll-area] {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* Ocultar scrollbar horizontal en chips/tabs móviles */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Fix iOS: 100vh incluye barra del navegador. Usar svh/dvh cuando esté disponible */
+  .min-h-screen {
+    min-height: 100vh;
+    min-height: 100svh;
+  }
+  .h-screen {
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  /* Imágenes responsivas por defecto */
+  img,
+  video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Inputs: evitar estilos nativos raros en iOS */
+  input,
+  textarea,
+  select {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input[type="checkbox"],
+  input[type="radio"] {
+    -webkit-appearance: auto;
+    appearance: auto;
   }
 }
 
