@@ -457,43 +457,94 @@ const MonthView = ({
           const items = apptsByDate.get(toISODate(day)) || [];
           const inMonth = isSameMonth(day, cursor);
           const today = isToday(day);
+          const confirmedCount = items.filter((a) => a.kind === "confirmed").length;
+          const pendingCount = items.filter((a) => a.kind === "pending").length;
+          const total = items.length;
+          const hasItems = total > 0;
+
+          // Heat intensity for background
+          const heat =
+            total === 0 ? "" : total === 1 ? "bg-primary/15" : total === 2 ? "bg-primary/25" : "bg-primary/40";
+
           return (
             <button
               key={day.toISOString()}
               onClick={() => onPickDay(day)}
               className={cn(
-                "flex aspect-square min-h-[56px] flex-col items-center justify-start rounded-md border p-1 text-center transition-colors hover:border-primary/60",
+                "relative flex aspect-square min-h-[60px] flex-col items-center justify-between rounded-md border p-1 text-center transition-all hover:border-primary hover:scale-[1.03] hover:shadow-md",
                 today
-                  ? "border-primary bg-primary/10"
-                  : "border-border bg-card",
+                  ? "border-primary border-2"
+                  : hasItems
+                    ? "border-primary/40"
+                    : "border-border",
+                hasItems ? heat : "bg-card",
                 !inMonth && "opacity-40"
               )}
             >
-              <span
-                className={cn(
-                  "flex h-6 w-6 items-center justify-center rounded-full font-display text-xs font-bold",
-                  today ? "bg-primary text-primary-foreground" : "text-foreground"
-                )}
-              >
-                {format(day, "d")}
-              </span>
-              <div className="mt-0.5 flex flex-1 items-end justify-center gap-0.5">
-                {items.slice(0, 3).map((a, i) => (
+              {/* Top: day number + count badge */}
+              <div className="flex w-full items-start justify-between">
+                <span
+                  className={cn(
+                    "flex h-6 w-6 items-center justify-center rounded-full font-display text-xs font-bold",
+                    today
+                      ? "bg-primary text-primary-foreground"
+                      : hasItems
+                        ? "text-primary"
+                        : "text-foreground"
+                  )}
+                >
+                  {format(day, "d")}
+                </span>
+                {hasItems && (
                   <span
-                    key={i}
                     className={cn(
-                      "h-1.5 w-1.5 rounded-full",
-                      a.kind === "pending" ? "bg-accent" : "bg-primary"
+                      "flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 font-display text-[10px] font-bold leading-none shadow-sm",
+                      confirmedCount > 0
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-accent text-accent-foreground"
                     )}
-                  />
-                ))}
-                {items.length > 3 && (
-                  <span className="text-[8px] font-bold text-muted-foreground">+</span>
+                  >
+                    {total}
+                  </span>
                 )}
               </div>
+
+              {/* Bottom: status dots/label */}
+              {hasItems && (
+                <div className="flex w-full flex-col items-center gap-0.5">
+                  <div className="flex items-center gap-0.5">
+                    {confirmedCount > 0 && (
+                      <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                    )}
+                    {pendingCount > 0 && (
+                      <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                    )}
+                  </div>
+                  <span
+                    className={cn(
+                      "hidden text-[9px] font-semibold leading-none sm:block",
+                      confirmedCount > 0 ? "text-primary" : "text-accent-foreground"
+                    )}
+                  >
+                    {total === 1 ? "1 pedido" : `${total} pedidos`}
+                  </span>
+                </div>
+              )}
             </button>
           );
         })}
+      </div>
+
+      {/* Legend */}
+      <div className="mt-3 flex items-center justify-center gap-4 text-[10px] text-muted-foreground">
+        <div className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-primary" />
+          <span>Confirmados</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-accent" />
+          <span>Pendientes</span>
+        </div>
       </div>
     </div>
   );
