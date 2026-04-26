@@ -246,7 +246,11 @@ export default function LavaderoChat() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={handleCancel}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    (document.activeElement as HTMLElement | null)?.blur?.();
+                    handleCancel();
+                  }}
                   className="text-destructive hover:text-destructive"
                 >
                   Cancelar pedido
@@ -258,7 +262,9 @@ export default function LavaderoChat() {
                 <Button
                   size="sm"
                   variant="outline"
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
+                    (document.activeElement as HTMLElement | null)?.blur?.();
                     setOpen(false);
                     navigate("/login");
                   }}
@@ -338,7 +344,17 @@ function SimpleMarkdown({
         p.type === "link" ? (
           <button
             key={i}
-            onClick={() => onLinkClick(p.href!)}
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onTouchStart={(e) => {
+              // Evita que el foco se transfiera al input en mobile tras el tap
+              (document.activeElement as HTMLElement | null)?.blur?.();
+            }}
+            onClick={(e) => {
+              e.preventDefault();
+              (document.activeElement as HTMLElement | null)?.blur?.();
+              onLinkClick(p.href!);
+            }}
             className="font-semibold underline underline-offset-2 hover:opacity-80"
           >
             {p.content}
