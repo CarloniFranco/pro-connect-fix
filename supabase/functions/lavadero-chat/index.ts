@@ -498,6 +498,57 @@ async function createRequest(
   };
 }
 
+async function getServicesForVehicle(args: { professional_id: string; vehicle_type: string }) {
+  if (!args.professional_id || !UUID_RE.test(args.professional_id)) {
+    return { error: "ID de profesional inválido. Volvé a elegir lavadero." };
+  }
+
+  const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  const { data: pro } = await admin
+    .from("professional_profiles")
+    .select("user_id, full_name, rubro, services, vehicle_types")
+    .eq("user_id", args.professional_id)
+    .maybeSingle();
+
+  if (!pro || pro.rubro !== RUBRO) {
+    return { error: "El profesional no está disponible." };
+  }
+
+  const vehicleTypes: string[] = Array.isArray(pro.vehicle_types) ? pro.vehicle_types : [];
+  const matchedVehicle = vehicleTypes.find((v) => normalizeName(v) === normalizeName(args.vehicle_type));
+  if (!matchedVehicle) {
+    return {
+      error: `Ese vehículo no está cargado para ${pro.full_name}. Opciones: ${vehicleTypes.join(", ") || "ninguna"}.`,
+      vehicle_menu_text: `🚗 Tipo de vehículo:\n${vehicleTypes.map((v, i) => `${i + 1}) ${v}`).join("  ")}`,
+    };
+  }
+
+  const services: any[] = Array.isArray(pro.services) ? (pro.services as any[]) : [];
+  const availableServices = services
+    .map((sv: any) => ({ name: sv.name, price: Number(sv.prices?.[matchedVehicle] ?? 0) }))
+    .filter((sv) => sv.name && sv.price > 0);
+
+  if (availableServices.length === 0) {
+    return {
+      professional_id: pro.user_id,
+      professional_name: pro.full_name,
+      vehicle_type: matchedVehicle,
+      services: [],
+      services_text: `🧼 Tipo de lavado para ${matchedVehicle}:\n(este lavadero no tiene servicios con precio cargado para ${matchedVehicle})`,
+    };
+  }
+
+  return {
+    professional_id: pro.user_id,
+    professional_name: pro.full_name,
+    vehicle_type: matchedVehicle,
+    services: availableServices,
+    services_text: `🧼 Tipo de lavado para ${matchedVehicle}:\n${availableServices
+      .map((sv, i) => `${i + 1}) ${sv.name} — $${sv.price.toLocaleString("es-AR")}`)
+      .join("\n")}`,
+  };
+}
+
 async function cancelRequest(
   args: { request_id: string },
   authHeader: string | null,
