@@ -69,6 +69,24 @@ const tools = [
   {
     type: "function",
     function: {
+      name: "check_slot",
+      description:
+        "Verifica si el profesional atiende ese día y hora y si tiene cupo libre. Devuelve available=true/false y, si está ocupado, una lista de horarios libres reales para ese día.",
+      parameters: {
+        type: "object",
+        properties: {
+          professional_id: { type: "string" },
+          date: { type: "string", description: "YYYY-MM-DD" },
+          time: { type: "string", description: "HH:MM (24h)" },
+        },
+        required: ["professional_id", "date", "time"],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "book_slot",
       description:
         "Crea la reserva con seña simulada (10%). Solo llamar después de confirmación explícita del usuario. Devuelve el id del pedido.",
