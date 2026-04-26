@@ -142,6 +142,7 @@ const StarsDisplay = ({ rating, size = 16 }: { rating: number; size?: number }) 
 
 const ClientOrders = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
   const [proNames, setProNames] = useState<Record<string, string>>({});
