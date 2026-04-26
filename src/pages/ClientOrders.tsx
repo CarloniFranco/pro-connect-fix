@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,6 +42,8 @@ type ServiceRequest = {
   professional_id: string;
   deposit_amount: number | null;
   deposit_paid: boolean;
+  cancellation_reason: string | null;
+  cancelled_by: string | null;
 };
 
 const statusLabels: Record<string, string> = {
@@ -140,6 +142,7 @@ const StarsDisplay = ({ rating, size = 16 }: { rating: number; size?: number }) 
 
 const ClientOrders = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
   const [proNames, setProNames] = useState<Record<string, string>>({});
@@ -174,12 +177,26 @@ const ClientOrders = () => {
     }
   }, [pendingReviewRequest, selectedRequest]);
 
+  // Auto-abrir el diálogo del pedido pasado por query param (?request=<id>)
+  useEffect(() => {
+    const requestId = searchParams.get("request");
+    if (!requestId || requests.length === 0) return;
+    const target = requests.find((r) => r.id === requestId);
+    if (target) {
+      setSelectedRequest(target);
+      // Limpiar el query param para no reabrir al cerrar
+      const next = new URLSearchParams(searchParams);
+      next.delete("request");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, requests, setSearchParams]);
+
   const loadRequests = async () => {
     if (!user) return;
     setLoading(true);
     const { data, error } = await supabase
       .from("service_requests")
-      .select("id, service_type, description, status, quoted_amount, quoted_details, scheduled_date, scheduled_time, created_at, professional_id, deposit_amount, deposit_paid")
+      .select("id, service_type, description, status, quoted_amount, quoted_details, scheduled_date, scheduled_time, created_at, professional_id, deposit_amount, deposit_paid, cancellation_reason, cancelled_by")
       .eq("client_user_id", user.id)
       .order("created_at", { ascending: false });
 
@@ -682,13 +699,94 @@ const ClientOrders = () => {
                     </div>
                   )}
 
-                  {selectedRequest.status === "rechazada_profesional" && (
-                    <div className="rounded-lg bg-destructive/10 p-3 text-center">
-                      <p className="text-sm font-semibold text-destructive">
-                        El profesional declinó esta solicitud
-                      </p>
-                    </div>
-                  )}
+                  {selectedRequest.status === "rechazada_profesional" && (() => {
+                    const wasConfirmedTurn =
+                      selectedRequest.cancelled_by === "professional" ||
+                      selectedRequest.deposit_paid === true;
+                    const proName = proNames[selectedRequest.professional_id] || "El profesional";
+
+                    if (wasConfirmedTurn) {
+                      return (
+                        <div className="space-y-3 rounded-lg border border-destructive/30 bg-destructive/10 p-4">
+                          <div>
+                            <p className="text-sm font-semibold text-destructive mb-1">
+                              😔 {proName} canceló tu turno
+                            </p>
+                            <p className="text-xs text-foreground leading-relaxed">
+                              Lamentamos mucho los inconvenientes. Sabemos lo importante que era este turno para vos.
+                            </p>
+                          </div>
+
+                          {selectedRequest.cancellation_reason && (
+                            <div className="rounded-md bg-background/60 border border-border p-2.5">
+                              <p className="text-[11px] font-semibold text-muted-foreground mb-0.5">
+                                Motivo del profesional
+                              </p>
+                              <p className="text-xs text-foreground italic">
+                                "{selectedRequest.cancellation_reason}"
+                              </p>
+                            </div>
+                          )}
+
+                          {selectedRequest.deposit_paid && (
+                            <div className="rounded-md bg-green-500/10 border border-green-500/30 p-2.5">
+                              <p className="text-xs font-semibold text-green-700 dark:text-green-300 mb-0.5">
+                                💰 Reintegro de la seña
+                              </p>
+                              <p className="text-[11px] text-foreground leading-relaxed">
+                                Tu seña
+                                {selectedRequest.deposit_amount
+                                  ? ` de $${selectedRequest.deposit_amount.toLocaleString("es-AR")}`
+                                  : ""}{" "}
+                                será reintegrada en los próximos días hábiles al medio de pago original.
+                              </p>
+                            </div>
+                          )}
+
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            Esperamos que puedas encontrar pronto el servicio que necesitás. Te invitamos a buscar otro profesional disponible.
+                          </p>
+
+                          <Button
+                            variant="outline"
+                            className="w-full"
+                            onClick={() => {
+                              setSelectedRequest(null);
+                              navigate("/");
+                            }}
+                          >
+                            Buscar otro profesional
+                          </Button>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="space-y-2 rounded-lg border border-destructive/30 bg-destructive/10 p-4">
+                        <p className="text-sm font-semibold text-destructive">
+                          {proName} no pudo tomar esta solicitud
+                        </p>
+                        {selectedRequest.cancellation_reason && (
+                          <p className="text-xs text-foreground italic">
+                            "{selectedRequest.cancellation_reason}"
+                          </p>
+                        )}
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          Te invitamos a buscar otro profesional disponible para tu necesidad.
+                        </p>
+                        <Button
+                          variant="outline"
+                          className="w-full mt-1"
+                          onClick={() => {
+                            setSelectedRequest(null);
+                            navigate("/");
+                          }}
+                        >
+                          Buscar otro profesional
+                        </Button>
+                      </div>
+                    );
+                  })()}
 
                   {selectedRequest.status === "rechazada_cliente" && (
                     <div className="rounded-lg bg-muted p-3 text-center">
