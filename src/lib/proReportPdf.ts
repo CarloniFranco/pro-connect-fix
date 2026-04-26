@@ -481,7 +481,7 @@ export async function generateProReportPdf(data: ProReportData, report: string) 
     ["Cumplimiento de horarios", data.cumplimientoHorariosPct != null ? `${data.cumplimientoHorariosPct}%` : "—"],
     ["Horario pico", data.horarioPico ?? "—"],
     ["Clientes recurrentes", String(data.clientesRecurrentes)],
-    ["Reseñas recibidas", `${data.cantidadReseñas}${data.ratingPromedio ? `  ·  ${data.ratingPromedio} ★` : ""}`],
+    ["Reseñas recibidas", `${data.cantidadReseñas}${data.ratingPromedio ? `  -  ${data.ratingPromedio} *` : ""}`],
     ["Ingresos confirmados", fmtMoney(data.ingresosConfirmados)],
     ["Ingresos finalizados", fmtMoney(data.ingresosFinalizados)],
   ];
