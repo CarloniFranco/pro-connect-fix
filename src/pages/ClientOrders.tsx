@@ -329,22 +329,26 @@ const ClientOrders = () => {
       return;
     }
     setSubmittingReview(true);
+    // La columna rating en la DB es integer — redondeamos para evitar errores con medias estrellas
+    const ratingToSave = Math.round(reviewRating);
+    const commentToSave = reviewComment.trim() || null;
     const { error } = await supabase.from("reviews").insert({
       service_request_id: selectedRequest.id,
       professional_id: selectedRequest.professional_id,
       client_user_id: user.id,
-      rating: reviewRating,
-      comment: reviewComment.trim() || null,
+      rating: ratingToSave,
+      comment: commentToSave,
     });
 
     if (error) {
-      toast.error("No se pudo enviar la reseña.");
+      console.error("Error al enviar reseña:", error);
+      toast.error(`No se pudo enviar la reseña: ${error.message}`);
     } else {
       toast.success("¡Gracias por tu reseña!");
       setReviewedIds((prev) => new Set(prev).add(selectedRequest.id));
       setExistingReviews((prev) => ({
         ...prev,
-        [selectedRequest.id]: { rating: reviewRating, comment: reviewComment.trim() || null },
+        [selectedRequest.id]: { rating: ratingToSave, comment: commentToSave },
       }));
       setReviewRating(0);
       setReviewComment("");
