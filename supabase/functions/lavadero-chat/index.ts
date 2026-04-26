@@ -540,6 +540,8 @@ Deno.serve(async (req) => {
           const args = JSON.parse(call.function.arguments || "{}");
           if (call.function.name === "list_professionals") {
             result = await listProfessionals(args);
+          } else if (call.function.name === "check_slot") {
+            result = await checkSlot(args);
           } else if (call.function.name === "book_slot") {
             result = await bookSlot(args, authHeader);
             if (result?.success) lastCreatedRequestId = result.request_id;
