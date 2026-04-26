@@ -34,6 +34,7 @@ const AIReportGenerator = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       setReport(data.report);
+      setReportData(data.data as ProReportData);
       setPeriodLabel(data.period || periodLabels[period]);
       setOpen(true);
     } catch (e: any) {
@@ -86,10 +87,25 @@ const AIReportGenerator = () => {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[90vh] max-w-2xl overflow-hidden p-0 gap-0">
           <DialogHeader className="border-b border-border bg-gradient-to-r from-primary/10 to-secondary/10 px-4 py-3">
-            <DialogTitle className="flex items-center gap-2 font-display text-base">
-              <FileText className="h-4 w-4 text-primary" />
-              Reporte {periodLabel}
-            </DialogTitle>
+            <div className="flex items-center justify-between gap-2">
+              <DialogTitle className="flex items-center gap-2 font-display text-base">
+                <FileText className="h-4 w-4 text-primary" />
+                Reporte {periodLabel}
+              </DialogTitle>
+              <Button
+                size="sm"
+                onClick={handleDownloadPdf}
+                disabled={downloading || !reportData}
+                className="gap-1.5 h-8"
+              >
+                {downloading ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Download className="h-3.5 w-3.5" />
+                )}
+                <span className="text-xs">PDF</span>
+              </Button>
+            </div>
           </DialogHeader>
           <div className="overflow-y-auto px-4 py-4 sm:px-6 sm:py-5" style={{ maxHeight: "calc(90vh - 60px)" }}>
             <article className="prose prose-sm max-w-none dark:prose-invert prose-headings:font-display prose-headings:text-foreground prose-p:text-foreground/90 prose-strong:text-foreground prose-li:text-foreground/90">
