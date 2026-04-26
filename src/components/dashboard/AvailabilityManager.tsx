@@ -392,36 +392,51 @@ export default function AvailabilityManager() {
           </span>
         </div>
 
-        {/* Calendario semanal */}
-        <div className="space-y-2">
-          {weekDays.map((date, dIdx) => {
+        {/* Calendario semanal — horas en columna, estaciones en fila */}
+        <div className="space-y-1.5">
+          {weekDays.map((date) => {
             const dateISO = toISODate(date);
             const daySlotTimes = slotsForDay(date);
             const isHoy = toISODate(new Date()) === dateISO;
             return (
-              <div key={dateISO} className={cn("rounded-lg border p-2", isHoy ? "border-primary/40 bg-primary/5" : "border-border")}>
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-foreground">
+              <div
+                key={dateISO}
+                className={cn(
+                  "rounded-md border",
+                  isHoy ? "border-primary/40 bg-primary/5" : "border-border",
+                )}
+              >
+                <div className="flex items-center justify-between border-b border-border/60 px-2 py-1">
+                  <span className="text-[11px] font-semibold text-foreground">
                     {DAYS_SHORT[date.getDay()]} {date.getDate()}/{date.getMonth() + 1}
-                    {isHoy && <span className="ml-1.5 text-[10px] text-primary">(hoy)</span>}
+                    {isHoy && <span className="ml-1 text-[10px] text-primary">· hoy</span>}
                   </span>
                   {daySlotTimes.length === 0 && (
-                    <span className="text-[10px] text-muted-foreground">Sin horario base</span>
+                    <span className="text-[10px] text-muted-foreground">Sin horario</span>
                   )}
                 </div>
 
                 {daySlotTimes.length > 0 && (
-                  <div className="space-y-1">
+                  <div className="divide-y divide-border/40">
                     {daySlotTimes.map((time) => {
                       const key = `${dateISO}|${time}`;
                       const cur = occupancyMap.get(key) || { manual: [], reservas: [] };
                       const reservasCount = cur.reservas.length;
                       const manualCount = cur.manual.length;
+                      const free = Math.max(0, stations - reservasCount - manualCount);
                       const past = isPast(date, time);
                       return (
-                        <div key={time} className={cn("flex items-center gap-2 rounded-md px-2 py-1.5", past ? "opacity-40" : "hover:bg-muted/30")}>
-                          <span className="w-12 text-xs font-mono font-semibold text-muted-foreground">{time}</span>
-                          <div className="flex flex-1 flex-wrap items-center gap-1">
+                        <div
+                          key={time}
+                          className={cn(
+                            "flex items-center gap-2 px-2 py-1",
+                            past ? "opacity-40" : "hover:bg-muted/30",
+                          )}
+                        >
+                          <span className="w-10 shrink-0 font-mono text-[11px] font-semibold text-muted-foreground">
+                            {time}
+                          </span>
+                          <div className="flex flex-1 items-center gap-1">
                             {Array.from({ length: stations }).map((_, sIdx) => {
                               const isReserva = sIdx < reservasCount;
                               const isManual = !isReserva && sIdx < reservasCount + manualCount;
@@ -433,19 +448,26 @@ export default function AvailabilityManager() {
                                   type="button"
                                   disabled={past || busy || isReserva}
                                   onClick={() => toggleStation(date, time, sIdx)}
-                                  title={isReserva ? "Reservado por cliente" : isManual ? "Bloqueado por vos · tocá para liberar" : "Libre · tocá para bloquear"}
+                                  title={
+                                    isReserva
+                                      ? "Reservado por cliente"
+                                      : isManual
+                                        ? "Bloqueado por vos · tocá para liberar"
+                                        : "Libre · tocá para bloquear"
+                                  }
                                   className={cn(
-                                    "flex h-7 w-7 items-center justify-center rounded-md border text-[10px] transition-all",
-                                    isReserva && "border-primary bg-primary text-primary-foreground cursor-not-allowed",
-                                    isManual && "border-accent bg-accent text-accent-foreground hover:bg-accent/90",
-                                    isFree && "border-border bg-background text-muted-foreground hover:border-accent hover:bg-accent/10",
+                                    "flex h-6 w-6 shrink-0 items-center justify-center rounded border transition-all",
+                                    isReserva &&
+                                      "border-primary bg-primary text-primary-foreground cursor-not-allowed",
+                                    isManual &&
+                                      "border-accent bg-accent text-accent-foreground hover:bg-accent/90",
+                                    isFree &&
+                                      "border-border bg-background text-muted-foreground hover:border-accent hover:bg-accent/10",
                                     past && "cursor-not-allowed",
                                   )}
                                 >
                                   {busy ? (
                                     <Loader2 className="h-3 w-3 animate-spin" />
-                                  ) : isReserva ? (
-                                    <Car className="h-3 w-3" />
                                   ) : isManual ? (
                                     <Lock className="h-3 w-3" />
                                   ) : (
@@ -454,10 +476,17 @@ export default function AvailabilityManager() {
                                 </button>
                               );
                             })}
-                            <span className="ml-auto text-[10px] text-muted-foreground">
-                              {Math.max(0, stations - reservasCount - manualCount)} libre{stations - reservasCount - manualCount === 1 ? "" : "s"}
-                            </span>
                           </div>
+                          <span
+                            className={cn(
+                              "shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold tabular-nums",
+                              free === 0
+                                ? "bg-destructive/10 text-destructive"
+                                : "bg-muted text-muted-foreground",
+                            )}
+                          >
+                            {free}/{stations}
+                          </span>
                         </div>
                       );
                     })}
