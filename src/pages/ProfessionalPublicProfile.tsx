@@ -461,10 +461,10 @@ const ProfessionalPublicProfile = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="rounded-2xl border-2 border-border bg-card p-6 shadow-md"
+          className="rounded-2xl border-2 border-border bg-card p-4 shadow-md"
         >
-          <h2 className="text-lg font-bold text-card-foreground mb-4 flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-primary" />
+          <h2 className="text-base font-bold text-card-foreground mb-3 flex items-center gap-2">
+            <MessageSquare className="h-4 w-4 text-primary" />
             Reseñas ({reviews.length})
           </h2>
           {reviews.length === 0 ? (
