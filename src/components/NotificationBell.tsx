@@ -84,7 +84,10 @@ const NotificationBell = () => {
   const handleClick = (notif: Notification) => {
     markAsRead(notif.id);
     if (notif.link) {
-      navigate(notif.link);
+      const target = notif.service_request_id
+        ? `${notif.link}${notif.link.includes("?") ? "&" : "?"}request=${notif.service_request_id}`
+        : notif.link;
+      navigate(target);
       setOpen(false);
     }
   };
