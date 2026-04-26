@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import ProCTA from "@/components/ProCTA";
 import HowItWorks from "@/components/HowItWorks";
+import LavaderoChat from "@/components/LavaderoChat";
 
 const Index = () => {
   return (
@@ -22,6 +23,7 @@ const Index = () => {
           Términos y Condiciones
         </Link>
       </footer>
+      <LavaderoChat />
     </div>
   );
 };
