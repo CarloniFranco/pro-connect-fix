@@ -106,16 +106,23 @@ export default function MyServicesManager() {
     const url = mapsUrl.trim();
     let coordsPatch: { lat?: number | null; lng?: number | null } = { lat: null, lng: null };
 
-    if (url) {
+    // Geocoding: priorizamos la dirección textual (más precisa a nivel calle)
+    // y usamos el link de Google Maps como fallback.
+    if (address.trim() || url) {
       try {
         const { data, error } = await supabase.functions.invoke("resolve-google-maps", {
-          body: { url },
+          body: {
+            url,
+            address: address.trim(),
+            locality: finalLocality,
+            province,
+          },
         });
         if (!error && data?.coords) {
           coordsPatch = { lat: data.coords.lat, lng: data.coords.lng };
         } else {
           toast.warning(
-            "No pudimos extraer las coordenadas del link. Tu perfil se guarda igual, pero no aparecerás en el mapa hasta que pegues un link válido de Google Maps.",
+            "No pudimos ubicar tu dirección con precisión. Verificá que la calle, altura y localidad sean correctas; mientras tanto aparecerás en el centro de tu localidad.",
           );
         }
       } catch (e) {
