@@ -144,9 +144,9 @@ export default function LavaderoChat() {
     <>
       {/* Floating button */}
       {!open && (
-        <div className="fixed bottom-5 right-5 z-50 flex items-end gap-2">
+        <div className="fixed bottom-5 right-5 z-50 flex items-end gap-2 animate-fade-in">
           {/* Tooltip / cartel */}
-          <div className="hidden sm:flex flex-col items-end animate-[float_3s_ease-in-out_infinite]">
+          <div className="hidden sm:flex flex-col items-end">
             <div className="relative rounded-2xl rounded-br-sm bg-card border border-border px-4 py-2 shadow-lg">
               <p className="text-xs font-bold text-foreground whitespace-nowrap">
                 Chateá con <span className="text-primary">FIX</span> 🚗
@@ -164,8 +164,8 @@ export default function LavaderoChat() {
             aria-label="Abrir chat de reservas"
           >
             <MessageCircle className="h-6 w-6" />
-            {/* Pulse ring */}
-            <span className="absolute inset-0 rounded-full bg-primary/40 animate-ping" />
+            {/* Soft pulse ring (slower, subtler) */}
+            <span className="pointer-events-none absolute inset-0 rounded-full bg-primary/30 animate-[ping_2.5s_cubic-bezier(0,0,0.2,1)_infinite]" />
             {unread > 0 && (
               <span className="absolute -top-1 -right-1 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
                 {unread}
