@@ -37,7 +37,7 @@ const createPhotoIcon = (pro: MapPro) => {
   return L.divIcon({
     className: "fix-photo-pin",
     html: `
-      <div style="position:relative;width:48px;height:48px;transform:translate(-50%,-100%);">
+      <div style="position:relative;width:48px;height:56px;">
         <div style="
           width:48px;height:48px;border-radius:50%;
           overflow:hidden;border:3px solid #fff;
@@ -45,7 +45,13 @@ const createPhotoIcon = (pro: MapPro) => {
           background:hsl(213,75%,30%);
         ">${inner}</div>
         <div style="
-          position:absolute;bottom:-4px;right:-4px;
+          position:absolute;left:50%;bottom:0;
+          width:2px;height:8px;background:#fff;
+          transform:translateX(-50%);
+          box-shadow:0 1px 2px rgba(0,0,0,0.4);
+        "></div>
+        <div style="
+          position:absolute;top:-4px;right:-6px;
           background:hsl(45,95%,55%);color:#1a1a1a;
           font-weight:800;font-size:11px;
           padding:2px 5px;border-radius:8px;
@@ -55,9 +61,9 @@ const createPhotoIcon = (pro: MapPro) => {
         ">★ ${pro.score.toFixed(1)}</div>
       </div>
     `,
-    iconSize: [48, 48],
-    iconAnchor: [24, 48],
-    popupAnchor: [0, -48],
+    iconSize: [48, 56],
+    iconAnchor: [24, 56],
+    popupAnchor: [0, -56],
   });
 };
 
