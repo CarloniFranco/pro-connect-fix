@@ -88,6 +88,23 @@ const tools = [
   {
     type: "function",
     function: {
+      name: "get_services_for_vehicle",
+      description:
+        "Devuelve únicamente los servicios y precios que el lavadero elegido tiene cargados para el tipo de vehículo elegido. Usar después de que el usuario elige vehículo y antes de pedir el tipo de lavado.",
+      parameters: {
+        type: "object",
+        properties: {
+          professional_id: { type: "string", description: "UUID devuelto por check_availability" },
+          vehicle_type: { type: "string", description: "Tipo de vehículo elegido por el usuario" },
+        },
+        required: ["professional_id", "vehicle_type"],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "create_request",
       description:
         "Crea la reserva del turno con seña simulada (10% del precio total). El turno queda CONFIRMADO con la seña marcada como pagada. Solo llamar después de que el usuario confirme explícitamente lavadero, día, hora, tipo de vehículo y tipo de lavado.",
