@@ -20,7 +20,8 @@ const SYSTEM_PROMPT = `Sos "Fix Bot", asistente argentino para reservar turnos d
 REGLAS CRÍTICAS (ANTI-ALUCINACIÓN):
 - NUNCA inventes profesionales, vehículos, servicios, precios u horarios. TODO sale del JSON de las tools.
 - Para mostrar la lista de lavaderos, copiá EXACTO el campo 'list_text' que devuelve 'list_professionals'. Sin reescribir, sin agregar.
-- Para mostrar vehículos o servicios de un profesional, copiá EXACTO los campos 'vehicles_text' o 'services_text' que devuelve la tool. NO mencionés ningún vehículo o servicio que no esté ahí.
+- Para mostrar vehículos de un profesional, copiá EXACTO 'vehicles_text' de la tool.
+- Para mostrar servicios+precios de un profesional para un vehículo, llamá 'get_services_for_vehicle' y copiá EXACTO 'services_text'. PROHIBIDO armar esa lista por tu cuenta.
 - Está PROHIBIDO sugerir "lavado de chasis", "lavado de motor", "encerado", "SUV" si no aparecen literalmente en el JSON.
 - NUNCA muestres UUIDs al usuario.
 - NUNCA digas "no está disponible ese día/hora" sin haber llamado 'check_slot'. Si check_slot devuelve available=true, NO digas que no está disponible.
@@ -29,7 +30,7 @@ FLUJO (en orden):
 1. ZONA: si todavía no la sabés, pedila ("¿De qué zona/localidad sos?"). No avances sin zona.
 2. LISTA: llamá 'list_professionals' con la zona. Pegá el 'list_text' tal cual y pedí que elija un número.
 3. VEHÍCULO: cuando elija profesional, pegá 'vehicles_text' tal cual de ese profesional. Pedí que elija vehículo. Prohibido mostrar servicios todavía.
-4. SERVICIO: cuando elija vehículo, pegá 'services_text' del profesional para ESE vehículo (filtrá vos manualmente leyendo 'services[].prices[vehículo]' de la tool). Solo nombres + precios que estén en el JSON.
+4. SERVICIO: cuando elija vehículo, llamá 'get_services_for_vehicle' con professional_id + vehicle_type. Pegá 'services_text' tal cual y pedí que elija. PROHIBIDO escribir tu propia versión de la lista.
 5. DÍA Y HORA: pedí día y hora ("¿qué día y horario te queda cómodo?").
 6. CHEQUEO: ANTES de pedir confirmación, llamá 'check_slot' con professional_id + date + time. Si available=false, mostrá los 'suggestions' (horarios reales libres) y pedí que elija otro. Si available=true, seguí.
 7. CONFIRMACIÓN: mostrá resumen (lavadero, día, hora, vehículo, servicio, precio total, seña 10%) y pedí "sí" explícito.
@@ -62,6 +63,23 @@ const tools = [
           locality: { type: "string", description: "Zona/localidad del usuario tal como la dijo" },
         },
         required: ["locality"],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_services_for_vehicle",
+      description:
+        "Devuelve los servicios y precios reales que el lavadero tiene cargados para el tipo de vehículo elegido. Usar después de que el usuario elija vehículo y antes de pedir el día/hora.",
+      parameters: {
+        type: "object",
+        properties: {
+          professional_id: { type: "string" },
+          vehicle_type: { type: "string" },
+        },
+        required: ["professional_id", "vehicle_type"],
         additionalProperties: false,
       },
     },
@@ -315,6 +333,60 @@ async function checkSlot(args: { professional_id: string; date: string; time: st
   };
 }
 
+async function getServicesForVehicle(args: { professional_id: string; vehicle_type: string }) {
+  if (!UUID_RE.test(args.professional_id)) {
+    return { error: "ID de profesional inválido. Volvé a elegir lavadero." };
+  }
+  const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  const { data: pro } = await admin
+    .from("professional_profiles")
+    .select("user_id, full_name, rubro, services, vehicle_types")
+    .eq("user_id", args.professional_id)
+    .maybeSingle();
+
+  if (!pro || pro.rubro !== RUBRO) {
+    return { error: "El profesional no está disponible." };
+  }
+
+  const vehicleTypes: string[] = Array.isArray(pro.vehicle_types) ? pro.vehicle_types : [];
+  const matchedVehicle = vehicleTypes.find((v) => normalize(v) === normalize(args.vehicle_type));
+  if (!matchedVehicle) {
+    return {
+      error: `Ese vehículo no está cargado para ${pro.full_name}. Opciones: ${vehicleTypes.join(", ") || "ninguna"}.`,
+    };
+  }
+
+  const services: any[] = Array.isArray(pro.services) ? (pro.services as any[]) : [];
+  const available = services
+    .map((sv: any) => ({
+      name: String(sv.name || "").trim(),
+      price: Number(sv.prices?.[matchedVehicle] ?? 0),
+    }))
+    .filter((sv) => sv.name && sv.price > 0);
+
+  if (available.length === 0) {
+    return {
+      professional_id: pro.user_id,
+      professional_name: pro.full_name,
+      vehicle_type: matchedVehicle,
+      services: [],
+      services_text: `🧼 Servicios para ${matchedVehicle} en ${pro.full_name}:\n(este lavadero no tiene precios cargados para ${matchedVehicle})`,
+    };
+  }
+
+  return {
+    professional_id: pro.user_id,
+    professional_name: pro.full_name,
+    vehicle_type: matchedVehicle,
+    services: available,
+    services_text:
+      `🧼 Servicios para ${matchedVehicle} en ${pro.full_name}:\n` +
+      available
+        .map((sv, i) => `${i + 1}) ${sv.name} — $${sv.price.toLocaleString("es-AR")}`)
+        .join("\n"),
+  };
+}
+
 async function bookSlot(
   args: {
     professional_id: string;
@@ -542,6 +614,8 @@ Deno.serve(async (req) => {
             result = await listProfessionals(args);
           } else if (call.function.name === "check_slot") {
             result = await checkSlot(args);
+          } else if (call.function.name === "get_services_for_vehicle") {
+            result = await getServicesForVehicle(args);
           } else if (call.function.name === "book_slot") {
             result = await bookSlot(args, authHeader);
             if (result?.success) lastCreatedRequestId = result.request_id;
