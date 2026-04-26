@@ -70,6 +70,23 @@ const tools = [
   {
     type: "function",
     function: {
+      name: "get_services_for_vehicle",
+      description:
+        "Devuelve los servicios y precios reales que el lavadero tiene cargados para el tipo de vehículo elegido. Usar después de que el usuario elija vehículo y antes de pedir el día/hora.",
+      parameters: {
+        type: "object",
+        properties: {
+          professional_id: { type: "string" },
+          vehicle_type: { type: "string" },
+        },
+        required: ["professional_id", "vehicle_type"],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "check_slot",
       description:
         "Verifica si el profesional atiende ese día y hora y si tiene cupo libre. Devuelve available=true/false y, si está ocupado, una lista de horarios libres reales para ese día.",
