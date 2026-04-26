@@ -291,15 +291,6 @@ const ProfessionalPublicProfile = () => {
                 </a>
               </div>
             </div>
-            <div className="aspect-video w-full border-t border-border">
-              <iframe
-                title="Mapa"
-                src={mapEmbedUrl}
-                className="w-full h-full"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-            </div>
           </motion.div>
         )}
 
