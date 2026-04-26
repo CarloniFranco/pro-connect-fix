@@ -434,9 +434,9 @@ const ProfessionalPublicProfile = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="rounded-2xl border-2 border-border bg-card p-6 shadow-md mb-4"
+          className="rounded-2xl border-2 border-border bg-card p-4 shadow-md mb-3"
         >
-          <h2 className="text-lg font-bold text-card-foreground mb-4">Métricas de Ranking</h2>
+          <h2 className="text-base font-bold text-card-foreground mb-3">Métricas de Ranking</h2>
           <div className="space-y-4">
             {metrics.map((m) => (
               <div key={m.label}>
