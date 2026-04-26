@@ -320,15 +320,15 @@ const ProfessionalPublicProfile = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="rounded-2xl border-2 border-border bg-card p-4 shadow-md mb-4"
+          className="rounded-2xl border-2 border-border bg-card p-4 shadow-md mb-3"
         >
           <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
             <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" />
-              <h2 className="text-lg font-bold text-card-foreground">
+              <Clock className="h-4 w-4 text-primary" />
+              <h2 className="text-base font-bold text-card-foreground">
                 Disponibilidad{" "}
                 <span className="text-primary">
-                  {isToday ? "hoy" : format(viewDate, "EEEE d 'de' MMMM", { locale: es })}
+                  {isToday ? "hoy" : format(viewDate, "EEE d 'de' MMM", { locale: es })}
                 </span>
               </h2>
             </div>
