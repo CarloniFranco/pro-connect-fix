@@ -473,6 +473,62 @@ const AgendaOrders = () => {
             </div>
           )}
         </CardContent>
+
+        {/* Cancel-confirmed-turn Dialog */}
+        <Dialog open={cancelDialogOpen} onOpenChange={(v) => { if (!cancelling) setCancelDialogOpen(v); }}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 font-display">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                Cancelar turno confirmado
+              </DialogTitle>
+              <DialogDescription className="text-left space-y-2 pt-2">
+                <span className="block">
+                  Vas a cancelar el turno de <strong>{o.client_name}</strong>{o.scheduled_date && (
+                    <> el <strong>{new Date(o.scheduled_date + "T00:00:00").toLocaleDateString("es-AR")}</strong>{o.scheduled_time && <> a las <strong>{o.scheduled_time.slice(0,5)}</strong></>}</>
+                  )}.
+                </span>
+                <span className="block rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+                  ⚠️ <strong>Importante:</strong> cancelar un turno ya confirmado afecta tu <strong>ranking de confiabilidad</strong> y baja tu puntuación. Al cliente se le notificará la cancelación con un pedido de disculpas y se le reintegrará la seña.
+                </span>
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-muted-foreground">
+                Motivo de la cancelación <span className="text-destructive">*</span>
+              </label>
+              <Textarea
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="Ej: Tuve un imprevisto familiar, problema de salud, falla técnica del equipo, etc."
+                rows={4}
+                maxLength={300}
+                disabled={cancelling}
+              />
+              <p className="text-[10px] text-muted-foreground text-right">
+                {cancelReason.length}/300 — el cliente verá este motivo
+              </p>
+            </div>
+            <DialogFooter className="gap-2 sm:gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setCancelDialogOpen(false)}
+                disabled={cancelling}
+              >
+                Volver
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleCancelConfirmed}
+                disabled={cancelling || cancelReason.trim().length < 10}
+                className="gap-2"
+              >
+                {cancelling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Ban className="h-4 w-4" />}
+                {cancelling ? "Cancelando..." : "Confirmar cancelación"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </Card>
     );
   }
