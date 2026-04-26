@@ -144,7 +144,7 @@ const ProfessionalPublicProfile = () => {
 
     const occupied = new Map<string, number>();
     blockedSlots
-      .filter((b) => b.slot_status === "paid")
+      .filter((b) => b.slot_status === "paid" || b.slot_status === "pending" || b.slot_status === "manual_block")
       .forEach((b) => {
         const k = b.slot_time.slice(0, 5);
         occupied.set(k, (occupied.get(k) || 0) + 1);

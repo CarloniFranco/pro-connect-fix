@@ -271,13 +271,13 @@ async function computeSlotAvailability(professional_id: string, date: string, ti
     }
   }
 
-  // Count occupancy
+  // Count occupancy (incluye bloqueos manuales del profesional)
   const { data: blocked } = await admin
     .from("blocked_slots")
     .select("slot_time, slot_status")
     .eq("professional_id", professional_id)
     .eq("slot_date", date)
-    .in("slot_status", ["paid", "pending"]);
+    .in("slot_status", ["paid", "pending", "manual_block"]);
 
   const occMap = new Map<string, number>();
   blocked?.forEach((b) => {

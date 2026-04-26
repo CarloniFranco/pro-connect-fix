@@ -133,7 +133,7 @@ export default function ServiceRequestForm({
 
     const occupiedCount = new Map<string, number>();
     blockedSlots
-      .filter((b) => b.slot_date === selectedDate && b.slot_status === "paid")
+      .filter((b) => b.slot_date === selectedDate && (b.slot_status === "paid" || b.slot_status === "pending" || b.slot_status === "manual_block"))
       .forEach((b) => {
         const key = b.slot_time.slice(0, 5);
         occupiedCount.set(key, (occupiedCount.get(key) || 0) + 1);
