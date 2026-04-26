@@ -83,6 +83,34 @@ const fmtDate = (iso: string) =>
   new Date(iso).toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" });
 
 /**
+ * jsPDF default fonts (Helvetica) only support WinAnsi / Latin-1.
+ * Any character outside that range (★ ☆ → · … • emojis, etc.) renders as
+ * garbage like "Ø=ÜÊ". This sanitizer replaces common offenders with safe
+ * ASCII equivalents and strips anything else non-Latin-1.
+ */
+const sanitizeForPdf = (input: string): string => {
+  if (!input) return "";
+  return input
+    .replace(/[→➔➜➞]/g, "->")
+    .replace(/[←]/g, "<-")
+    .replace(/[↑]/g, "^")
+    .replace(/[↓]/g, "v")
+    .replace(/[•●◦▪▫]/g, "-")
+    .replace(/[·]/g, "-")
+    .replace(/[…]/g, "...")
+    .replace(/[★⭐]/g, "*")
+    .replace(/[☆]/g, "o")
+    .replace(/[“”«»]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/[–—]/g, "-")
+    .replace(/[✓✔]/g, "OK")
+    .replace(/[✗✘]/g, "X")
+    .replace(/[\u{1F300}-\u{1FAFF}]/gu, "")
+    .replace(/[\u{2600}-\u{27BF}]/gu, "")
+    .replace(/[^\x00-\xFF]/g, "");
+};
+
+/**
  * Render a Chart.js chart on an offscreen canvas and return a PNG dataURL.
  */
 async function renderChartAsImage(
@@ -207,11 +235,11 @@ function parseMarkdownToBlocks(md: string): { type: "h" | "p" | "li"; text: stri
     const line = raw.trim();
     if (!line) continue;
     if (/^#{1,6}\s/.test(line)) {
-      blocks.push({ type: "h", text: line.replace(/^#{1,6}\s+\**/, "").replace(/\*+/g, "") });
+      blocks.push({ type: "h", text: sanitizeForPdf(line.replace(/^#{1,6}\s+\**/, "").replace(/\*+/g, "")) });
     } else if (/^[-*•]\s/.test(line)) {
-      blocks.push({ type: "li", text: line.replace(/^[-*•]\s+/, "").replace(/\*+/g, "") });
+      blocks.push({ type: "li", text: sanitizeForPdf(line.replace(/^[-*•]\s+/, "").replace(/\*+/g, "")) });
     } else {
-      blocks.push({ type: "p", text: line.replace(/\*+/g, "") });
+      blocks.push({ type: "p", text: sanitizeForPdf(line.replace(/\*+/g, "")) });
     }
   }
   return blocks;
@@ -289,11 +317,11 @@ export async function generateProReportPdf(data: ProReportData, report: string) 
   doc.setFontSize(9);
   doc.setTextColor(COLORS.muted);
   const subtitle =
-    [data.profesional, data.rubro, data.localidad].filter(Boolean).join(" · ") ||
+    [data.profesional, data.rubro, data.localidad].filter(Boolean).join(" - ") ||
     "Profesional FIX";
-  doc.text(subtitle, 14, y);
+  doc.text(sanitizeForPdf(subtitle), 14, y);
   y += 5;
-  doc.text(`Período: ${fmtDate(data.desde)} → ${fmtDate(data.hasta)}`, 14, y);
+  doc.text(`Período: ${fmtDate(data.desde)} - ${fmtDate(data.hasta)}`, 14, y);
   y += 8;
 
   // KPI cards
@@ -453,7 +481,7 @@ export async function generateProReportPdf(data: ProReportData, report: string) 
     ["Cumplimiento de horarios", data.cumplimientoHorariosPct != null ? `${data.cumplimientoHorariosPct}%` : "—"],
     ["Horario pico", data.horarioPico ?? "—"],
     ["Clientes recurrentes", String(data.clientesRecurrentes)],
-    ["Reseñas recibidas", `${data.cantidadReseñas}${data.ratingPromedio ? `  ·  ${data.ratingPromedio} ★` : ""}`],
+    ["Reseñas recibidas", `${data.cantidadReseñas}${data.ratingPromedio ? `  -  ${data.ratingPromedio} *` : ""}`],
     ["Ingresos confirmados", fmtMoney(data.ingresosConfirmados)],
     ["Ingresos finalizados", fmtMoney(data.ingresosFinalizados)],
   ];
@@ -519,10 +547,11 @@ export async function generateProReportPdf(data: ProReportData, report: string) 
     }
     y = drawSectionTitle(doc, y, "Últimas reseñas", COLORS.secondary);
     data.ultimasReseñas.forEach((r) => {
-      const stars = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
+      const filled = Math.max(0, Math.min(5, r.rating));
+      const stars = `${r.rating}/5  ` + "*".repeat(filled) + ".".repeat(5 - filled);
       doc.setFillColor(COLORS.bg);
       doc.setDrawColor(COLORS.border);
-      const text = r.comment || "(Sin comentario)";
+      const text = sanitizeForPdf(r.comment || "(Sin comentario)");
       const lines = doc.splitTextToSize(text, w - 28 - 6);
       const boxH = Math.max(14, 8 + lines.length * 4.5);
       if (y + boxH > h - 22) {
