@@ -64,33 +64,38 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <header className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur-md">
-        <div className="container mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
-          <button onClick={() => navigate("/")} className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground">
+      <header
+        className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur-md"
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
+      >
+        <div className="container mx-auto flex h-14 max-w-4xl items-center justify-between gap-2 px-3 sm:px-4">
+          <button onClick={() => navigate("/")} className="flex shrink-0 items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" />
-            Volver
+            <span className="hidden xs:inline sm:inline">Volver</span>
           </button>
-          <h1 className="font-display text-lg font-bold text-foreground">Mi Panel</h1>
-          <div className="flex items-center gap-2">
+          <h1 className="truncate font-display text-base font-bold text-foreground sm:text-lg">Mi Panel</h1>
+          <div className="flex shrink-0 items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
               <User className="h-4 w-4 text-primary-foreground" />
             </div>
-            <button onClick={signOut} className="text-muted-foreground hover:text-foreground">
+            <button onClick={signOut} aria-label="Cerrar sesión" className="p-1 text-muted-foreground hover:text-foreground">
               <LogOut className="h-4 w-4" />
             </button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto max-w-4xl space-y-6 px-4 py-6">
+      <main className="container mx-auto max-w-4xl space-y-5 px-3 py-5 sm:space-y-6 sm:px-4 sm:py-6">
         {/* Greeting + Availability Toggle */}
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0 flex-1">
             {profileName && (
-              <p className="text-sm text-muted-foreground">Hola, <span className="font-semibold text-foreground">{profileName}</span> 👋</p>
+              <p className="truncate text-sm text-muted-foreground">
+                Hola, <span className="font-semibold text-foreground">{profileName}</span> 👋
+              </p>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <Power className={`h-4 w-4 ${available ? "text-green-500" : "text-muted-foreground"}`} />
             <span className={`text-xs font-semibold ${available ? "text-green-600" : "text-muted-foreground"}`}>
               {available ? "Disponible" : "No disponible"}
