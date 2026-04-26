@@ -306,9 +306,9 @@ async function checkSlot(args: { professional_id: string; date: string; time: st
   return {
     available: false,
     reason: r.reason,
-    suggestions: r.suggestions,
-    suggestions_text: r.suggestions.length
-      ? `${r.reason} Horarios libres ese día: ${r.suggestions.join(", ")}.`
+    suggestions: r.suggestions ?? [],
+    suggestions_text: (r.suggestions ?? []).length
+      ? `${r.reason} Horarios libres ese día: ${(r.suggestions ?? []).join(", ")}.`
       : `${r.reason} No quedan horarios libres ese día.`,
     professional_name: r.pro_name,
     date: args.date,
@@ -371,11 +371,12 @@ async function bookSlot(
   // Re-check availability server-side before inserting
   const avCheck = await computeSlotAvailability(args.professional_id, args.date, args.time);
   if (avCheck.ok && !avCheck.available) {
+    const sugg = avCheck.suggestions ?? [];
     return {
       error: avCheck.reason,
-      suggestions: avCheck.suggestions,
-      suggestions_text: avCheck.suggestions.length
-        ? `${avCheck.reason} Horarios libres: ${avCheck.suggestions.join(", ")}.`
+      suggestions: sugg,
+      suggestions_text: sugg.length
+        ? `${avCheck.reason} Horarios libres: ${sugg.join(", ")}.`
         : `${avCheck.reason} No quedan horarios libres ese día.`,
     };
   }
