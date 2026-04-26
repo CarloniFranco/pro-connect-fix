@@ -77,6 +77,38 @@ const AgendaOrders = () => {
   const [saving, setSaving] = useState(false);
   const [generatingBudget, setGeneratingBudget] = useState(false);
 
+  // Cancel-confirmed-turn modal state
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelling, setCancelling] = useState(false);
+
+  const handleCancelConfirmed = async () => {
+    if (!selectedOrder) return;
+    if (!cancelReason.trim() || cancelReason.trim().length < 10) {
+      toast.error("Por favor, contanos brevemente el motivo (mínimo 10 caracteres)");
+      return;
+    }
+    setCancelling(true);
+    const { error } = await supabase
+      .from("service_requests")
+      .update({
+        status: "rechazada_profesional" as any,
+        cancellation_reason: cancelReason.trim(),
+        cancelled_by: "professional",
+      } as any)
+      .eq("id", selectedOrder.id);
+    setCancelling(false);
+    if (error) {
+      toast.error("Error al cancelar el turno");
+      return;
+    }
+    toast.success("Turno cancelado. El cliente fue notificado.");
+    setCancelDialogOpen(false);
+    setCancelReason("");
+    setSelectedOrder(null);
+    fetchOrders();
+  };
+
   const fetchOrders = async () => {
     if (!user) return;
     const { data } = await supabase
