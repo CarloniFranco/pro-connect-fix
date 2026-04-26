@@ -47,6 +47,7 @@ export default function AvailabilityManager() {
   const [stations, setStations] = useState(1);
   const [blocked, setBlocked] = useState<BlockedSlot[]>([]);
   const [weekStart, setWeekStart] = useState<Date>(() => startOfWeek(new Date()));
+  const [selectedDateISO, setSelectedDateISO] = useState<string>(() => toISODate(new Date()));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [busyKey, setBusyKey] = useState<string | null>(null);
