@@ -685,6 +685,8 @@ Deno.serve(async (req) => {
           const args = JSON.parse(call.function.arguments || "{}");
           if (call.function.name === "check_availability") {
             result = await checkAvailability(args);
+          } else if (call.function.name === "get_services_for_vehicle") {
+            result = await getServicesForVehicle(args);
           } else if (call.function.name === "create_request") {
             result = await createRequest(args, authHeader);
             if (result?.success && result.request_id) {
