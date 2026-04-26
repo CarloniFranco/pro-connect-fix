@@ -6,7 +6,7 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative overflow-hidden bg-primary px-4 pb-20 pt-24 md:pb-28 md:pt-36">
+    <section className="relative overflow-hidden bg-primary px-4 pb-16 pt-20 sm:pb-20 sm:pt-24 md:pb-28 md:pt-36">
       {/* Subtle geometric accents */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute left-[10%] top-[20%] h-24 w-24 rounded-2xl border-2 border-primary-foreground/40 rotate-12" />
@@ -27,7 +27,7 @@ const HeroSection = () => {
             </span>
           </div>
 
-          <h1 className="mb-3 font-display text-5xl font-bold tracking-tight text-primary-foreground md:text-7xl">
+          <h1 className="mb-3 font-display text-[3.25rem] leading-none font-bold tracking-tight text-primary-foreground sm:text-6xl md:text-7xl">
             <span className="relative inline-flex items-center">
               {/* FIX text — starts tilted/broken, then straightens on hammer hit */}
               <motion.span
@@ -86,7 +86,7 @@ const HeroSection = () => {
               </motion.span>
             </span>
           </h1>
-          <p className="mx-auto mb-12 max-w-md text-lg font-medium text-primary-foreground/70 md:text-xl">
+          <p className="mx-auto mb-8 max-w-md text-base font-medium text-primary-foreground/70 sm:mb-12 sm:text-lg md:text-xl">
             ¿Qué tipo de servicio necesitás?
           </p>
         </motion.div>
