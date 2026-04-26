@@ -83,6 +83,34 @@ const fmtDate = (iso: string) =>
   new Date(iso).toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" });
 
 /**
+ * jsPDF default fonts (Helvetica) only support WinAnsi / Latin-1.
+ * Any character outside that range (★ ☆ → · … • emojis, etc.) renders as
+ * garbage like "Ø=ÜÊ". This sanitizer replaces common offenders with safe
+ * ASCII equivalents and strips anything else non-Latin-1.
+ */
+const sanitizeForPdf = (input: string): string => {
+  if (!input) return "";
+  return input
+    .replace(/[→➔➜➞]/g, "->")
+    .replace(/[←]/g, "<-")
+    .replace(/[↑]/g, "^")
+    .replace(/[↓]/g, "v")
+    .replace(/[•●◦▪▫]/g, "-")
+    .replace(/[·]/g, "-")
+    .replace(/[…]/g, "...")
+    .replace(/[★⭐]/g, "*")
+    .replace(/[☆]/g, "o")
+    .replace(/[“”«»]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/[–—]/g, "-")
+    .replace(/[✓✔]/g, "OK")
+    .replace(/[✗✘]/g, "X")
+    .replace(/[\u{1F300}-\u{1FAFF}]/gu, "")
+    .replace(/[\u{2600}-\u{27BF}]/gu, "")
+    .replace(/[^\x00-\xFF]/g, "");
+};
+
+/**
  * Render a Chart.js chart on an offscreen canvas and return a PNG dataURL.
  */
 async function renderChartAsImage(
