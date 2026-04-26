@@ -385,7 +385,7 @@ export default function AvailabilityManager() {
             <span className="inline-block h-3 w-3 rounded border border-border bg-background" /> Libre
           </span>
           <span className="flex items-center gap-1">
-            <span className="inline-block h-3 w-3 rounded bg-orange-500/80" /> Bloqueado (vos)
+            <span className="inline-block h-3 w-3 rounded bg-accent" /> Bloqueado (vos)
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block h-3 w-3 rounded bg-primary" /> Reservado por cliente
@@ -437,8 +437,8 @@ export default function AvailabilityManager() {
                                   className={cn(
                                     "flex h-7 w-7 items-center justify-center rounded-md border text-[10px] transition-all",
                                     isReserva && "border-primary bg-primary text-primary-foreground cursor-not-allowed",
-                                    isManual && "border-orange-500 bg-orange-500/80 text-white hover:bg-orange-500",
-                                    isFree && "border-border bg-background text-muted-foreground hover:border-orange-500 hover:bg-orange-500/10",
+                                    isManual && "border-accent bg-accent text-accent-foreground hover:bg-accent/90",
+                                    isFree && "border-border bg-background text-muted-foreground hover:border-accent hover:bg-accent/10",
                                     past && "cursor-not-allowed",
                                   )}
                                 >
