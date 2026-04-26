@@ -231,30 +231,30 @@ const ProfessionalPublicProfile = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border-2 border-border bg-card p-6 shadow-md mb-4"
+          className="rounded-2xl border-2 border-border bg-card p-4 shadow-md mb-3"
         >
-          <div className="flex items-start gap-4">
-            <div className="h-16 w-16 overflow-hidden rounded-full border-2 border-border bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <div className="flex items-start gap-3">
+            <div className="h-14 w-14 overflow-hidden rounded-full border-2 border-border bg-primary/10 flex items-center justify-center flex-shrink-0">
               {profile.photo_url ? (
                 <img src={profile.photo_url} alt={profile.full_name} className="h-full w-full object-cover" />
               ) : (
-                <User className="h-8 w-8 text-primary" />
+                <User className="h-7 w-7 text-primary" />
               )}
             </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h1 className="text-2xl font-bold text-card-foreground">{profile.full_name}</h1>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                <h1 className="text-xl font-bold text-card-foreground leading-tight">{profile.full_name}</h1>
                 {profile.verified && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                    <Shield className="h-3 w-3" /> Verificado
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                    <Shield className="h-2.5 w-2.5" /> Verificado
                   </span>
                 )}
               </div>
-              <p className="text-sm font-semibold text-muted-foreground mb-2">{profile.rubro}</p>
-              <div className="flex items-center gap-2">
+              <p className="text-xs font-semibold text-muted-foreground mb-1.5">{profile.rubro}</p>
+              <div className="flex items-center gap-1.5 flex-wrap">
                 {renderStars(score?.total_score || 3)}
-                <span className="text-lg font-bold text-foreground">{score?.total_score || "3.0"}</span>
-                <span className="text-sm text-muted-foreground">({score?.review_count || 0} reseñas)</span>
+                <span className="text-base font-bold text-foreground">{score?.total_score || "3.0"}</span>
+                <span className="text-xs text-muted-foreground">({score?.review_count || 0} reseñas)</span>
               </div>
             </div>
           </div>
