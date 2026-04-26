@@ -3,6 +3,7 @@ import { ArrowLeft, User, LogOut, Loader2, Power } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import MonthlyKPI from "@/components/dashboard/MonthlyKPI";
+import AIReportGenerator from "@/components/dashboard/AIReportGenerator";
 import CalendarAgenda from "@/components/dashboard/CalendarAgenda";
 import AgendaOrders from "@/components/dashboard/AgendaOrders";
 import AvailabilityManager from "@/components/dashboard/AvailabilityManager";
@@ -103,6 +104,7 @@ const Dashboard = () => {
         </div>
 
         <MonthlyKPI />
+        <AIReportGenerator />
         <CalendarAgenda />
         <AgendaOrders />
         <MyServicesManager />
