@@ -181,7 +181,7 @@ const ClientOrders = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("service_requests")
-      .select("id, service_type, description, status, quoted_amount, quoted_details, scheduled_date, scheduled_time, created_at, professional_id, deposit_amount, deposit_paid")
+      .select("id, service_type, description, status, quoted_amount, quoted_details, scheduled_date, scheduled_time, created_at, professional_id, deposit_amount, deposit_paid, cancellation_reason, cancelled_by")
       .eq("client_user_id", user.id)
       .order("created_at", { ascending: false });
 
