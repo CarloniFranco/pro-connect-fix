@@ -246,7 +246,11 @@ export default function LavaderoChat() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={handleCancel}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    (document.activeElement as HTMLElement | null)?.blur?.();
+                    handleCancel();
+                  }}
                   className="text-destructive hover:text-destructive"
                 >
                   Cancelar pedido
@@ -258,7 +262,9 @@ export default function LavaderoChat() {
                 <Button
                   size="sm"
                   variant="outline"
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
+                    (document.activeElement as HTMLElement | null)?.blur?.();
                     setOpen(false);
                     navigate("/login");
                   }}
