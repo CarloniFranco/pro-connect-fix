@@ -56,6 +56,7 @@ const ProfessionalPublicProfile = () => {
   const [loading, setLoading] = useState(true);
   const [requestOpen, setRequestOpen] = useState(false);
   const [preselectedTime, setPreselectedTime] = useState<string>("");
+  const [descExpanded, setDescExpanded] = useState(false);
 
   // Día que se está visualizando (por defecto: el filtrado o hoy)
   const initialViewDate = useMemo(() => {
@@ -217,12 +218,12 @@ const ProfessionalPublicProfile = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto max-w-2xl px-4 pt-24 pb-16">
+      <div className="container mx-auto max-w-2xl px-3 pt-20 pb-12 sm:px-4 sm:pt-24 sm:pb-16">
         <motion.button
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           onClick={() => navigate(-1)}
-          className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline"
+          className="mb-3 inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline"
         >
           <ArrowLeft className="h-4 w-4" /> Volver
         </motion.button>
@@ -231,65 +232,63 @@ const ProfessionalPublicProfile = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border-2 border-border bg-card p-6 shadow-md mb-4"
+          className="rounded-2xl border-2 border-border bg-card p-4 shadow-md mb-3"
         >
-          <div className="flex items-start gap-4">
-            <div className="h-16 w-16 overflow-hidden rounded-full border-2 border-border bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <div className="flex items-start gap-3">
+            <div className="h-14 w-14 overflow-hidden rounded-full border-2 border-border bg-primary/10 flex items-center justify-center flex-shrink-0">
               {profile.photo_url ? (
                 <img src={profile.photo_url} alt={profile.full_name} className="h-full w-full object-cover" />
               ) : (
-                <User className="h-8 w-8 text-primary" />
+                <User className="h-7 w-7 text-primary" />
               )}
             </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h1 className="text-2xl font-bold text-card-foreground">{profile.full_name}</h1>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                <h1 className="text-xl font-bold text-card-foreground leading-tight">{profile.full_name}</h1>
                 {profile.verified && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                    <Shield className="h-3 w-3" /> Verificado
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                    <Shield className="h-2.5 w-2.5" /> Verificado
                   </span>
                 )}
               </div>
-              <p className="text-sm font-semibold text-muted-foreground mb-2">{profile.rubro}</p>
-              <div className="flex items-center gap-2">
+              <p className="text-xs font-semibold text-muted-foreground mb-1.5">{profile.rubro}</p>
+              <div className="flex items-center gap-1.5 flex-wrap">
                 {renderStars(score?.total_score || 3)}
-                <span className="text-lg font-bold text-foreground">{score?.total_score || "3.0"}</span>
-                <span className="text-sm text-muted-foreground">({score?.review_count || 0} reseñas)</span>
+                <span className="text-base font-bold text-foreground">{score?.total_score || "3.0"}</span>
+                <span className="text-xs text-muted-foreground">({score?.review_count || 0} reseñas)</span>
               </div>
             </div>
           </div>
         </motion.div>
 
-        {/* LOCATION + MAP */}
+        {/* LOCATION */}
         {(profile.address || profile.neighborhood) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
-            className="rounded-2xl border-2 border-border bg-card overflow-hidden shadow-md mb-4"
+            className="rounded-2xl border-2 border-border bg-card p-3 shadow-md mb-3"
           >
-            <div className="p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-2 flex-1">
-                  <MapPin className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <div>
-                    {profile.neighborhood && (
-                      <p className="text-sm font-bold text-foreground">{profile.neighborhood}</p>
-                    )}
-                    {profile.address && (
-                      <p className="text-sm text-muted-foreground">{profile.address}</p>
-                    )}
-                  </div>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2 flex-1 min-w-0">
+                <MapPin className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                <div className="min-w-0">
+                  {profile.neighborhood && (
+                    <p className="text-sm font-bold text-foreground truncate">{profile.neighborhood}</p>
+                  )}
+                  {profile.address && (
+                    <p className="text-xs text-muted-foreground truncate">{profile.address}</p>
+                  )}
                 </div>
-                <a
-                  href={mapsLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs font-bold text-primary hover:underline whitespace-nowrap"
-                >
-                  Cómo llegar →
-                </a>
               </div>
+              <a
+                href={mapsLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-bold text-primary hover:underline whitespace-nowrap"
+              >
+                Cómo llegar →
+              </a>
             </div>
           </motion.div>
         )}
@@ -300,9 +299,19 @@ const ProfessionalPublicProfile = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08 }}
-            className="rounded-2xl border-2 border-border bg-card p-4 shadow-md mb-4"
+            className="rounded-2xl border-2 border-border bg-card p-4 shadow-md mb-3"
           >
-            <p className="text-sm text-muted-foreground leading-relaxed">{profile.descripcion}</p>
+            <p className={`text-sm text-muted-foreground leading-relaxed ${descExpanded ? "" : "line-clamp-3"}`}>
+              {profile.descripcion}
+            </p>
+            {profile.descripcion.length > 150 && (
+              <button
+                onClick={() => setDescExpanded((v) => !v)}
+                className="mt-2 text-xs font-bold text-primary hover:underline"
+              >
+                {descExpanded ? "Ver menos" : "Ver más"}
+              </button>
+            )}
           </motion.div>
         )}
 
@@ -311,15 +320,15 @@ const ProfessionalPublicProfile = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="rounded-2xl border-2 border-border bg-card p-4 shadow-md mb-4"
+          className="rounded-2xl border-2 border-border bg-card p-4 shadow-md mb-3"
         >
           <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
             <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" />
-              <h2 className="text-lg font-bold text-card-foreground">
+              <Clock className="h-4 w-4 text-primary" />
+              <h2 className="text-base font-bold text-card-foreground">
                 Disponibilidad{" "}
                 <span className="text-primary">
-                  {isToday ? "hoy" : format(viewDate, "EEEE d 'de' MMMM", { locale: es })}
+                  {isToday ? "hoy" : format(viewDate, "EEE d 'de' MMM", { locale: es })}
                 </span>
               </h2>
             </div>
@@ -425,9 +434,9 @@ const ProfessionalPublicProfile = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="rounded-2xl border-2 border-border bg-card p-6 shadow-md mb-4"
+          className="rounded-2xl border-2 border-border bg-card p-4 shadow-md mb-3"
         >
-          <h2 className="text-lg font-bold text-card-foreground mb-4">Métricas de Ranking</h2>
+          <h2 className="text-base font-bold text-card-foreground mb-3">Métricas de Ranking</h2>
           <div className="space-y-4">
             {metrics.map((m) => (
               <div key={m.label}>
@@ -452,10 +461,10 @@ const ProfessionalPublicProfile = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="rounded-2xl border-2 border-border bg-card p-6 shadow-md"
+          className="rounded-2xl border-2 border-border bg-card p-4 shadow-md"
         >
-          <h2 className="text-lg font-bold text-card-foreground mb-4 flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-primary" />
+          <h2 className="text-base font-bold text-card-foreground mb-3 flex items-center gap-2">
+            <MessageSquare className="h-4 w-4 text-primary" />
             Reseñas ({reviews.length})
           </h2>
           {reviews.length === 0 ? (
