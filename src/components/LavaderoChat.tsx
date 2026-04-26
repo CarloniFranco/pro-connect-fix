@@ -8,13 +8,13 @@ import { toast } from "sonner";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
-const STORAGE_KEY = "fix_chat_messages";
-const ACTIVE_REQ_KEY = "fix_chat_active_request";
+const STORAGE_KEY = "fix_chat_messages_v2";
+const ACTIVE_REQ_KEY = "fix_chat_active_request_v2";
 
 const INITIAL_MSG: Msg = {
   role: "assistant",
   content:
-    "¡Hola! Soy **Fix Bot** 🚗\n\nReservá tu turno de lavadero en 1 minuto. Para arrancar contame:\n\n📍 **¿De qué zona/localidad sos?**\n📅 **¿Qué día y horario te queda cómodo?**\n\nEj: \"Soy de Palermo, mañana a las 15hs\"",
+    "¡Hola! Soy **Fix Bot** 🚗\n\nTe ayudo a reservar un turno de lavadero. Para arrancar:\n\n📍 **¿De qué zona/localidad sos?**",
 };
 
 export default function LavaderoChat() {
