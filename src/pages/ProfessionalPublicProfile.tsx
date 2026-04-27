@@ -79,7 +79,7 @@ const ProfessionalPublicProfile = () => {
       setLoading(true);
 
       const [profileRes, scoreRes, reviewsRes, availRes] = await Promise.all([
-        supabase.from("professional_profiles").select("id, user_id, full_name, rubro, descripcion, photo_url, verified, plan, address, neighborhood, google_maps_url, work_stations").eq("user_id", userId).maybeSingle(),
+        supabase.from("professional_profiles").select("id, user_id, full_name, rubro, descripcion, photo_url, verified, plan, address, neighborhood, google_maps_url, work_stations, slot_duration_minutes").eq("user_id", userId).maybeSingle(),
         supabase.rpc("get_professional_score", { p_professional_id: userId }),
         supabase.from("reviews").select("*").eq("professional_id", userId).order("created_at", { ascending: false }),
         supabase.from("professional_availability").select("day_of_week, start_time, end_time").eq("professional_id", userId).eq("is_active", true),
