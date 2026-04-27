@@ -178,14 +178,25 @@ export default function AvailabilityManager() {
     toast[hadError ? "error" : "success"](hadError ? "Algunos horarios no se guardaron" : "Horario base guardado");
   };
 
-  // Mapa: "YYYY-MM-DD|HH:MM" -> { manual: BlockedSlot[], reservas: BlockedSlot[] }
+  // Mapa: "YYYY-MM-DD|HH:MM" -> { manualByStation: Map<idx, BlockedSlot>, reservas: BlockedSlot[] }
   const occupancyMap = useMemo(() => {
-    const map = new Map<string, { manual: BlockedSlot[]; reservas: BlockedSlot[] }>();
+    const map = new Map<string, { manualByStation: Map<number, BlockedSlot>; reservas: BlockedSlot[] }>();
     blocked.forEach((b) => {
       const k = `${b.slot_date}|${String(b.slot_time).slice(0, 5)}`;
-      const cur = map.get(k) || { manual: [], reservas: [] };
-      if (b.slot_status === "manual_block") cur.manual.push(b);
-      else if (b.slot_status === "paid" || b.slot_status === "pending") cur.reservas.push(b);
+      const cur = map.get(k) || { manualByStation: new Map<number, BlockedSlot>(), reservas: [] };
+      if (b.slot_status === "manual_block") {
+        // Manual blocks track station_index. If null (legacy), assign to first free.
+        if (b.station_index !== null && b.station_index !== undefined) {
+          cur.manualByStation.set(b.station_index, b);
+        } else {
+          // Legacy fallback: place in next available index
+          let i = 0;
+          while (cur.manualByStation.has(i)) i++;
+          cur.manualByStation.set(i, b);
+        }
+      } else if (b.slot_status === "paid" || b.slot_status === "pending") {
+        cur.reservas.push(b);
+      }
       map.set(k, cur);
     });
     return map;
@@ -226,34 +237,40 @@ export default function AvailabilityManager() {
     return slotDate.getTime() <= now.getTime();
   };
 
+  // Determina el estado de una celda (estación específica × hora)
+  const getCellState = (dateISO: string, time: string, stationIdx: number) => {
+    const cur = occupancyMap.get(`${dateISO}|${time}`) || { manualByStation: new Map<number, BlockedSlot>(), reservas: [] };
+    // Las primeras N estaciones quedan ocupadas por reservas (que no tienen station_index asignado todavía)
+    const reservasCount = cur.reservas.length;
+    if (stationIdx < reservasCount) return { type: "reserva" as const, slot: cur.reservas[stationIdx] };
+    const manualSlot = cur.manualByStation.get(stationIdx);
+    if (manualSlot) return { type: "manual" as const, slot: manualSlot };
+    return { type: "free" as const, slot: null };
+  };
+
   // Toggle de una estación específica en un slot
   const toggleStation = async (date: Date, time: string, stationIdx: number) => {
     if (!user) return;
     const dateISO = toISODate(date);
-    const key = `${dateISO}|${time}`;
-    const cur = occupancyMap.get(key) || { manual: [], reservas: [] };
-    const reservasCount = cur.reservas.length;
-    const manualCount = cur.manual.length;
+    const state = getCellState(dateISO, time, stationIdx);
 
-    // Las primeras `reservasCount` estaciones representan reservas (no se tocan)
-    if (stationIdx < reservasCount) {
+    if (state.type === "reserva") {
       toast.info("Esta estación está reservada por un cliente");
       return;
     }
 
-    const busyId = `${key}-${stationIdx}`;
+    const busyId = `${dateISO}|${time}-${stationIdx}`;
     setBusyKey(busyId);
 
-    // Si dentro del rango "manual" => desbloquear (eliminar uno)
-    if (stationIdx < reservasCount + manualCount) {
-      const target = cur.manual[stationIdx - reservasCount];
+    if (state.type === "manual" && state.slot) {
+      // Desbloquear esta estación específica
+      const target = state.slot;
       const { error } = await supabase.from("blocked_slots").delete().eq("id", target.id);
       setBusyKey(null);
       if (error) { toast.error("No se pudo desbloquear"); return; }
-      // optimista
       setBlocked((prev) => prev.filter((b) => b.id !== target.id));
     } else {
-      // Bloquear: insertar manual_block
+      // Bloquear esta estación específica
       const { data, error } = await supabase
         .from("blocked_slots")
         .insert({
@@ -262,8 +279,9 @@ export default function AvailabilityManager() {
           slot_time: `${time}:00`,
           slot_status: "manual_block",
           service_request_id: null,
+          station_index: stationIdx,
         } as any)
-        .select("id, slot_date, slot_time, slot_status, service_request_id")
+        .select("id, slot_date, slot_time, slot_status, service_request_id, station_index")
         .single();
       setBusyKey(null);
       if (error || !data) { toast.error("No se pudo bloquear"); return; }
