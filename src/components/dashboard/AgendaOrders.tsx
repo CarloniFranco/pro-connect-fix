@@ -27,6 +27,9 @@ interface ServiceRequest {
   created_at: string;
   deposit_amount: number | null;
   deposit_paid: boolean;
+  dropoff_mode?: boolean;
+  dropoff_time?: string | null;
+  pickup_time?: string | null;
 }
 
 type TabKey = "pendientes" | "espera" | "confirmados" | "finalizados";
@@ -113,7 +116,7 @@ const AgendaOrders = () => {
     if (!user) return;
     const { data } = await supabase
       .from("service_requests")
-      .select("id, client_name, client_phone, client_address, client_user_id, service_type, description, status, quoted_amount, quoted_details, scheduled_date, scheduled_time, created_at, deposit_amount, deposit_paid")
+      .select("id, client_name, client_phone, client_address, client_user_id, service_type, description, status, quoted_amount, quoted_details, scheduled_date, scheduled_time, created_at, deposit_amount, deposit_paid, dropoff_mode, dropoff_time, pickup_time")
       .eq("professional_id", user.id)
       .order("created_at", { ascending: false });
     setOrders((data as ServiceRequest[]) || []);
@@ -281,6 +284,16 @@ const AgendaOrders = () => {
             <p className="text-xs font-semibold text-muted-foreground mb-1">Servicio</p>
             <p className="text-sm text-foreground">{o.service_type}</p>
           </div>
+          {o.dropoff_mode && (
+            <div className="rounded-lg border-2 border-secondary/40 bg-secondary/10 px-3 py-2">
+              <p className="text-xs font-bold text-secondary flex items-center gap-1">
+                🅿️ Dejá y retirá
+              </p>
+              <p className="text-xs text-foreground mt-0.5">
+                Entrega <strong>{o.dropoff_time?.slice(0, 5) || "—"}</strong> · Retiro <strong>{o.pickup_time?.slice(0, 5) || "—"}</strong>
+              </p>
+            </div>
+          )}
           <div>
             <p className="text-xs font-semibold text-muted-foreground mb-1">Descripción</p>
             <p className="text-sm text-foreground">{o.description}</p>

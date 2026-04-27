@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { CalendarDays, Clock, Send, Loader2, Car, Wrench, DollarSign } from "lucide-react";
+import { CalendarDays, Clock, Send, Loader2, Car, Wrench, DollarSign, ParkingCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -52,6 +53,7 @@ export default function ServiceRequestForm({
   const [workStations, setWorkStations] = useState(1);
   const [proServices, setProServices] = useState<ServiceItem[]>([]);
   const [vehicleTypes, setVehicleTypes] = useState<string[]>([]);
+  const [parkingSpots, setParkingSpots] = useState(0);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [vehicleType, setVehicleType] = useState("");
@@ -59,6 +61,10 @@ export default function ServiceRequestForm({
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [clientProfile, setClientProfile] = useState<{ full_name: string; phone: string; address: string } | null>(null);
+  // Dropoff (dejá y retirá)
+  const [dropoffMode, setDropoffMode] = useState(false);
+  const [dropoffTime, setDropoffTime] = useState("");
+  const [pickupTime, setPickupTime] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -76,7 +82,7 @@ export default function ServiceRequestForm({
 
     supabase
       .from("professional_profiles")
-      .select("work_stations, services, vehicle_types")
+      .select("work_stations, services, vehicle_types, parking_spots")
       .eq("user_id", professionalId)
       .maybeSingle()
       .then(({ data }) => {
@@ -84,6 +90,7 @@ export default function ServiceRequestForm({
         setWorkStations(d?.work_stations || 1);
         setProServices(Array.isArray(d?.services) ? (d.services as ServiceItem[]) : []);
         setVehicleTypes(d?.vehicle_types || []);
+        setParkingSpots(d?.parking_spots ?? 0);
       });
 
     const today = new Date().toISOString().split("T")[0];
@@ -166,26 +173,38 @@ export default function ServiceRequestForm({
     if (!vehicleType) { toast.error("Seleccioná el tipo de vehículo"); return; }
     if (!serviceName) { toast.error("Seleccioná un tipo de lavado"); return; }
     if (totalPrice <= 0) { toast.error("Este servicio no tiene precio cargado para ese vehículo"); return; }
+    if (dropoffMode) {
+      if (!dropoffTime || !pickupTime) { toast.error("Indicá hora de entrega y de retiro"); return; }
+      if (pickupTime <= dropoffTime) { toast.error("La hora de retiro tiene que ser después de la entrega"); return; }
+    }
 
     setLoading(true);
+    const insertPayload: any = {
+      professional_id: professionalId,
+      client_user_id: user.id,
+      client_name: clientProfile?.full_name || user.email?.split("@")[0] || "Cliente",
+      client_phone: clientProfile?.phone || null,
+      client_address: clientProfile?.address || null,
+      service_type: `${serviceName} (${vehicleType})`,
+      description: description.trim(),
+      scheduled_date: selectedDate,
+      scheduled_time: selectedTime + ":00",
+      quoted_amount: totalPrice,
+      deposit_amount: depositAmount,
+      deposit_paid: true,
+      status: "aceptada",
+      responded_at: new Date().toISOString(),
+    };
+    if (dropoffMode) {
+      insertPayload.dropoff_mode = true;
+      insertPayload.dropoff_time = dropoffTime + ":00";
+      insertPayload.pickup_time = pickupTime + ":00";
+      // El profesional definirá la ventana exacta de servicio al aceptar; por ahora la dejamos vacía.
+    }
+
     const { data: inserted, error } = await supabase
       .from("service_requests")
-      .insert({
-        professional_id: professionalId,
-        client_user_id: user.id,
-        client_name: clientProfile?.full_name || user.email?.split("@")[0] || "Cliente",
-        client_phone: clientProfile?.phone || null,
-        client_address: clientProfile?.address || null,
-        service_type: `${serviceName} (${vehicleType})`,
-        description: description.trim(),
-        scheduled_date: selectedDate,
-        scheduled_time: selectedTime + ":00",
-        quoted_amount: totalPrice,
-        deposit_amount: depositAmount,
-        deposit_paid: true,
-        status: "aceptada",
-        responded_at: new Date().toISOString(),
-      } as any)
+      .insert(insertPayload)
       .select("id")
       .single();
 
@@ -207,13 +226,20 @@ export default function ServiceRequestForm({
     if (slotError) console.error("blocked_slots error:", slotError);
 
     setLoading(false);
-    toast.success("¡Turno confirmado! La seña quedó registrada.");
+    toast.success(
+      dropoffMode
+        ? "¡Reserva confirmada! Dejá el auto en el horario indicado."
+        : "¡Turno confirmado! La seña quedó registrada."
+    );
     onOpenChange(false);
     setDescription("");
     setSelectedDate("");
     setSelectedTime("");
     setVehicleType("");
     setServiceName("");
+    setDropoffMode(false);
+    setDropoffTime("");
+    setPickupTime("");
   };
 
   const noServicesConfigured = proServices.length === 0 || vehicleTypes.length === 0;
@@ -352,6 +378,60 @@ export default function ServiceRequestForm({
                       {taken && <span className="ml-1 text-[10px] font-bold">· reservado</span>}
                     </button>
                   ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Dropoff "dejá y retirá" — solo si el lavadero tiene estacionamiento */}
+          {parkingSpots > 0 && selectedTime && (
+            <div className="rounded-xl border-2 border-secondary/30 bg-secondary/5 p-3 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <ParkingCircle className="h-4 w-4 text-secondary shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground">Dejá el auto y retiralo más tarde</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Este lavadero tiene {parkingSpots} {parkingSpots === 1 ? "lugar" : "lugares"} de estacionamiento.
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={dropoffMode}
+                  onCheckedChange={(v) => {
+                    setDropoffMode(v);
+                    if (v && !dropoffTime) setDropoffTime(selectedTime);
+                  }}
+                />
+              </div>
+
+              {dropoffMode && (
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[11px] font-semibold text-muted-foreground mb-1 block">
+                      Hora de entrega
+                    </label>
+                    <input
+                      type="time"
+                      value={dropoffTime}
+                      onChange={(e) => setDropoffTime(e.target.value)}
+                      className="w-full rounded-md border border-border bg-card px-2 py-1.5 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-muted-foreground mb-1 block">
+                      Hora de retiro
+                    </label>
+                    <input
+                      type="time"
+                      value={pickupTime}
+                      onChange={(e) => setPickupTime(e.target.value)}
+                      className="w-full rounded-md border border-border bg-card px-2 py-1.5 text-sm"
+                    />
+                  </div>
+                  <p className="col-span-2 text-[10px] text-muted-foreground">
+                    El lavadero te avisará cuando el auto esté listo. Podés retirarlo dentro de la franja indicada.
+                  </p>
                 </div>
               )}
             </div>

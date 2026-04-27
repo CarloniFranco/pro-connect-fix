@@ -210,6 +210,7 @@ export type Database = {
           locality: string
           matricula_url: string | null
           neighborhood: string
+          parking_spots: number
           photo_url: string | null
           plan: string
           province: string
@@ -234,6 +235,7 @@ export type Database = {
           locality?: string
           matricula_url?: string | null
           neighborhood?: string
+          parking_spots?: number
           photo_url?: string | null
           plan?: string
           province?: string
@@ -258,6 +260,7 @@ export type Database = {
           locality?: string
           matricula_url?: string | null
           neighborhood?: string
+          parking_spots?: number
           photo_url?: string | null
           plan?: string
           province?: string
@@ -314,8 +317,11 @@ export type Database = {
           deposit_amount: number | null
           deposit_paid: boolean | null
           description: string
+          dropoff_mode: boolean
+          dropoff_time: string | null
           estimated_duration: number | null
           id: string
+          pickup_time: string | null
           professional_id: string
           quoted_amount: number | null
           quoted_details: string | null
@@ -325,6 +331,8 @@ export type Database = {
           scheduled_date: string | null
           scheduled_time: string | null
           service_type: string
+          service_window_end: string | null
+          service_window_start: string | null
           status: Database["public"]["Enums"]["request_status"]
           updated_at: string
         }
@@ -340,8 +348,11 @@ export type Database = {
           deposit_amount?: number | null
           deposit_paid?: boolean | null
           description?: string
+          dropoff_mode?: boolean
+          dropoff_time?: string | null
           estimated_duration?: number | null
           id?: string
+          pickup_time?: string | null
           professional_id: string
           quoted_amount?: number | null
           quoted_details?: string | null
@@ -351,6 +362,8 @@ export type Database = {
           scheduled_date?: string | null
           scheduled_time?: string | null
           service_type?: string
+          service_window_end?: string | null
+          service_window_start?: string | null
           status?: Database["public"]["Enums"]["request_status"]
           updated_at?: string
         }
@@ -366,8 +379,11 @@ export type Database = {
           deposit_amount?: number | null
           deposit_paid?: boolean | null
           description?: string
+          dropoff_mode?: boolean
+          dropoff_time?: string | null
           estimated_duration?: number | null
           id?: string
+          pickup_time?: string | null
           professional_id?: string
           quoted_amount?: number | null
           quoted_details?: string | null
@@ -377,6 +393,8 @@ export type Database = {
           scheduled_date?: string | null
           scheduled_time?: string | null
           service_type?: string
+          service_window_end?: string | null
+          service_window_start?: string | null
           status?: Database["public"]["Enums"]["request_status"]
           updated_at?: string
         }
