@@ -3,10 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Users, Minus, Plus, Car } from "lucide-react";
+import { Loader2, Users, Minus, Plus, Car, Clock } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+
+const SLOT_DURATION_OPTIONS = [15, 20, 30, 40, 45, 60, 90, 120, 180];
 
 interface WorkStationsManagerProps {
   onSaved?: () => void;
@@ -18,6 +21,8 @@ export default function WorkStationsManager({ onSaved }: WorkStationsManagerProp
   const [initialStations, setInitialStations] = useState<number>(1);
   const [parking, setParking] = useState<number>(0);
   const [initialParking, setInitialParking] = useState<number>(0);
+  const [slotDuration, setSlotDuration] = useState<number>(60);
+  const [initialSlotDuration, setInitialSlotDuration] = useState<number>(60);
   const [rubro, setRubro] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -26,17 +31,20 @@ export default function WorkStationsManager({ onSaved }: WorkStationsManagerProp
     if (!user) return;
     supabase
       .from("professional_profiles")
-      .select("work_stations, parking_spots, rubro")
+      .select("work_stations, parking_spots, rubro, slot_duration_minutes")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         const d = data as any;
         const ws = d?.work_stations || 1;
         const ps = d?.parking_spots ?? 0;
+        const sd = d?.slot_duration_minutes ?? 60;
         setStations(ws);
         setInitialStations(ws);
         setParking(ps);
         setInitialParking(ps);
+        setSlotDuration(sd);
+        setInitialSlotDuration(sd);
         setRubro((d?.rubro || "").toLowerCase());
         setLoading(false);
       });
@@ -48,8 +56,9 @@ export default function WorkStationsManager({ onSaved }: WorkStationsManagerProp
     if (!user) return;
     const ws = Math.max(1, Math.min(20, stations));
     const ps = Math.max(0, Math.min(50, parking));
+    const sd = SLOT_DURATION_OPTIONS.includes(slotDuration) ? slotDuration : 60;
     setSaving(true);
-    const payload: any = { work_stations: ws };
+    const payload: any = { work_stations: ws, slot_duration_minutes: sd };
     if (isLavadero) payload.parking_spots = ps;
     const { error } = await supabase
       .from("professional_profiles")
@@ -63,6 +72,8 @@ export default function WorkStationsManager({ onSaved }: WorkStationsManagerProp
       setStations(ws);
       setInitialParking(ps);
       setParking(ps);
+      setInitialSlotDuration(sd);
+      setSlotDuration(sd);
       toast.success("Configuración actualizada");
       onSaved?.();
     }
@@ -78,7 +89,10 @@ export default function WorkStationsManager({ onSaved }: WorkStationsManagerProp
     );
   }
 
-  const dirty = stations !== initialStations || (isLavadero && parking !== initialParking);
+  const dirty =
+    stations !== initialStations ||
+    slotDuration !== initialSlotDuration ||
+    (isLavadero && parking !== initialParking);
 
   return (
     <Card>
@@ -126,6 +140,38 @@ export default function WorkStationsManager({ onSaved }: WorkStationsManagerProp
               {stations === 1
                 ? "Atención individual"
                 : `Hasta ${stations} en simultáneo`}
+            </span>
+          </div>
+        </div>
+
+        <div className="space-y-2 border-t border-border pt-4">
+          <Label htmlFor="slot-duration" className="flex items-center gap-1.5">
+            <Clock className="h-4 w-4 text-primary" />
+            Duración del turno
+          </Label>
+          <p className="text-[11px] text-muted-foreground">
+            Cuánto dura cada turno en tu agenda. Define cómo se generan las columnas horarias del calendario y los horarios que ven los clientes al reservar.
+          </p>
+          <div className="flex items-center gap-2">
+            <Select
+              value={String(slotDuration)}
+              onValueChange={(v) => setSlotDuration(Number(v))}
+            >
+              <SelectTrigger id="slot-duration" className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SLOT_DURATION_OPTIONS.map((opt) => (
+                  <SelectItem key={opt} value={String(opt)}>
+                    {opt} min
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="text-sm text-muted-foreground">
+              {slotDuration >= 60
+                ? `${Math.floor(slotDuration / 60)}h${slotDuration % 60 ? ` ${slotDuration % 60}m` : ""} por turno`
+                : `${slotDuration} minutos por turno`}
             </span>
           </div>
         </div>

@@ -51,6 +51,7 @@ export default function ServiceRequestForm({
   const [availability, setAvailability] = useState<AvailabilitySlot[]>([]);
   const [blockedSlots, setBlockedSlots] = useState<{ slot_date: string; slot_time: string; slot_status: string }[]>([]);
   const [workStations, setWorkStations] = useState(1);
+  const [slotDuration, setSlotDuration] = useState(60);
   const [proServices, setProServices] = useState<ServiceItem[]>([]);
   const [vehicleTypes, setVehicleTypes] = useState<string[]>([]);
   const [parkingSpots, setParkingSpots] = useState(0);
@@ -82,7 +83,7 @@ export default function ServiceRequestForm({
 
     supabase
       .from("professional_profiles")
-      .select("work_stations, services, vehicle_types, parking_spots")
+      .select("work_stations, services, vehicle_types, parking_spots, slot_duration_minutes")
       .eq("user_id", professionalId)
       .maybeSingle()
       .then(({ data }) => {
@@ -91,6 +92,7 @@ export default function ServiceRequestForm({
         setProServices(Array.isArray(d?.services) ? (d.services as ServiceItem[]) : []);
         setVehicleTypes(d?.vehicle_types || []);
         setParkingSpots(d?.parking_spots ?? 0);
+        setSlotDuration(d?.slot_duration_minutes || 60);
       });
 
     const today = new Date().toISOString().split("T")[0];
@@ -147,16 +149,18 @@ export default function ServiceRequestForm({
       });
 
     const slots: { time: string; taken: boolean }[] = [];
+    const step = Math.max(5, slotDuration || 60);
     dayAvailability.forEach((slot) => {
       const [startH, startM] = slot.start_time.split(":").map(Number);
       const [endH, endM] = slot.end_time.split(":").map(Number);
-      let h = startH, m = startM;
-      while (h < endH || (h === endH && m < endM)) {
+      const startMin = startH * 60 + startM;
+      const endMin = endH * 60 + endM;
+      for (let t = startMin; t + step <= endMin; t += step) {
+        const h = Math.floor(t / 60);
+        const m = t % 60;
         const timeStr = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
         const taken = (occupiedCount.get(timeStr) || 0) >= workStations;
         slots.push({ time: timeStr, taken });
-        m += 60;
-        if (m >= 60) { h++; m = 0; }
       }
     });
     return slots;

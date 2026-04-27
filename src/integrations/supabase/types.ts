@@ -216,6 +216,7 @@ export type Database = {
           province: string
           rubro: string
           services: Json
+          slot_duration_minutes: number
           updated_at: string
           user_id: string
           vehicle_types: string[]
@@ -241,6 +242,7 @@ export type Database = {
           province?: string
           rubro?: string
           services?: Json
+          slot_duration_minutes?: number
           updated_at?: string
           user_id: string
           vehicle_types?: string[]
@@ -266,6 +268,7 @@ export type Database = {
           province?: string
           rubro?: string
           services?: Json
+          slot_duration_minutes?: number
           updated_at?: string
           user_id?: string
           vehicle_types?: string[]

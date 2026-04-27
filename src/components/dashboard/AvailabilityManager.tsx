@@ -50,6 +50,7 @@ export default function AvailabilityManager({ refreshKey = 0 }: AvailabilityMana
   const { user } = useAuth();
   const [slots, setSlots] = useState<Slot[]>([]);
   const [stations, setStations] = useState(1);
+  const [slotDuration, setSlotDuration] = useState(60);
   const [blocked, setBlocked] = useState<BlockedSlot[]>([]);
   const [weekStart, setWeekStart] = useState<Date>(() => startOfWeek(new Date()));
   const [selectedDateISO, setSelectedDateISO] = useState<string>(() => toISODate(new Date()));
@@ -70,7 +71,7 @@ export default function AvailabilityManager({ refreshKey = 0 }: AvailabilityMana
         .order("start_time"),
       supabase
         .from("professional_profiles")
-        .select("work_stations")
+        .select("work_stations, slot_duration_minutes")
         .eq("user_id", user.id)
         .maybeSingle(),
     ]).then(([availRes, profRes]) => {
@@ -80,7 +81,9 @@ export default function AvailabilityManager({ refreshKey = 0 }: AvailabilityMana
         end_time: String(s.end_time).slice(0, 5),
       }));
       setSlots(normalized);
-      setStations((profRes.data as any)?.work_stations || 1);
+      const prof = profRes.data as any;
+      setStations(prof?.work_stations || 1);
+      setSlotDuration(prof?.slot_duration_minutes || 60);
       setLoading(false);
     });
   }, [user, refreshKey]);
@@ -215,19 +218,21 @@ export default function AvailabilityManager({ refreshKey = 0 }: AvailabilityMana
     });
   }, [weekStart]);
 
-  // Generar slots horarios por día según horario base
+  // Generar slots horarios por día según horario base y duración configurada
   const slotsForDay = (date: Date): string[] => {
     const dow = date.getDay();
     const dayAvail = slots.filter((s) => s.day_of_week === dow && s.is_active);
+    const step = Math.max(5, slotDuration || 60);
     const out: string[] = [];
     dayAvail.forEach((a) => {
       const [sh, sm] = a.start_time.split(":").map(Number);
       const [eh, em] = a.end_time.split(":").map(Number);
-      let h = sh, m = sm;
-      while (h < eh || (h === eh && m < em)) {
+      const startMin = sh * 60 + sm;
+      const endMin = eh * 60 + em;
+      for (let t = startMin; t + step <= endMin; t += step) {
+        const h = Math.floor(t / 60);
+        const m = t % 60;
         out.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
-        m += 60;
-        if (m >= 60) { h++; m = 0; }
       }
     });
     return out;

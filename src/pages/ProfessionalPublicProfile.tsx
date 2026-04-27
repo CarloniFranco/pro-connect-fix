@@ -79,7 +79,7 @@ const ProfessionalPublicProfile = () => {
       setLoading(true);
 
       const [profileRes, scoreRes, reviewsRes, availRes] = await Promise.all([
-        supabase.from("professional_profiles").select("id, user_id, full_name, rubro, descripcion, photo_url, verified, plan, address, neighborhood, google_maps_url, work_stations").eq("user_id", userId).maybeSingle(),
+        supabase.from("professional_profiles").select("id, user_id, full_name, rubro, descripcion, photo_url, verified, plan, address, neighborhood, google_maps_url, work_stations, slot_duration_minutes").eq("user_id", userId).maybeSingle(),
         supabase.rpc("get_professional_score", { p_professional_id: userId }),
         supabase.from("reviews").select("*").eq("professional_id", userId).order("created_at", { ascending: false }),
         supabase.from("professional_availability").select("day_of_week, start_time, end_time").eq("professional_id", userId).eq("is_active", true),
@@ -151,22 +151,23 @@ const ProfessionalPublicProfile = () => {
       });
 
     const stations = profile.work_stations || 1;
+    const step = Math.max(5, (profile as any).slot_duration_minutes || 60);
     const nowMin = isToday ? new Date().getHours() * 60 + new Date().getMinutes() : -1;
     const out: { time: string; status: "free" | "full" }[] = [];
 
     dayAvail.forEach((slot) => {
       const [sH, sM] = slot.start_time.split(":").map(Number);
       const [eH, eM] = slot.end_time.split(":").map(Number);
-      let h = sH, m = sM;
-      while (h < eH || (h === eH && m < eM)) {
-        const totalMin = h * 60 + m;
+      const startMin = sH * 60 + sM;
+      const endMin = eH * 60 + eM;
+      for (let totalMin = startMin; totalMin + step <= endMin; totalMin += step) {
         if (totalMin > nowMin) {
+          const h = Math.floor(totalMin / 60);
+          const m = totalMin % 60;
           const t = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
           const isFull = (occupied.get(t) || 0) >= stations;
           out.push({ time: t, status: isFull ? "full" : "free" });
         }
-        m += 60;
-        if (m >= 60) { h++; m = 0; }
       }
     });
     return out;
