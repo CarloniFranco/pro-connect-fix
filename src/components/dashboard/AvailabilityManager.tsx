@@ -108,7 +108,7 @@ export default function AvailabilityManager({ refreshKey = 0 }: AvailabilityMana
     load();
 
     const channel = supabase
-      .channel(`avail-blocked-${user.id}-${from}`)
+      .channel(`avail-blocked-${user.id}-${from}-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "blocked_slots", filter: `professional_id=eq.${user.id}` },
