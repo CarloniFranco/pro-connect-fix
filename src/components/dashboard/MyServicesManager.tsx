@@ -19,6 +19,7 @@ import { PROVINCES, getLocalities } from "@/lib/argentinaLocations";
 interface ServiceItem {
   name: string;
   prices: Record<string, number>; // vehicleType -> price
+  durations?: Record<string, number>; // vehicleType -> minutes
 }
 
 const DEFAULT_VEHICLES = ["Sedán", "SUV", "Camioneta"];
@@ -192,6 +193,17 @@ export default function MyServicesManager() {
     next[idx] = {
       ...next[idx],
       prices: { ...next[idx].prices, [vehicle]: num },
+    };
+    setServices(next);
+  };
+
+  const updateDuration = (idx: number, vehicle: string, value: string) => {
+    const num = value === "" ? 0 : Number(value);
+    if (Number.isNaN(num)) return;
+    const next = [...services];
+    next[idx] = {
+      ...next[idx],
+      durations: { ...(next[idx].durations || {}), [vehicle]: num },
     };
     setServices(next);
   };
@@ -397,7 +409,7 @@ export default function MyServicesManager() {
                     <th className="text-left px-3 py-2 font-semibold">Servicio</th>
                     {vehicleTypes.map((v) => (
                       <th key={v} className="text-left px-3 py-2 font-semibold whitespace-nowrap">
-                        {v} ($)
+                        {v} <span className="text-[10px] font-normal text-muted-foreground">($ y min)</span>
                       </th>
                     ))}
                     <th className="px-2 py-2"></th>
@@ -406,20 +418,31 @@ export default function MyServicesManager() {
                 <tbody>
                   {services.map((s, i) => (
                     <tr key={`${s.name}-${i}`} className="border-t border-border">
-                      <td className="px-3 py-2 font-medium">{s.name}</td>
+                      <td className="px-3 py-2 font-medium align-top">{s.name}</td>
                       {vehicleTypes.map((v) => (
-                        <td key={v} className="px-3 py-2">
-                          <Input
-                            type="number"
-                            min={0}
-                            value={s.prices[v] ?? ""}
-                            onChange={(e) => updatePrice(i, v, e.target.value)}
-                            placeholder="0"
-                            className="h-8 w-24"
-                          />
+                        <td key={v} className="px-3 py-2 align-top">
+                          <div className="flex flex-col gap-1">
+                            <Input
+                              type="number"
+                              min={0}
+                              value={s.prices[v] ?? ""}
+                              onChange={(e) => updatePrice(i, v, e.target.value)}
+                              placeholder="Precio $"
+                              className="h-8 w-28"
+                            />
+                            <Input
+                              type="number"
+                              min={0}
+                              step={5}
+                              value={s.durations?.[v] ?? ""}
+                              onChange={(e) => updateDuration(i, v, e.target.value)}
+                              placeholder="Duración min"
+                              className="h-7 w-28 text-[11px]"
+                            />
+                          </div>
                         </td>
                       ))}
-                      <td className="px-2 py-2">
+                      <td className="px-2 py-2 align-top">
                         <button
                           onClick={() => removeService(i)}
                           disabled={saving}
