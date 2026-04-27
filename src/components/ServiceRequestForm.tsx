@@ -18,6 +18,7 @@ import {
 interface ServiceItem {
   name: string;
   prices: Record<string, number>;
+  durations?: Record<string, number>;
 }
 
 interface ServiceRequestFormProps {
@@ -49,7 +50,7 @@ export default function ServiceRequestForm({
 }: ServiceRequestFormProps) {
   const { user } = useAuth();
   const [availability, setAvailability] = useState<AvailabilitySlot[]>([]);
-  const [blockedSlots, setBlockedSlots] = useState<{ slot_date: string; slot_time: string; slot_status: string }[]>([]);
+  const [blockedSlots, setBlockedSlots] = useState<{ slot_date: string; slot_time: string; slot_end_time: string | null; slot_status: string }[]>([]);
   const [workStations, setWorkStations] = useState(1);
   const [slotDuration, setSlotDuration] = useState(60);
   const [proServices, setProServices] = useState<ServiceItem[]>([]);
