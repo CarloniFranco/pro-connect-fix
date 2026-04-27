@@ -89,7 +89,10 @@ export default function WorkStationsManager({ onSaved }: WorkStationsManagerProp
     );
   }
 
-  const dirty = stations !== initialStations || (isLavadero && parking !== initialParking);
+  const dirty =
+    stations !== initialStations ||
+    slotDuration !== initialSlotDuration ||
+    (isLavadero && parking !== initialParking);
 
   return (
     <Card>
