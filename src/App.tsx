@@ -69,6 +69,7 @@ const App = () => (
             <Route path="/mi-perfil-pro" element={<PrivateRoute><ProProfileView /></PrivateRoute>} />
             <Route path="/historial-trabajos" element={<PrivateRoute><ProWorkHistory /></PrivateRoute>} />
             <Route path="/mi-suscripcion" element={<PrivateRoute><ProSubscription /></PrivateRoute>} />
+            <Route path="/indicadores" element={<PrivateRoute><ProIndicators /></PrivateRoute>} />
             <Route path="/seleccionar-plan" element={<PrivateRoute><PlanSelection /></PrivateRoute>} />
             <Route path="/configurar-pago" element={<PrivateRoute><PaymentSetup /></PrivateRoute>} />
             <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
