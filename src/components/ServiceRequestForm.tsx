@@ -203,8 +203,7 @@ export default function ServiceRequestForm({
   })();
 
   // Pricing
-  const selectedService = proServices.find((s) => s.name === serviceName);
-  const totalPrice = selectedService && vehicleType ? selectedService.prices[vehicleType] || 0 : 0;
+  const totalPrice = selectedServiceItem && vehicleType ? selectedServiceItem.prices[vehicleType] || 0 : 0;
   const depositAmount = Math.round(totalPrice * 0.1);
 
   const handleSubmit = async () => {
@@ -234,6 +233,7 @@ export default function ServiceRequestForm({
       deposit_paid: true,
       status: "aceptada",
       responded_at: new Date().toISOString(),
+      estimated_duration: serviceDurationMin,
     };
     if (dropoffMode) {
       insertPayload.dropoff_mode = true;
@@ -255,14 +255,30 @@ export default function ServiceRequestForm({
       return;
     }
 
-    // Block the slot so nobody else can book it
-    const { error: slotError } = await supabase.from("blocked_slots").insert({
-      professional_id: professionalId,
-      service_request_id: inserted.id,
-      slot_date: selectedDate,
-      slot_time: selectedTime + ":00",
-      slot_status: "paid",
-    } as any);
+    // Bloquear todos los slots consecutivos que abarca este servicio
+    const step = Math.max(5, slotDuration || 60);
+    const slotsNeeded = Math.max(1, Math.ceil(serviceDurationMin / step));
+    const startMin = toMin(selectedTime);
+    const endMin = startMin + slotsNeeded * step;
+    const endH = Math.floor(endMin / 60);
+    const endM = endMin % 60;
+    const endTimeStr = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}:00`;
+
+    const blockedInserts: any[] = [];
+    for (let k = 0; k < slotsNeeded; k++) {
+      const tt = startMin + k * step;
+      const hh = Math.floor(tt / 60);
+      const mm = tt % 60;
+      blockedInserts.push({
+        professional_id: professionalId,
+        service_request_id: inserted.id,
+        slot_date: selectedDate,
+        slot_time: `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:00`,
+        slot_end_time: endTimeStr,
+        slot_status: "paid",
+      });
+    }
+    const { error: slotError } = await supabase.from("blocked_slots").insert(blockedInserts);
     if (slotError) console.error("blocked_slots error:", slotError);
 
     setLoading(false);
