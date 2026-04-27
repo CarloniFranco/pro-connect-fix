@@ -17,6 +17,7 @@ import ProfessionalProfile from "./pages/ProfessionalProfile.tsx";
 import ProProfileView from "./pages/ProProfileView.tsx";
 import ProWorkHistory from "./pages/ProWorkHistory.tsx";
 import ProSubscription from "./pages/ProSubscription.tsx";
+import ProIndicators from "./pages/ProIndicators.tsx";
 import HomeServices from "./pages/HomeServices.tsx";
 import PersonalServices from "./pages/PersonalServices.tsx";
 import VehicleServices from "./pages/VehicleServices.tsx";
@@ -68,6 +69,7 @@ const App = () => (
             <Route path="/mi-perfil-pro" element={<PrivateRoute><ProProfileView /></PrivateRoute>} />
             <Route path="/historial-trabajos" element={<PrivateRoute><ProWorkHistory /></PrivateRoute>} />
             <Route path="/mi-suscripcion" element={<PrivateRoute><ProSubscription /></PrivateRoute>} />
+            <Route path="/indicadores" element={<PrivateRoute><ProIndicators /></PrivateRoute>} />
             <Route path="/seleccionar-plan" element={<PrivateRoute><PlanSelection /></PrivateRoute>} />
             <Route path="/configurar-pago" element={<PrivateRoute><PaymentSetup /></PrivateRoute>} />
             <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
