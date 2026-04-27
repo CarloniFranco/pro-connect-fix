@@ -383,6 +383,60 @@ export default function ServiceRequestForm({
             </div>
           )}
 
+          {/* Dropoff "dejá y retirá" — solo si el lavadero tiene estacionamiento */}
+          {parkingSpots > 0 && selectedTime && (
+            <div className="rounded-xl border-2 border-secondary/30 bg-secondary/5 p-3 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <ParkingCircle className="h-4 w-4 text-secondary shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground">Dejá el auto y retiralo más tarde</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Este lavadero tiene {parkingSpots} {parkingSpots === 1 ? "lugar" : "lugares"} de estacionamiento.
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={dropoffMode}
+                  onCheckedChange={(v) => {
+                    setDropoffMode(v);
+                    if (v && !dropoffTime) setDropoffTime(selectedTime);
+                  }}
+                />
+              </div>
+
+              {dropoffMode && (
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[11px] font-semibold text-muted-foreground mb-1 block">
+                      Hora de entrega
+                    </label>
+                    <input
+                      type="time"
+                      value={dropoffTime}
+                      onChange={(e) => setDropoffTime(e.target.value)}
+                      className="w-full rounded-md border border-border bg-card px-2 py-1.5 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-muted-foreground mb-1 block">
+                      Hora de retiro
+                    </label>
+                    <input
+                      type="time"
+                      value={pickupTime}
+                      onChange={(e) => setPickupTime(e.target.value)}
+                      className="w-full rounded-md border border-border bg-card px-2 py-1.5 text-sm"
+                    />
+                  </div>
+                  <p className="col-span-2 text-[10px] text-muted-foreground">
+                    El lavadero te avisará cuando el auto esté listo. Podés retirarlo dentro de la franja indicada.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Comments */}
           <div>
             <label className="mb-1 block text-xs font-semibold text-muted-foreground">
