@@ -27,6 +27,9 @@ interface ServiceRequest {
   created_at: string;
   deposit_amount: number | null;
   deposit_paid: boolean;
+  dropoff_mode?: boolean;
+  dropoff_time?: string | null;
+  pickup_time?: string | null;
 }
 
 type TabKey = "pendientes" | "espera" | "confirmados" | "finalizados";
