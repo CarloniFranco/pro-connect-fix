@@ -3,6 +3,7 @@ import { Wrench, User, LogOut, Loader2, Power, ChevronDown, Briefcase, Clipboard
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import MonthlyKPI from "@/components/dashboard/MonthlyKPI";
+import BusinessStats from "@/components/dashboard/BusinessStats";
 import AIReportGenerator from "@/components/dashboard/AIReportGenerator";
 import CalendarAgenda from "@/components/dashboard/CalendarAgenda";
 import AgendaOrders from "@/components/dashboard/AgendaOrders";
