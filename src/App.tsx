@@ -17,6 +17,7 @@ import ProfessionalProfile from "./pages/ProfessionalProfile.tsx";
 import ProProfileView from "./pages/ProProfileView.tsx";
 import ProWorkHistory from "./pages/ProWorkHistory.tsx";
 import ProSubscription from "./pages/ProSubscription.tsx";
+import ProIndicators from "./pages/ProIndicators.tsx";
 import HomeServices from "./pages/HomeServices.tsx";
 import PersonalServices from "./pages/PersonalServices.tsx";
 import VehicleServices from "./pages/VehicleServices.tsx";
