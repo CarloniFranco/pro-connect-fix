@@ -23,6 +23,7 @@ interface BlockedSlot {
   id: string;
   slot_date: string;
   slot_time: string;
+  slot_end_time: string | null;
   slot_status: string;
   service_request_id: string | null;
   station_index: number | null;
@@ -99,7 +100,7 @@ export default function AvailabilityManager({ refreshKey = 0 }: AvailabilityMana
     const load = () => {
       supabase
         .from("blocked_slots")
-        .select("id, slot_date, slot_time, slot_status, service_request_id, station_index")
+        .select("id, slot_date, slot_time, slot_end_time, slot_status, service_request_id, station_index")
         .eq("professional_id", user.id)
         .gte("slot_date", from)
         .lte("slot_date", to)
