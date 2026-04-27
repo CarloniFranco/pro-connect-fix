@@ -92,7 +92,7 @@ export default function AvailabilityManager() {
     const load = () => {
       supabase
         .from("blocked_slots")
-        .select("id, slot_date, slot_time, slot_status, service_request_id")
+        .select("id, slot_date, slot_time, slot_status, service_request_id, station_index")
         .eq("professional_id", user.id)
         .gte("slot_date", from)
         .lte("slot_date", to)
