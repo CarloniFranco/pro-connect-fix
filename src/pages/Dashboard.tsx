@@ -158,7 +158,6 @@ const Dashboard = () => {
         <MyServicesManager />
         <WorkStationsManager onSaved={() => setStationsVersion((v) => v + 1)} />
         <AvailabilityManager refreshKey={stationsVersion} />
-        <AvailabilityManager refreshKey={stationsVersion} />
       </main>
     </div>
   );
