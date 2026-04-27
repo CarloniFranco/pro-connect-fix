@@ -409,7 +409,7 @@ export default function MyServicesManager() {
                     <th className="text-left px-3 py-2 font-semibold">Servicio</th>
                     {vehicleTypes.map((v) => (
                       <th key={v} className="text-left px-3 py-2 font-semibold whitespace-nowrap">
-                        {v} ($)
+                        {v} <span className="text-[10px] font-normal text-muted-foreground">($ y min)</span>
                       </th>
                     ))}
                     <th className="px-2 py-2"></th>
