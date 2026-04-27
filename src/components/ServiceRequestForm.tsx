@@ -51,6 +51,7 @@ export default function ServiceRequestForm({
   const [availability, setAvailability] = useState<AvailabilitySlot[]>([]);
   const [blockedSlots, setBlockedSlots] = useState<{ slot_date: string; slot_time: string; slot_status: string }[]>([]);
   const [workStations, setWorkStations] = useState(1);
+  const [slotDuration, setSlotDuration] = useState(60);
   const [proServices, setProServices] = useState<ServiceItem[]>([]);
   const [vehicleTypes, setVehicleTypes] = useState<string[]>([]);
   const [parkingSpots, setParkingSpots] = useState(0);
