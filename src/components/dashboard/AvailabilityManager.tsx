@@ -25,6 +25,7 @@ interface BlockedSlot {
   slot_time: string;
   slot_status: string;
   service_request_id: string | null;
+  station_index: number | null;
 }
 
 const toISODate = (d: Date) => {
