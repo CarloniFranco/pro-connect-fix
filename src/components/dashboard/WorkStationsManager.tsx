@@ -21,6 +21,8 @@ export default function WorkStationsManager({ onSaved }: WorkStationsManagerProp
   const [initialStations, setInitialStations] = useState<number>(1);
   const [parking, setParking] = useState<number>(0);
   const [initialParking, setInitialParking] = useState<number>(0);
+  const [slotDuration, setSlotDuration] = useState<number>(60);
+  const [initialSlotDuration, setInitialSlotDuration] = useState<number>(60);
   const [rubro, setRubro] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -29,17 +31,20 @@ export default function WorkStationsManager({ onSaved }: WorkStationsManagerProp
     if (!user) return;
     supabase
       .from("professional_profiles")
-      .select("work_stations, parking_spots, rubro")
+      .select("work_stations, parking_spots, rubro, slot_duration_minutes")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         const d = data as any;
         const ws = d?.work_stations || 1;
         const ps = d?.parking_spots ?? 0;
+        const sd = d?.slot_duration_minutes ?? 60;
         setStations(ws);
         setInitialStations(ws);
         setParking(ps);
         setInitialParking(ps);
+        setSlotDuration(sd);
+        setInitialSlotDuration(sd);
         setRubro((d?.rubro || "").toLowerCase());
         setLoading(false);
       });
@@ -51,8 +56,9 @@ export default function WorkStationsManager({ onSaved }: WorkStationsManagerProp
     if (!user) return;
     const ws = Math.max(1, Math.min(20, stations));
     const ps = Math.max(0, Math.min(50, parking));
+    const sd = SLOT_DURATION_OPTIONS.includes(slotDuration) ? slotDuration : 60;
     setSaving(true);
-    const payload: any = { work_stations: ws };
+    const payload: any = { work_stations: ws, slot_duration_minutes: sd };
     if (isLavadero) payload.parking_spots = ps;
     const { error } = await supabase
       .from("professional_profiles")
@@ -66,6 +72,8 @@ export default function WorkStationsManager({ onSaved }: WorkStationsManagerProp
       setStations(ws);
       setInitialParking(ps);
       setParking(ps);
+      setInitialSlotDuration(sd);
+      setSlotDuration(sd);
       toast.success("Configuración actualizada");
       onSaved?.();
     }
