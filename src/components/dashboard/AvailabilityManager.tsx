@@ -493,12 +493,10 @@ export default function AvailabilityManager() {
                         </td>
                         {dayTimes.map((time) => {
                           const key = `${selectedDateISO}|${time}`;
-                          const cur = occupancyMap.get(key) || { manual: [], reservas: [] };
-                          const reservasCount = cur.reservas.length;
-                          const manualCount = cur.manual.length;
-                          const isReserva = sIdx < reservasCount;
-                          const isManual = !isReserva && sIdx < reservasCount + manualCount;
-                          const isFree = !isReserva && !isManual;
+                          const state = getCellState(selectedDateISO, time, sIdx);
+                          const isReserva = state.type === "reserva";
+                          const isManual = state.type === "manual";
+                          const isFree = state.type === "free";
                           const past = isPast(selectedDate, time);
                           const busy = busyKey === `${key}-${sIdx}`;
                           return (
