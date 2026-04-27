@@ -42,7 +42,11 @@ const startOfWeek = (d: Date) => {
   return x;
 };
 
-export default function AvailabilityManager() {
+interface AvailabilityManagerProps {
+  refreshKey?: number;
+}
+
+export default function AvailabilityManager({ refreshKey = 0 }: AvailabilityManagerProps = {}) {
   const { user } = useAuth();
   const [slots, setSlots] = useState<Slot[]>([]);
   const [stations, setStations] = useState(1);
@@ -79,7 +83,7 @@ export default function AvailabilityManager() {
       setStations((profRes.data as any)?.work_stations || 1);
       setLoading(false);
     });
-  }, [user]);
+  }, [user, refreshKey]);
 
   // Cargar slots bloqueados de la semana visible + realtime
   useEffect(() => {
