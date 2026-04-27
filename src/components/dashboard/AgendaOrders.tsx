@@ -116,7 +116,7 @@ const AgendaOrders = () => {
     if (!user) return;
     const { data } = await supabase
       .from("service_requests")
-      .select("id, client_name, client_phone, client_address, client_user_id, service_type, description, status, quoted_amount, quoted_details, scheduled_date, scheduled_time, created_at, deposit_amount, deposit_paid")
+      .select("id, client_name, client_phone, client_address, client_user_id, service_type, description, status, quoted_amount, quoted_details, scheduled_date, scheduled_time, created_at, deposit_amount, deposit_paid, dropoff_mode, dropoff_time, pickup_time")
       .eq("professional_id", user.id)
       .order("created_at", { ascending: false });
     setOrders((data as ServiceRequest[]) || []);
