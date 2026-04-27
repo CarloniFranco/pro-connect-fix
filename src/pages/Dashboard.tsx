@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, User, LogOut, Loader2, Power } from "lucide-react";
+import { Wrench, User, LogOut, Loader2, Power, ChevronDown, Briefcase, ClipboardList, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import MonthlyKPI from "@/components/dashboard/MonthlyKPI";
@@ -9,7 +9,15 @@ import AgendaOrders from "@/components/dashboard/AgendaOrders";
 import AvailabilityManager from "@/components/dashboard/AvailabilityManager";
 import MyServicesManager from "@/components/dashboard/MyServicesManager";
 import WorkStationsManager from "@/components/dashboard/WorkStationsManager";
+import NotificationBell from "@/components/NotificationBell";
 import { Switch } from "@/components/ui/switch";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -19,6 +27,7 @@ const Dashboard = () => {
   const [profileName, setProfileName] = useState("");
   const [available, setAvailable] = useState(true);
   const [togglingAvailable, setTogglingAvailable] = useState(false);
+  const [stationsVersion, setStationsVersion] = useState(0);
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
@@ -54,6 +63,11 @@ const Dashboard = () => {
     }
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -69,18 +83,47 @@ const Dashboard = () => {
         style={{ paddingTop: "env(safe-area-inset-top)" }}
       >
         <div className="container mx-auto flex h-14 max-w-4xl items-center justify-between gap-2 px-3 sm:px-4">
-          <button onClick={() => navigate("/")} className="flex shrink-0 items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="hidden xs:inline sm:inline">Volver</span>
-          </button>
-          <h1 className="truncate font-display text-base font-bold text-foreground sm:text-lg">Mi Panel</h1>
           <div className="flex shrink-0 items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
-              <User className="h-4 w-4 text-primary-foreground" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shadow-sm">
+              <Wrench className="h-4 w-4 text-primary-foreground" />
             </div>
-            <button onClick={signOut} aria-label="Cerrar sesión" className="p-1 text-muted-foreground hover:text-foreground">
-              <LogOut className="h-4 w-4" />
-            </button>
+            <span className="font-display text-lg font-bold text-foreground">FIX</span>
+          </div>
+          <h1 className="truncate font-display text-base font-bold text-foreground sm:text-lg">Mi Panel</h1>
+          <div className="flex shrink-0 items-center gap-1">
+            <NotificationBell />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="inline-flex min-w-0 items-center gap-1.5 rounded-lg bg-muted px-2 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted/80 sm:gap-2 sm:px-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary">
+                    <User className="h-3 w-3 text-primary-foreground" />
+                  </div>
+                  <span className="hidden max-w-[120px] truncate sm:inline">
+                    {profileName || "Mi cuenta"}
+                  </span>
+                  <ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem onClick={() => navigate("/mi-perfil-pro")}>
+                  <Briefcase className="mr-2 h-4 w-4" />
+                  Mi Perfil Profesional
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/historial-trabajos")}>
+                  <ClipboardList className="mr-2 h-4 w-4" />
+                  Historial de Trabajos
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/mi-suscripcion")}>
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Mi Suscripción
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Cerrar sesión
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
@@ -113,8 +156,8 @@ const Dashboard = () => {
         <CalendarAgenda />
         <AgendaOrders />
         <MyServicesManager />
-        <WorkStationsManager />
-        <AvailabilityManager />
+        <WorkStationsManager onSaved={() => setStationsVersion((v) => v + 1)} />
+        <AvailabilityManager refreshKey={stationsVersion} />
       </main>
     </div>
   );

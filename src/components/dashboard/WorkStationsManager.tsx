@@ -8,7 +8,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
-export default function WorkStationsManager() {
+interface WorkStationsManagerProps {
+  onSaved?: () => void;
+}
+
+export default function WorkStationsManager({ onSaved }: WorkStationsManagerProps = {}) {
   const { user } = useAuth();
   const [stations, setStations] = useState<number>(1);
   const [initial, setInitial] = useState<number>(1);
@@ -45,6 +49,7 @@ export default function WorkStationsManager() {
       setInitial(value);
       setStations(value);
       toast.success("Estaciones de trabajo actualizadas");
+      onSaved?.();
     }
   };
 
