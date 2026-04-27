@@ -71,7 +71,7 @@ export default function AvailabilityManager({ refreshKey = 0 }: AvailabilityMana
         .order("start_time"),
       supabase
         .from("professional_profiles")
-        .select("work_stations")
+        .select("work_stations, slot_duration_minutes")
         .eq("user_id", user.id)
         .maybeSingle(),
     ]).then(([availRes, profRes]) => {
@@ -81,7 +81,9 @@ export default function AvailabilityManager({ refreshKey = 0 }: AvailabilityMana
         end_time: String(s.end_time).slice(0, 5),
       }));
       setSlots(normalized);
-      setStations((profRes.data as any)?.work_stations || 1);
+      const prof = profRes.data as any;
+      setStations(prof?.work_stations || 1);
+      setSlotDuration(prof?.slot_duration_minutes || 60);
       setLoading(false);
     });
   }, [user, refreshKey]);
