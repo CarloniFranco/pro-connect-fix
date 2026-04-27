@@ -304,16 +304,18 @@ export default function AvailabilityManager() {
     const inserts: any[] = [];
     for (const time of todaySlots) {
       const key = `${today}|${time}`;
-      const cur = occupancyMap.get(key) || { manual: [], reservas: [] };
-      const taken = cur.manual.length + cur.reservas.length;
-      const free = stations - taken;
-      for (let i = 0; i < free; i++) {
+      const cur = occupancyMap.get(key) || { manualByStation: new Map<number, BlockedSlot>(), reservas: [] };
+      const reservasCount = cur.reservas.length;
+      // Bloquear toda estación que no esté reservada y no esté ya bloqueada
+      for (let sIdx = reservasCount; sIdx < stations; sIdx++) {
+        if (cur.manualByStation.has(sIdx)) continue;
         inserts.push({
           professional_id: user.id,
           slot_date: today,
           slot_time: `${time}:00`,
           slot_status: "manual_block",
           service_request_id: null,
+          station_index: sIdx,
         });
       }
     }
