@@ -156,6 +156,7 @@ const Dashboard = () => {
         <AIReportGenerator />
         <CalendarAgenda />
         <AgendaOrders />
+        <BusinessStats />
         <MyServicesManager />
         <WorkStationsManager onSaved={() => setStationsVersion((v) => v + 1)} />
         <AvailabilityManager refreshKey={stationsVersion} />
