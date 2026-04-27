@@ -53,6 +53,7 @@ export default function ServiceRequestForm({
   const [workStations, setWorkStations] = useState(1);
   const [proServices, setProServices] = useState<ServiceItem[]>([]);
   const [vehicleTypes, setVehicleTypes] = useState<string[]>([]);
+  const [parkingSpots, setParkingSpots] = useState(0);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [vehicleType, setVehicleType] = useState("");
@@ -60,6 +61,10 @@ export default function ServiceRequestForm({
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [clientProfile, setClientProfile] = useState<{ full_name: string; phone: string; address: string } | null>(null);
+  // Dropoff (dejá y retirá)
+  const [dropoffMode, setDropoffMode] = useState(false);
+  const [dropoffTime, setDropoffTime] = useState("");
+  const [pickupTime, setPickupTime] = useState("");
 
   useEffect(() => {
     if (!open) return;
