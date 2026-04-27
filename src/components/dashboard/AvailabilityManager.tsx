@@ -59,6 +59,8 @@ export default function AvailabilityManager({ refreshKey = 0 }: AvailabilityMana
   const [saving, setSaving] = useState(false);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [showSchedule, setShowSchedule] = useState(false);
+  const [blockModal, setBlockModal] = useState<{ date: Date; time: string; stationIdx: number } | null>(null);
+  const [blockMinutes, setBlockMinutes] = useState<number>(60);
 
   // Cargar disponibilidad semanal y estaciones
   useEffect(() => {
