@@ -144,6 +144,38 @@ export default function WorkStationsManager({ onSaved }: WorkStationsManagerProp
           </div>
         </div>
 
+        <div className="space-y-2 border-t border-border pt-4">
+          <Label htmlFor="slot-duration" className="flex items-center gap-1.5">
+            <Clock className="h-4 w-4 text-primary" />
+            Duración del turno
+          </Label>
+          <p className="text-[11px] text-muted-foreground">
+            Cuánto dura cada turno en tu agenda. Define cómo se generan las columnas horarias del calendario y los horarios que ven los clientes al reservar.
+          </p>
+          <div className="flex items-center gap-2">
+            <Select
+              value={String(slotDuration)}
+              onValueChange={(v) => setSlotDuration(Number(v))}
+            >
+              <SelectTrigger id="slot-duration" className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SLOT_DURATION_OPTIONS.map((opt) => (
+                  <SelectItem key={opt} value={String(opt)}>
+                    {opt} min
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="text-sm text-muted-foreground">
+              {slotDuration >= 60
+                ? `${Math.floor(slotDuration / 60)}h${slotDuration % 60 ? ` ${slotDuration % 60}m` : ""} por turno`
+                : `${slotDuration} minutos por turno`}
+            </span>
+          </div>
+        </div>
+
         {isLavadero && (
           <div className="space-y-2 border-t border-border pt-4">
             <Label htmlFor="parking" className="flex items-center gap-1.5">
