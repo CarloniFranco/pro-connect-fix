@@ -82,7 +82,7 @@ export default function ServiceRequestForm({
 
     supabase
       .from("professional_profiles")
-      .select("work_stations, services, vehicle_types")
+      .select("work_stations, services, vehicle_types, parking_spots")
       .eq("user_id", professionalId)
       .maybeSingle()
       .then(({ data }) => {
@@ -90,6 +90,7 @@ export default function ServiceRequestForm({
         setWorkStations(d?.work_stations || 1);
         setProServices(Array.isArray(d?.services) ? (d.services as ServiceItem[]) : []);
         setVehicleTypes(d?.vehicle_types || []);
+        setParkingSpots(d?.parking_spots ?? 0);
       });
 
     const today = new Date().toISOString().split("T")[0];
