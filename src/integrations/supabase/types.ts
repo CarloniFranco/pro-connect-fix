@@ -25,6 +25,7 @@ export type Database = {
           slot_end_time: string | null
           slot_status: string
           slot_time: string
+          station_index: number | null
         }
         Insert: {
           created_at?: string
@@ -36,6 +37,7 @@ export type Database = {
           slot_end_time?: string | null
           slot_status?: string
           slot_time: string
+          station_index?: number | null
         }
         Update: {
           created_at?: string
@@ -47,6 +49,7 @@ export type Database = {
           slot_end_time?: string | null
           slot_status?: string
           slot_time?: string
+          station_index?: number | null
         }
         Relationships: [
           {

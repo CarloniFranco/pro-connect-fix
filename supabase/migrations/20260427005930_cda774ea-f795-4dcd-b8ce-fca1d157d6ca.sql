@@ -1,0 +1,2 @@
+ALTER TABLE public.blocked_slots ADD COLUMN IF NOT EXISTS station_index integer;
+CREATE INDEX IF NOT EXISTS idx_blocked_slots_station ON public.blocked_slots (professional_id, slot_date, slot_time, station_index);
