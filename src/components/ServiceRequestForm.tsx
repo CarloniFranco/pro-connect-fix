@@ -135,22 +135,45 @@ export default function ServiceRequestForm({
     return dates;
   })();
 
+  // duración del servicio elegido (en minutos), default = slotDuration
+  const selectedServiceItem = proServices.find((s) => s.name === serviceName);
+  const serviceDurationMin = (() => {
+    const d = selectedServiceItem?.durations?.[vehicleType];
+    if (d && d > 0) return d;
+    return slotDuration;
+  })();
+
+  const toMin = (hhmm: string) => {
+    const [h, m] = hhmm.split(":").map(Number);
+    return h * 60 + m;
+  };
+
   const timeSlots = (() => {
     if (!selectedDate) return [] as { time: string; taken: boolean }[];
     const d = new Date(selectedDate + "T00:00:00");
     const dow = d.getDay();
     const dayAvailability = availability.filter((a) => a.day_of_week === dow);
+    const step = Math.max(5, slotDuration || 60);
 
+    // Cuenta de ocupación por slot (cada slot intermedio cuenta como ocupado)
     const occupiedCount = new Map<string, number>();
     blockedSlots
       .filter((b) => b.slot_date === selectedDate && (b.slot_status === "paid" || b.slot_status === "pending" || b.slot_status === "manual_block"))
       .forEach((b) => {
-        const key = b.slot_time.slice(0, 5);
-        occupiedCount.set(key, (occupiedCount.get(key) || 0) + 1);
+        const startMinB = toMin(b.slot_time.slice(0, 5));
+        const endMinB = b.slot_end_time ? toMin(String(b.slot_end_time).slice(0, 5)) : startMinB + step;
+        for (let t = startMinB; t < endMinB; t += step) {
+          const h = Math.floor(t / 60);
+          const m = t % 60;
+          const k = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+          occupiedCount.set(k, (occupiedCount.get(k) || 0) + 1);
+        }
       });
 
+    // Cuántos slots consecutivos necesita este servicio
+    const slotsNeeded = Math.max(1, Math.ceil(serviceDurationMin / step));
+
     const slots: { time: string; taken: boolean }[] = [];
-    const step = Math.max(5, slotDuration || 60);
     dayAvailability.forEach((slot) => {
       const [startH, startM] = slot.start_time.split(":").map(Number);
       const [endH, endM] = slot.end_time.split(":").map(Number);
@@ -160,7 +183,19 @@ export default function ServiceRequestForm({
         const h = Math.floor(t / 60);
         const m = t % 60;
         const timeStr = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-        const taken = (occupiedCount.get(timeStr) || 0) >= workStations;
+        // Necesita slotsNeeded consecutivos disponibles
+        let taken = false;
+        if (t + slotsNeeded * step > endMin) {
+          taken = true; // no alcanza para terminar dentro del horario
+        } else {
+          for (let k = 0; k < slotsNeeded; k++) {
+            const tt = t + k * step;
+            const hh = Math.floor(tt / 60);
+            const mm = tt % 60;
+            const key = `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+            if ((occupiedCount.get(key) || 0) >= workStations) { taken = true; break; }
+          }
+        }
         slots.push({ time: timeStr, taken });
       }
     });
