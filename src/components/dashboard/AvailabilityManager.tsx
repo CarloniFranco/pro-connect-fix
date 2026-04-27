@@ -50,6 +50,7 @@ export default function AvailabilityManager({ refreshKey = 0 }: AvailabilityMana
   const { user } = useAuth();
   const [slots, setSlots] = useState<Slot[]>([]);
   const [stations, setStations] = useState(1);
+  const [slotDuration, setSlotDuration] = useState(60);
   const [blocked, setBlocked] = useState<BlockedSlot[]>([]);
   const [weekStart, setWeekStart] = useState<Date>(() => startOfWeek(new Date()));
   const [selectedDateISO, setSelectedDateISO] = useState<string>(() => toISODate(new Date()));
