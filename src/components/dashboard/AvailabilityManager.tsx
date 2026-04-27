@@ -218,19 +218,21 @@ export default function AvailabilityManager({ refreshKey = 0 }: AvailabilityMana
     });
   }, [weekStart]);
 
-  // Generar slots horarios por día según horario base
+  // Generar slots horarios por día según horario base y duración configurada
   const slotsForDay = (date: Date): string[] => {
     const dow = date.getDay();
     const dayAvail = slots.filter((s) => s.day_of_week === dow && s.is_active);
+    const step = Math.max(5, slotDuration || 60);
     const out: string[] = [];
     dayAvail.forEach((a) => {
       const [sh, sm] = a.start_time.split(":").map(Number);
       const [eh, em] = a.end_time.split(":").map(Number);
-      let h = sh, m = sm;
-      while (h < eh || (h === eh && m < em)) {
+      const startMin = sh * 60 + sm;
+      const endMin = eh * 60 + em;
+      for (let t = startMin; t + step <= endMin; t += step) {
+        const h = Math.floor(t / 60);
+        const m = t % 60;
         out.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
-        m += 60;
-        if (m >= 60) { h++; m = 0; }
       }
     });
     return out;
