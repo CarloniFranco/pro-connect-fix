@@ -151,22 +151,23 @@ const ProfessionalPublicProfile = () => {
       });
 
     const stations = profile.work_stations || 1;
+    const step = Math.max(5, (profile as any).slot_duration_minutes || 60);
     const nowMin = isToday ? new Date().getHours() * 60 + new Date().getMinutes() : -1;
     const out: { time: string; status: "free" | "full" }[] = [];
 
     dayAvail.forEach((slot) => {
       const [sH, sM] = slot.start_time.split(":").map(Number);
       const [eH, eM] = slot.end_time.split(":").map(Number);
-      let h = sH, m = sM;
-      while (h < eH || (h === eH && m < eM)) {
-        const totalMin = h * 60 + m;
+      const startMin = sH * 60 + sM;
+      const endMin = eH * 60 + eM;
+      for (let totalMin = startMin; totalMin + step <= endMin; totalMin += step) {
         if (totalMin > nowMin) {
+          const h = Math.floor(totalMin / 60);
+          const m = totalMin % 60;
           const t = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
           const isFull = (occupied.get(t) || 0) >= stations;
           out.push({ time: t, status: isFull ? "full" : "free" });
         }
-        m += 60;
-        if (m >= 60) { h++; m = 0; }
       }
     });
     return out;
