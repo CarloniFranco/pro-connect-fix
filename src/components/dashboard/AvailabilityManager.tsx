@@ -543,8 +543,8 @@ export default function AvailabilityManager() {
                       </td>
                       {dayTimes.map((time) => {
                         const key = `${selectedDateISO}|${time}`;
-                        const cur = occupancyMap.get(key) || { manual: [], reservas: [] };
-                        const free = Math.max(0, stations - cur.reservas.length - cur.manual.length);
+                        const cur = occupancyMap.get(key) || { manualByStation: new Map<number, BlockedSlot>(), reservas: [] };
+                        const free = Math.max(0, stations - cur.reservas.length - cur.manualByStation.size);
                         return (
                           <td
                             key={time}
