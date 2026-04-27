@@ -284,6 +284,16 @@ const AgendaOrders = () => {
             <p className="text-xs font-semibold text-muted-foreground mb-1">Servicio</p>
             <p className="text-sm text-foreground">{o.service_type}</p>
           </div>
+          {o.dropoff_mode && (
+            <div className="rounded-lg border-2 border-secondary/40 bg-secondary/10 px-3 py-2">
+              <p className="text-xs font-bold text-secondary flex items-center gap-1">
+                🅿️ Dejá y retirá
+              </p>
+              <p className="text-xs text-foreground mt-0.5">
+                Entrega <strong>{o.dropoff_time?.slice(0, 5) || "—"}</strong> · Retiro <strong>{o.pickup_time?.slice(0, 5) || "—"}</strong>
+              </p>
+            </div>
+          )}
           <div>
             <p className="text-xs font-semibold text-muted-foreground mb-1">Descripción</p>
             <p className="text-sm text-foreground">{o.description}</p>
