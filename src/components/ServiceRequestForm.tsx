@@ -173,26 +173,38 @@ export default function ServiceRequestForm({
     if (!vehicleType) { toast.error("Seleccioná el tipo de vehículo"); return; }
     if (!serviceName) { toast.error("Seleccioná un tipo de lavado"); return; }
     if (totalPrice <= 0) { toast.error("Este servicio no tiene precio cargado para ese vehículo"); return; }
+    if (dropoffMode) {
+      if (!dropoffTime || !pickupTime) { toast.error("Indicá hora de entrega y de retiro"); return; }
+      if (pickupTime <= dropoffTime) { toast.error("La hora de retiro tiene que ser después de la entrega"); return; }
+    }
 
     setLoading(true);
+    const insertPayload: any = {
+      professional_id: professionalId,
+      client_user_id: user.id,
+      client_name: clientProfile?.full_name || user.email?.split("@")[0] || "Cliente",
+      client_phone: clientProfile?.phone || null,
+      client_address: clientProfile?.address || null,
+      service_type: `${serviceName} (${vehicleType})`,
+      description: description.trim(),
+      scheduled_date: selectedDate,
+      scheduled_time: selectedTime + ":00",
+      quoted_amount: totalPrice,
+      deposit_amount: depositAmount,
+      deposit_paid: true,
+      status: "aceptada",
+      responded_at: new Date().toISOString(),
+    };
+    if (dropoffMode) {
+      insertPayload.dropoff_mode = true;
+      insertPayload.dropoff_time = dropoffTime + ":00";
+      insertPayload.pickup_time = pickupTime + ":00";
+      // El profesional definirá la ventana exacta de servicio al aceptar; por ahora la dejamos vacía.
+    }
+
     const { data: inserted, error } = await supabase
       .from("service_requests")
-      .insert({
-        professional_id: professionalId,
-        client_user_id: user.id,
-        client_name: clientProfile?.full_name || user.email?.split("@")[0] || "Cliente",
-        client_phone: clientProfile?.phone || null,
-        client_address: clientProfile?.address || null,
-        service_type: `${serviceName} (${vehicleType})`,
-        description: description.trim(),
-        scheduled_date: selectedDate,
-        scheduled_time: selectedTime + ":00",
-        quoted_amount: totalPrice,
-        deposit_amount: depositAmount,
-        deposit_paid: true,
-        status: "aceptada",
-        responded_at: new Date().toISOString(),
-      } as any)
+      .insert(insertPayload)
       .select("id")
       .single();
 
@@ -214,13 +226,20 @@ export default function ServiceRequestForm({
     if (slotError) console.error("blocked_slots error:", slotError);
 
     setLoading(false);
-    toast.success("¡Turno confirmado! La seña quedó registrada.");
+    toast.success(
+      dropoffMode
+        ? "¡Reserva confirmada! Dejá el auto en el horario indicado."
+        : "¡Turno confirmado! La seña quedó registrada."
+    );
     onOpenChange(false);
     setDescription("");
     setSelectedDate("");
     setSelectedTime("");
     setVehicleType("");
     setServiceName("");
+    setDropoffMode(false);
+    setDropoffTime("");
+    setPickupTime("");
   };
 
   const noServicesConfigured = proServices.length === 0 || vehicleTypes.length === 0;
