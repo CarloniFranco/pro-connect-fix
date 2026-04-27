@@ -111,6 +111,10 @@ const Dashboard = () => {
                   <ClipboardList className="mr-2 h-4 w-4" />
                   Historial de Trabajos
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/indicadores")}>
+                  <BarChart3 className="mr-2 h-4 w-4" />
+                  Indicadores
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/mi-suscripcion")}>
                   <CreditCard className="mr-2 h-4 w-4" />
                   Mi Suscripción
