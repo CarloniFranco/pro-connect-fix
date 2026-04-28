@@ -81,12 +81,12 @@ const Dashboard = () => {
         style={{ paddingTop: "env(safe-area-inset-top)" }}
       >
         <div className="container mx-auto flex h-14 max-w-4xl items-center justify-between gap-2 px-3 sm:px-4">
-          <div className="flex shrink-0 items-center gap-2">
+          <button onClick={() => navigate("/")} className="flex shrink-0 items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shadow-sm">
               <Wrench className="h-4 w-4 text-primary-foreground" />
             </div>
             <span className="font-display text-lg font-bold text-foreground">FIX</span>
-          </div>
+          </button>
           <h1 className="truncate font-display text-base font-bold text-foreground sm:text-lg">Mi Panel</h1>
           <div className="flex shrink-0 items-center gap-1">
             <NotificationBell />

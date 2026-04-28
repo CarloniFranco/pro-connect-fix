@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Wrench, User, LogOut, ChevronDown, ClipboardList, Briefcase, CreditCard } from "lucide-react";
+import { Wrench, User, LogOut, ChevronDown, ClipboardList, Briefcase, CreditCard, BarChart3 } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -111,6 +111,10 @@ const Navbar = () => {
                   <DropdownMenuItem onClick={() => navigate("/historial-trabajos")}>
                     <ClipboardList className="mr-2 h-4 w-4" />
                     Historial de Trabajos
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/indicadores")}>
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    Indicadores
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/mi-suscripcion")}>
                     <CreditCard className="mr-2 h-4 w-4" />
