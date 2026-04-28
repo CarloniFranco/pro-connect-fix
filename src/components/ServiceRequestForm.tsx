@@ -222,30 +222,14 @@ export default function ServiceRequestForm({
       return;
     }
 
-    // Bloquear todos los slots consecutivos que abarca este servicio
-    const step = Math.max(5, slotDuration || 60);
-    const slotsNeeded = Math.max(1, Math.ceil(serviceDurationMin / step));
-    const startMin = toMin(selectedTime);
-    const endMin = startMin + slotsNeeded * step;
-    const endH = Math.floor(endMin / 60);
-    const endM = endMin % 60;
-    const endTimeStr = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}:00`;
-
-    const blockedInserts: any[] = [];
-    for (let k = 0; k < slotsNeeded; k++) {
-      const tt = startMin + k * step;
-      const hh = Math.floor(tt / 60);
-      const mm = tt % 60;
-      blockedInserts.push({
-        professional_id: professionalId,
-        service_request_id: inserted.id,
-        slot_date: selectedDate,
-        slot_time: `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:00`,
-        slot_end_time: endTimeStr,
-        slot_status: "paid",
-      });
-    }
-    const { error: slotError } = await supabase.from("blocked_slots").insert(blockedInserts);
+    // Bloquear el slot reservado
+    const { error: slotError } = await supabase.from("blocked_slots").insert({
+      professional_id: professionalId,
+      service_request_id: inserted.id,
+      slot_date: selectedDate,
+      slot_time: selectedTime + ":00",
+      slot_status: "paid",
+    });
     if (slotError) console.error("blocked_slots error:", slotError);
 
     setLoading(false);
