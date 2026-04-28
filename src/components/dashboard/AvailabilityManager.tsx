@@ -660,61 +660,6 @@ export default function AvailabilityManager({ refreshKey = 0 }: AvailabilityMana
         </div>
       </CardContent>
 
-      <Dialog open={!!blockModal} onOpenChange={(o) => !o && setBlockModal(null)}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Lock className="h-4 w-4 text-accent" />
-              Bloquear Estación
-            </DialogTitle>
-          </DialogHeader>
-          {blockModal && (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Estación <span className="font-semibold text-foreground">{blockModal.stationIdx + 1}</span> a las{" "}
-                <span className="font-mono font-semibold text-foreground">{blockModal.time}</span>
-              </p>
-              <div>
-                <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                  Duración del bloqueo (minutos)
-                </label>
-                <div className="grid grid-cols-3 gap-1.5 mb-2">
-                  {[30, 45, 60, 90, 120, 180].map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => setBlockMinutes(m)}
-                      className={cn(
-                        "rounded-md border px-2 py-1.5 text-xs font-semibold transition-colors",
-                        blockMinutes === m
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border bg-background hover:bg-muted/40",
-                      )}
-                    >
-                      {m} min
-                    </button>
-                  ))}
-                </div>
-                <input
-                  type="number"
-                  min={5}
-                  step={5}
-                  value={blockMinutes}
-                  onChange={(e) => setBlockMinutes(Math.max(5, Number(e.target.value) || 0))}
-                  className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
-                  placeholder="Personalizado"
-                />
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setBlockModal(null)}>Cancelar</Button>
-            <Button size="sm" onClick={confirmManualBlock} disabled={!blockMinutes || blockMinutes < 5}>
-              Bloquear
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 }
