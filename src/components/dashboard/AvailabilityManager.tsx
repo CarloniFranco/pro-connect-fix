@@ -283,62 +283,29 @@ export default function AvailabilityManager({ refreshKey = 0 }: AvailabilityMana
       return;
     }
 
-    setBlockMinutes(slotDuration || 60);
-    setBlockModal({ date, time, stationIdx });
-  };
-
-  const confirmManualBlock = async () => {
-    if (!user || !blockModal) return;
-    const { date, time, stationIdx } = blockModal;
-    const dateISO = toISODate(date);
-    const step = Math.max(5, slotDuration || 60);
-    const slotsNeeded = Math.max(1, Math.ceil(blockMinutes / step));
-    const [sh, sm] = time.split(":").map(Number);
-    const startMin = sh * 60 + sm;
-
-    for (let k = 0; k < slotsNeeded; k++) {
-      const tt = startMin + k * step;
-      const hh = Math.floor(tt / 60);
-      const mm = tt % 60;
-      const tStr = `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
-      const st = getCellState(dateISO, tStr, stationIdx);
-      if (st.type !== "free") {
-        toast.error(`No se puede bloquear: estación ocupada a las ${tStr}.`);
-        return;
-      }
-    }
-
-    const endMin = startMin + slotsNeeded * step;
-    const endH = Math.floor(endMin / 60);
-    const endM = endMin % 60;
-    const endTimeStr = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}:00`;
-
-    const inserts: any[] = [];
-    for (let k = 0; k < slotsNeeded; k++) {
-      const tt = startMin + k * step;
-      const hh = Math.floor(tt / 60);
-      const mm = tt % 60;
-      inserts.push({
+    // Bloqueo manual directo de un único slot
+    const busyId = `${dateISO}|${time}-${stationIdx}`;
+    setBusyKey(busyId);
+    const { data, error } = await supabase
+      .from("blocked_slots")
+      .insert({
         professional_id: user.id,
         slot_date: dateISO,
-        slot_time: `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:00`,
-        slot_end_time: endTimeStr,
+        slot_time: `${time}:00`,
         slot_status: "manual_block",
         service_request_id: null,
         station_index: stationIdx,
-      });
-    }
-
-    setBusyKey(`${dateISO}|${time}-${stationIdx}`);
-    const { data, error } = await supabase
-      .from("blocked_slots")
-      .insert(inserts)
-      .select("id, slot_date, slot_time, slot_end_time, slot_status, service_request_id, station_index");
+      })
+      .select("id, slot_date, slot_time, slot_end_time, slot_status, service_request_id, station_index")
+      .single();
     setBusyKey(null);
     if (error || !data) { toast.error("No se pudo bloquear"); return; }
-    setBlocked((prev) => [...prev, ...(data as any)]);
+    setBlocked((prev) => [...prev, data as any]);
+  };
+
+  const confirmManualBlock = async () => {
+    // legacy no-op
     setBlockModal(null);
-    toast.success(`Estación ${stationIdx + 1} bloqueada por ${blockMinutes} min`);
   };
 
   // Bloqueo rápido: cierra todas las horas restantes de hoy
@@ -693,61 +660,6 @@ export default function AvailabilityManager({ refreshKey = 0 }: AvailabilityMana
         </div>
       </CardContent>
 
-      <Dialog open={!!blockModal} onOpenChange={(o) => !o && setBlockModal(null)}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Lock className="h-4 w-4 text-accent" />
-              Bloquear Estación
-            </DialogTitle>
-          </DialogHeader>
-          {blockModal && (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Estación <span className="font-semibold text-foreground">{blockModal.stationIdx + 1}</span> a las{" "}
-                <span className="font-mono font-semibold text-foreground">{blockModal.time}</span>
-              </p>
-              <div>
-                <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                  Duración del bloqueo (minutos)
-                </label>
-                <div className="grid grid-cols-3 gap-1.5 mb-2">
-                  {[30, 45, 60, 90, 120, 180].map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => setBlockMinutes(m)}
-                      className={cn(
-                        "rounded-md border px-2 py-1.5 text-xs font-semibold transition-colors",
-                        blockMinutes === m
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border bg-background hover:bg-muted/40",
-                      )}
-                    >
-                      {m} min
-                    </button>
-                  ))}
-                </div>
-                <input
-                  type="number"
-                  min={5}
-                  step={5}
-                  value={blockMinutes}
-                  onChange={(e) => setBlockMinutes(Math.max(5, Number(e.target.value) || 0))}
-                  className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
-                  placeholder="Personalizado"
-                />
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setBlockModal(null)}>Cancelar</Button>
-            <Button size="sm" onClick={confirmManualBlock} disabled={!blockMinutes || blockMinutes < 5}>
-              Bloquear
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 }

@@ -135,18 +135,7 @@ export default function ServiceRequestForm({
     return dates;
   })();
 
-  // duración del servicio elegido (en minutos), default = slotDuration
   const selectedServiceItem = proServices.find((s) => s.name === serviceName);
-  const serviceDurationMin = (() => {
-    const d = selectedServiceItem?.durations?.[vehicleType];
-    if (d && d > 0) return d;
-    return slotDuration;
-  })();
-
-  const toMin = (hhmm: string) => {
-    const [h, m] = hhmm.split(":").map(Number);
-    return h * 60 + m;
-  };
 
   const timeSlots = (() => {
     if (!selectedDate) return [] as { time: string; taken: boolean }[];
@@ -155,23 +144,14 @@ export default function ServiceRequestForm({
     const dayAvailability = availability.filter((a) => a.day_of_week === dow);
     const step = Math.max(5, slotDuration || 60);
 
-    // Cuenta de ocupación por slot (cada slot intermedio cuenta como ocupado)
+    // Cuenta de ocupación por slot exacto
     const occupiedCount = new Map<string, number>();
     blockedSlots
       .filter((b) => b.slot_date === selectedDate && (b.slot_status === "paid" || b.slot_status === "pending" || b.slot_status === "manual_block"))
       .forEach((b) => {
-        const startMinB = toMin(b.slot_time.slice(0, 5));
-        const endMinB = b.slot_end_time ? toMin(String(b.slot_end_time).slice(0, 5)) : startMinB + step;
-        for (let t = startMinB; t < endMinB; t += step) {
-          const h = Math.floor(t / 60);
-          const m = t % 60;
-          const k = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-          occupiedCount.set(k, (occupiedCount.get(k) || 0) + 1);
-        }
+        const k = String(b.slot_time).slice(0, 5);
+        occupiedCount.set(k, (occupiedCount.get(k) || 0) + 1);
       });
-
-    // Cuántos slots consecutivos necesita este servicio
-    const slotsNeeded = Math.max(1, Math.ceil(serviceDurationMin / step));
 
     const slots: { time: string; taken: boolean }[] = [];
     dayAvailability.forEach((slot) => {
@@ -183,19 +163,7 @@ export default function ServiceRequestForm({
         const h = Math.floor(t / 60);
         const m = t % 60;
         const timeStr = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-        // Necesita slotsNeeded consecutivos disponibles
-        let taken = false;
-        if (t + slotsNeeded * step > endMin) {
-          taken = true; // no alcanza para terminar dentro del horario
-        } else {
-          for (let k = 0; k < slotsNeeded; k++) {
-            const tt = t + k * step;
-            const hh = Math.floor(tt / 60);
-            const mm = tt % 60;
-            const key = `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
-            if ((occupiedCount.get(key) || 0) >= workStations) { taken = true; break; }
-          }
-        }
+        const taken = (occupiedCount.get(timeStr) || 0) >= workStations;
         slots.push({ time: timeStr, taken });
       }
     });
@@ -233,7 +201,6 @@ export default function ServiceRequestForm({
       deposit_paid: true,
       status: "aceptada",
       responded_at: new Date().toISOString(),
-      estimated_duration: serviceDurationMin,
     };
     if (dropoffMode) {
       insertPayload.dropoff_mode = true;
@@ -255,30 +222,14 @@ export default function ServiceRequestForm({
       return;
     }
 
-    // Bloquear todos los slots consecutivos que abarca este servicio
-    const step = Math.max(5, slotDuration || 60);
-    const slotsNeeded = Math.max(1, Math.ceil(serviceDurationMin / step));
-    const startMin = toMin(selectedTime);
-    const endMin = startMin + slotsNeeded * step;
-    const endH = Math.floor(endMin / 60);
-    const endM = endMin % 60;
-    const endTimeStr = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}:00`;
-
-    const blockedInserts: any[] = [];
-    for (let k = 0; k < slotsNeeded; k++) {
-      const tt = startMin + k * step;
-      const hh = Math.floor(tt / 60);
-      const mm = tt % 60;
-      blockedInserts.push({
-        professional_id: professionalId,
-        service_request_id: inserted.id,
-        slot_date: selectedDate,
-        slot_time: `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:00`,
-        slot_end_time: endTimeStr,
-        slot_status: "paid",
-      });
-    }
-    const { error: slotError } = await supabase.from("blocked_slots").insert(blockedInserts);
+    // Bloquear el slot reservado
+    const { error: slotError } = await supabase.from("blocked_slots").insert({
+      professional_id: professionalId,
+      service_request_id: inserted.id,
+      slot_date: selectedDate,
+      slot_time: selectedTime + ":00",
+      slot_status: "paid",
+    });
     if (slotError) console.error("blocked_slots error:", slotError);
 
     setLoading(false);
