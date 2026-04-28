@@ -19,7 +19,6 @@ import { PROVINCES, getLocalities } from "@/lib/argentinaLocations";
 interface ServiceItem {
   name: string;
   prices: Record<string, number>; // vehicleType -> price
-  durations?: Record<string, number>; // vehicleType -> minutes
 }
 
 const DEFAULT_VEHICLES = ["Sedán", "SUV", "Camioneta"];
@@ -197,16 +196,6 @@ export default function MyServicesManager() {
     setServices(next);
   };
 
-  const updateDuration = (idx: number, vehicle: string, value: string) => {
-    const num = value === "" ? 0 : Number(value);
-    if (Number.isNaN(num)) return;
-    const next = [...services];
-    next[idx] = {
-      ...next[idx],
-      durations: { ...(next[idx].durations || {}), [vehicle]: num },
-    };
-    setServices(next);
-  };
 
   const savePrices = async () => {
     const ok = await persist({ services });
@@ -421,25 +410,14 @@ export default function MyServicesManager() {
                       <td className="px-3 py-2 font-medium align-top">{s.name}</td>
                       {vehicleTypes.map((v) => (
                         <td key={v} className="px-3 py-2 align-top">
-                          <div className="flex flex-col gap-1">
-                            <Input
-                              type="number"
-                              min={0}
-                              value={s.prices[v] ?? ""}
-                              onChange={(e) => updatePrice(i, v, e.target.value)}
-                              placeholder="Precio $"
-                              className="h-8 w-28"
-                            />
-                            <Input
-                              type="number"
-                              min={0}
-                              step={5}
-                              value={s.durations?.[v] ?? ""}
-                              onChange={(e) => updateDuration(i, v, e.target.value)}
-                              placeholder="Duración min"
-                              className="h-7 w-28 text-[11px]"
-                            />
-                          </div>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={s.prices[v] ?? ""}
+                            onChange={(e) => updatePrice(i, v, e.target.value)}
+                            placeholder="Precio $"
+                            className="h-8 w-28"
+                          />
                         </td>
                       ))}
                       <td className="px-2 py-2 align-top">
