@@ -54,14 +54,13 @@ const ServiceCard = ({
   isActive: boolean;
   onClick: () => void;
 }) => (
-  <motion.button
-    whileHover={isActive ? { scale: 1.05 } : {}}
-    whileTap={isActive ? { scale: 0.97 } : {}}
+  <button
     onClick={onClick}
     disabled={!isActive}
-    className={`flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-4 shadow-sm transition-all relative ${
+    style={{ transition: "none" }}
+    className={`flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-4 shadow-sm relative ${
       isActive
-        ? "hover:shadow-md hover:border-primary cursor-pointer"
+        ? "hover:border-primary cursor-pointer"
         : "opacity-50 cursor-not-allowed"
     }`}
   >
@@ -76,7 +75,7 @@ const ServiceCard = ({
     <span className={`text-center text-xs font-semibold ${isActive ? "text-card-foreground" : "text-muted-foreground"}`}>
       {label}
     </span>
-  </motion.button>
+  </button>
 );
 
 type Section = {
