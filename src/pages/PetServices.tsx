@@ -35,7 +35,7 @@ const PetServices = () => {
               style={{ transition: "none" }}
               className="flex flex-col items-center gap-3 rounded-2xl border-2 border-border bg-card p-5 shadow-md relative opacity-50 cursor-not-allowed"
             >
-              <Badge variant="secondary" className="absolute -top-2 -right-2 text-xs">
+              <Badge variant="destructive" className="absolute -top-2 -right-2 text-xs">
                 Próximamente
               </Badge>
               <div className={`flex h-14 w-14 items-center justify-center rounded-xl ${service.color} shadow-md grayscale`}>
