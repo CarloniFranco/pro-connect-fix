@@ -70,7 +70,7 @@ const ServiceCard = ({
     }`}
   >
     {!isActive && (
-      <Badge variant="secondary" className="absolute -top-2 -right-2 text-[10px] px-1.5 py-0.5">
+      <Badge variant="destructive" className="absolute -top-2 -right-2 text-[10px] px-1.5 py-0.5">
         Próximamente
       </Badge>
     )}

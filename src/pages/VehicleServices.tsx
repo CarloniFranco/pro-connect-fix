@@ -41,7 +41,7 @@ const VehicleServices = () => {
               }`}
             >
               {!service.isActive && (
-                <Badge variant="secondary" className="absolute -top-2 -right-2 text-xs">
+                <Badge variant="destructive" className="absolute -top-2 -right-2 text-xs">
                   Próximamente
                 </Badge>
               )}
