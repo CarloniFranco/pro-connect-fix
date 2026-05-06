@@ -42,6 +42,10 @@ const petServices = [
   { icon: PawPrint, label: "Peluquería Canina", isActive: false },
 ];
 
+const prefetchProfessionalsList = () => {
+  import("@/pages/ProfessionalsList");
+};
+
 const ServiceCard = ({
   icon: Icon,
   label,
@@ -55,6 +59,8 @@ const ServiceCard = ({
 }) => (
   <button
     onClick={onClick}
+    onMouseEnter={isActive ? prefetchProfessionalsList : undefined}
+    onTouchStart={isActive ? prefetchProfessionalsList : undefined}
     disabled={!isActive}
     style={{ transition: "none" }}
     className={`flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-4 shadow-sm relative ${
@@ -76,6 +82,7 @@ const ServiceCard = ({
     </span>
   </button>
 );
+
 
 type Section = {
   key: string;
