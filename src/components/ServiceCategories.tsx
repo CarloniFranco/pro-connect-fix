@@ -133,14 +133,8 @@ const ServiceCategories = () => {
   return (
     <section className="px-4 py-12 md:py-20">
       <div className="container mx-auto max-w-4xl space-y-12">
-        {sections.map((section, idx) => (
-          <motion.div
-            key={section.key}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: idx * 0.05 }}
-          >
+        {sections.map((section) => (
+          <div key={section.key}>
             <div className="mb-6 flex items-center gap-3">
               <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${section.iconBg}`}>
                 <section.icon className="h-5 w-5 text-primary-foreground" />
@@ -164,7 +158,7 @@ const ServiceCategories = () => {
                 />
               ))}
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
     </section>
