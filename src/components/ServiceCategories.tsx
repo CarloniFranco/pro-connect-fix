@@ -133,6 +133,7 @@ const ServiceCategories = () => {
 
   const handleCategoryClick = (label: string, isActive: boolean) => {
     if (!isActive) return;
+    window.scrollTo(0, 0);
     navigate(`/profesionales/${encodeURIComponent(label)}`);
   };
 
