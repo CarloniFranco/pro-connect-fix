@@ -75,7 +75,7 @@ const ServiceCard = ({
     <span className={`text-center text-xs font-semibold ${isActive ? "text-card-foreground" : "text-muted-foreground"}`}>
       {label}
     </span>
-  </motion.button>
+  </button>
 );
 
 type Section = {
