@@ -122,10 +122,16 @@ const Navbar = () => {
                   </DropdownMenuItem>
                 </>
               ) : (
-                <DropdownMenuItem onClick={() => navigate("/mi-perfil")}>
-                  <User className="mr-2 h-4 w-4" />
-                  Mi Perfil
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem onClick={() => navigate("/mi-perfil")}>
+                    <User className="mr-2 h-4 w-4" />
+                    Mi Perfil
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/mis-favoritos")}>
+                    <Heart className="mr-2 h-4 w-4" />
+                    Mis Favoritos
+                  </DropdownMenuItem>
+                </>
               )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
