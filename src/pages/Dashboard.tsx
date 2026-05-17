@@ -154,6 +154,7 @@ const Dashboard = () => {
           </div>
         </div>
 
+        <DniVerificationCard />
         <CalendarAgenda />
         <AgendaOrders />
         <MyServicesManager />
