@@ -270,6 +270,7 @@ const ProfessionalPublicProfile = () => {
                 <span className="text-xs text-muted-foreground">({score?.review_count || 0} reseñas)</span>
               </div>
             </div>
+            <FavoriteButton professionalId={profile.user_id} size="md" stopPropagation={false} />
           </div>
         </motion.div>
 
