@@ -42,6 +42,21 @@ const ProSubscription = () => {
   const [loading, setLoading] = useState(true);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [sendingTest, setSendingTest] = useState(false);
+
+  const handleSendTestEmail = async () => {
+    setSendingTest(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-test-notification");
+      if (error) throw error;
+      toast.success(`Email de prueba enviado a ${data?.sent_to || "tu casilla"}. Revisá la bandeja (y spam) en unos segundos.`);
+    } catch (err) {
+      console.error("Test email error:", err);
+      toast.error("No se pudo enviar el email de prueba.");
+    } finally {
+      setSendingTest(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
