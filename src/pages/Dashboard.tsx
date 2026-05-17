@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Wrench, User, LogOut, Loader2, Power, ChevronDown, Briefcase, ClipboardList, CreditCard, BarChart3 } from "lucide-react";
+import { Wrench, User, LogOut, Loader2, Power, ChevronDown, Briefcase, ClipboardList, CreditCard, BarChart3, ShieldCheck } from "lucide-react";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import CalendarAgenda from "@/components/dashboard/CalendarAgenda";
