@@ -76,6 +76,7 @@ const App = () => (
             <Route path="/seleccionar-plan" element={<PrivateRoute><PlanSelection /></PrivateRoute>} />
             <Route path="/configurar-pago" element={<PrivateRoute><PaymentSetup /></PrivateRoute>} />
             <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+            <Route path="/admin/verificaciones" element={<PrivateRoute><AdminDniVerifications /></PrivateRoute>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
