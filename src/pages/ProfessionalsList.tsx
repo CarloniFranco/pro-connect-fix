@@ -3,10 +3,7 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft,
   Star,
-  Zap,
   Shield,
-  Award,
-  ChevronRight,
   User,
   MapPin,
   List,
@@ -74,7 +71,16 @@ const ProfessionalsList = () => {
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
   const [timeFilter, setTimeFilter] = useState<string>("all");
   const [availableUserIds, setAvailableUserIds] = useState<Set<string> | null>(null);
+  const [freeSlotsByPro, setFreeSlotsByPro] = useState<Map<string, string[]>>(new Map());
   const [view, setView] = useState<"list" | "map">("list");
+
+  // Fecha efectiva para calcular chips de horarios: la del filtro, o hoy
+  const effectiveDate = useMemo(() => {
+    if (dateFilter) return dateFilter;
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [dateFilter]);
 
   useEffect(() => {
     const fetchProfessionals = async () => {
@@ -126,19 +132,22 @@ const ProfessionalsList = () => {
     fetchProfessionals();
   }, [category]);
 
-  // Computar pros disponibles cuando hay filtro de fecha
+  // Computar slots libres por pro para la fecha efectiva (filtro o hoy)
   useEffect(() => {
-    if (!dateFilter || professionals.length === 0) {
+    if (professionals.length === 0) {
       setAvailableUserIds(null);
+      setFreeSlotsByPro(new Map());
       return;
     }
 
     const compute = async () => {
-      const dayOfWeek = dateFilter.getDay(); // 0 dom .. 6 sáb
-      const dateStr = format(dateFilter, "yyyy-MM-dd");
+      const dayOfWeek = effectiveDate.getDay();
+      const dateStr = format(effectiveDate, "yyyy-MM-dd");
       const userIds = professionals.map((p) => p.user_id);
+      const isToday =
+        effectiveDate.toDateString() === new Date().toDateString();
+      const currentHour = new Date().getHours();
 
-      // 1) Quién trabaja ese día (horario activo)
       const { data: avail } = await supabase
         .from("professional_availability")
         .select("professional_id, start_time, end_time")
@@ -151,21 +160,6 @@ const ProfessionalsList = () => {
         worksToday.set(a.professional_id, { start: a.start_time, end: a.end_time });
       });
 
-      console.log("[Availability]", {
-        dateStr,
-        dayOfWeek,
-        totalPros: userIds.length,
-        prosWorkingToday: worksToday.size,
-      });
-
-      if (worksToday.size === 0) {
-        // Nadie trabaja ese día: todos quedan marcados como "no disponibles"
-        // (Set vacío != null), pero NO se excluyen del listado.
-        setAvailableUserIds(new Set());
-        return;
-      }
-
-      // 2) Slots ya bloqueados ese día (confirmed o pending no expirado)
       const { data: blocked } = await supabase
         .from("blocked_slots")
         .select("professional_id, slot_time, slot_status, expires_at")
@@ -186,36 +180,39 @@ const ProfessionalsList = () => {
         blockedByPro.get(b.professional_id)!.add(b.slot_time.slice(0, 5));
       });
 
-      // 3) Para cada pro: si hay hora elegida, validar ese slot específico;
-      //    si no, validar que tenga al menos un slot libre.
-      const result = new Set<string>();
+      const slotsMap = new Map<string, string[]>();
       worksToday.forEach((window, proId) => {
         const startH = parseInt(window.start.slice(0, 2), 10);
         const endH = parseInt(window.end.slice(0, 2), 10);
         const blocks = blockedByPro.get(proId) || new Set();
-
-        if (timeFilter !== "all") {
-          const reqH = parseInt(timeFilter.slice(0, 2), 10);
-          if (reqH < startH || reqH >= endH) return;
-          if (blocks.has(timeFilter)) return;
-          result.add(proId);
-          return;
-        }
-
+        const free: string[] = [];
         for (let h = startH; h < endH; h++) {
+          if (isToday && h <= currentHour) continue;
           const slot = `${String(h).padStart(2, "0")}:00`;
-          if (!blocks.has(slot)) {
-            result.add(proId);
-            break;
-          }
+          if (!blocks.has(slot)) free.push(slot);
         }
+        if (free.length > 0) slotsMap.set(proId, free);
       });
 
+      setFreeSlotsByPro(slotsMap);
+
+      if (!dateFilter) {
+        setAvailableUserIds(null);
+        return;
+      }
+      const result = new Set<string>();
+      slotsMap.forEach((slots, proId) => {
+        if (timeFilter !== "all") {
+          if (slots.includes(timeFilter)) result.add(proId);
+        } else {
+          result.add(proId);
+        }
+      });
       setAvailableUserIds(result);
     };
 
     compute();
-  }, [dateFilter, timeFilter, professionals]);
+  }, [effectiveDate, dateFilter, timeFilter, professionals]);
 
   // Opciones de ubicación combinadas (Provincia, Localidad) derivadas de los pros existentes.
   // Mendoza primero, después orden alfabético.
@@ -330,27 +327,6 @@ const ProfessionalsList = () => {
     return result;
   }, [filtered]);
 
-  const renderStars = (score: number) => {
-    const full = Math.floor(score);
-    const half = score - full >= 0.5;
-    return (
-      <div className="flex items-center gap-0.5">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Star
-            key={i}
-            className={`h-4 w-4 ${
-              i < full
-                ? "fill-accent text-accent"
-                : i === full && half
-                  ? "fill-accent/50 text-accent"
-                  : "text-muted-foreground/30"
-            }`}
-          />
-        ))}
-      </div>
-    );
-  };
-
   const applyFilters = () => {
     setLocationFilter(pendingLocation);
     setDateFilter(pendingDate);
@@ -384,7 +360,7 @@ const ProfessionalsList = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto max-w-3xl px-4 pt-24 pb-16">
+      <div className="container mx-auto max-w-7xl px-4 pt-24 pb-16">
         <motion.button
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
@@ -575,87 +551,119 @@ const ProfessionalsList = () => {
             )}
           </>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4 md:gap-5 lg:grid-cols-3">
             {filtered.map((pro, i) => {
               const isUnavailable =
                 !!availableUserIds && !availableUserIds.has(pro.user_id);
+              const slots = freeSlotsByPro.get(pro.user_id) || [];
+              // Si hay hora elegida, ponerla primero
+              const orderedSlots =
+                timeFilter !== "all" && slots.includes(timeFilter)
+                  ? [timeFilter, ...slots.filter((s) => s !== timeFilter)]
+                  : slots;
+              const visibleSlots = orderedSlots.slice(0, 4);
+              const locationLabel =
+                [pro.locality, pro.province].filter(Boolean).join(", ") ||
+                pro.neighborhood;
+
+              const handleSlotClick = (e: React.MouseEvent, slot: string) => {
+                e.stopPropagation();
+                const params = new URLSearchParams();
+                params.set("date", format(effectiveDate, "yyyy-MM-dd"));
+                params.set("time", slot);
+                navigate(`/profesional/${pro.user_id}?${params.toString()}`);
+              };
+
               return (
-              <motion.div
-                key={pro.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                onClick={() => goToPro(pro.user_id)}
-                className={`group cursor-pointer rounded-2xl border-2 border-border bg-card p-5 shadow-sm transition-all hover:shadow-lg hover:border-primary ${
-                  isUnavailable ? "opacity-70" : ""
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex gap-4 flex-1">
-                    <div className="h-12 w-12 overflow-hidden rounded-full border-2 border-border bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      {pro.photo_url ? (
-                        <img
-                          src={pro.photo_url}
-                          alt={pro.full_name}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <User className="h-6 w-6 text-primary" />
-                      )}
+                <motion.div
+                  key={pro.id}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: Math.min(i * 0.04, 0.4) }}
+                  onClick={() => goToPro(pro.user_id)}
+                  className={`group flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-lg ${
+                    isUnavailable ? "opacity-70" : ""
+                  }`}
+                >
+                  {/* Foto destacada */}
+                  <div className="relative aspect-square w-full overflow-hidden bg-primary/10">
+                    {pro.photo_url ? (
+                      <img
+                        src={pro.photo_url}
+                        alt={pro.full_name}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <User className="h-16 w-16 text-primary/60" />
+                      </div>
+                    )}
+                    {/* Score badge esquina superior derecha */}
+                    <div className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-card/95 px-2 py-1 text-xs font-bold text-foreground shadow-md">
+                      <Star className="h-3 w-3 fill-accent text-accent" />
+                      {pro.score.total_score}
+                      <span className="text-[10px] font-medium text-muted-foreground">
+                        ({pro.score.review_count})
+                      </span>
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-1 flex-wrap">
-                        <h3 className="text-lg font-bold text-card-foreground">
-                          {pro.full_name}
-                        </h3>
-                        {pro.verified && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                            <Shield className="h-3 w-3" /> Verificado
+                    {/* Verificado esquina superior izquierda */}
+                    {pro.verified && (
+                      <div
+                        className="absolute left-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md"
+                        title="Verificado"
+                      >
+                        <Shield className="h-3.5 w-3.5" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Contenido */}
+                  <div className="flex flex-1 flex-col gap-2 p-3 md:p-4">
+                    <h3 className="line-clamp-1 text-sm font-bold text-card-foreground md:text-base">
+                      {pro.full_name}
+                    </h3>
+                    {locationLabel && (
+                      <div className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3 flex-shrink-0 text-secondary" />
+                        <span className="line-clamp-1">{locationLabel}</span>
+                      </div>
+                    )}
+
+                    {/* Chips de horarios */}
+                    {visibleSlots.length > 0 ? (
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        {!dateFilter && (
+                          <span className="w-full text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            Hoy disponible
                           </span>
                         )}
+                        {visibleSlots.map((slot) => (
+                          <button
+                            key={slot}
+                            onClick={(e) => handleSlotClick(e, slot)}
+                            className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs font-semibold transition-colors ${
+                              timeFilter === slot
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-primary/30 bg-primary/5 text-primary hover:bg-primary hover:text-primary-foreground"
+                            }`}
+                          >
+                            <Clock className="h-3 w-3" />
+                            {slot}
+                          </button>
+                        ))}
                       </div>
-                      {(pro.locality || pro.neighborhood) && (
-                        <div className="mb-2 inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2 py-0.5 text-xs font-bold text-secondary">
-                          <MapPin className="h-3 w-3" />
-                          {[pro.locality, pro.province].filter(Boolean).join(", ") ||
-                            pro.neighborhood}
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-2 mb-3">
-                        {renderStars(pro.score.total_score)}
-                        <span className="text-sm font-semibold text-foreground">
-                          {pro.score.total_score}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          ({pro.score.review_count} reseñas)
-                        </span>
+                    ) : isUnavailable ? (
+                      <div className="mt-1 rounded-md border border-destructive/30 bg-destructive/10 px-2 py-1 text-[11px] font-semibold text-destructive">
+                        No disponible
                       </div>
-
-                      <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                        <span className="inline-flex items-center gap-1">
-                          <Zap className="h-3 w-3 text-accent" />
-                          Tiempo de respuesta: {pro.score.velocity}/5
-                        </span>
-                        <span className="inline-flex items-center gap-1">
-                          <Shield className="h-3 w-3 text-primary" />
-                          Puntualidad y Compromiso: {pro.score.reliability}/5
-                        </span>
-                        <span className="inline-flex items-center gap-1">
-                          <Award className="h-3 w-3 text-secondary" />
-                          Satisfacción del cliente: {pro.score.excellence}/5
-                        </span>
+                    ) : (
+                      <div className="mt-1 text-[11px] text-muted-foreground">
+                        Sin horarios libres {dateFilter ? "ese día" : "hoy"}
                       </div>
-                    </div>
+                    )}
                   </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors mt-2" />
-                </div>
-                {isUnavailable && (
-                  <div className="mt-3 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
-                    No disponible en la fecha seleccionada
-                  </div>
-                )}
-              </motion.div>
+                </motion.div>
               );
             })}
           </div>
