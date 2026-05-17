@@ -1,20 +1,11 @@
 import { useEffect, useState } from "react";
-import { Plus, Trash2, Wrench, Loader2, MapPin, Car, Save } from "lucide-react";
+import { Plus, Trash2, Wrench, Loader2, Car, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { PROVINCES, getLocalities } from "@/lib/argentinaLocations";
 
 interface ServiceItem {
   name: string;
