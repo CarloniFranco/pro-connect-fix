@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Wrench, User, LogOut, ChevronDown, ClipboardList, Briefcase, CreditCard, BarChart3 } from "lucide-react";
+import { Wrench, User, LogOut, ChevronDown, ClipboardList, Briefcase, CreditCard, BarChart3, Heart } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
