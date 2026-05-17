@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 import { PROVINCES, getLocalities } from "@/lib/argentinaLocations";
 import { getLocalityCoords } from "@/lib/localityCoords";
 import { Clock } from "lucide-react";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 interface ProfessionalWithScore {
   id: string;
@@ -599,13 +600,16 @@ const ProfessionalsList = () => {
                         <User className="h-16 w-16 text-primary/60" />
                       </div>
                     )}
-                    {/* Score badge esquina superior derecha */}
-                    <div className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-card/95 px-2 py-1 text-xs font-bold text-foreground shadow-md">
-                      <Star className="h-3 w-3 fill-accent text-accent" />
-                      {pro.score.total_score}
-                      <span className="text-[10px] font-medium text-muted-foreground">
-                        ({pro.score.review_count})
-                      </span>
+                    {/* Score badge + favorito esquina superior derecha */}
+                    <div className="absolute right-2 top-2 flex items-center gap-1.5">
+                      <div className="inline-flex items-center gap-1 rounded-full bg-card/95 px-2 py-1 text-xs font-bold text-foreground shadow-md">
+                        <Star className="h-3 w-3 fill-accent text-accent" />
+                        {pro.score.total_score}
+                        <span className="text-[10px] font-medium text-muted-foreground">
+                          ({pro.score.review_count})
+                        </span>
+                      </div>
+                      <FavoriteButton professionalId={pro.user_id} size="sm" />
                     </div>
                     {/* Verificado esquina superior izquierda */}
                     {pro.verified && (

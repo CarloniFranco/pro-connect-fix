@@ -15,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import ServiceRequestForm from "@/components/ServiceRequestForm";
 import PortfolioGallery from "@/components/PortfolioGallery";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 interface ScoreData {
   total_score: number;
@@ -270,6 +271,7 @@ const ProfessionalPublicProfile = () => {
                 <span className="text-xs text-muted-foreground">({score?.review_count || 0} reseñas)</span>
               </div>
             </div>
+            <FavoriteButton professionalId={profile.user_id} size="md" stopPropagation={false} />
           </div>
         </motion.div>
 

@@ -97,6 +97,27 @@ export type Database = {
         }
         Relationships: []
       }
+      favorites: {
+        Row: {
+          client_user_id: string
+          created_at: string
+          id: string
+          professional_id: string
+        }
+        Insert: {
+          client_user_id: string
+          created_at?: string
+          id?: string
+          professional_id: string
+        }
+        Update: {
+          client_user_id?: string
+          created_at?: string
+          id?: string
+          professional_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
