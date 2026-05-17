@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+
 import {
   Select,
   SelectContent,
@@ -27,10 +27,10 @@ import {
   Star,
   Zap,
   CheckCircle,
-  MapPin,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
+import LocationManager from "@/components/dashboard/LocationManager";
 
 const RUBROS = [
   "Plomería", "Electricidad", "Gas", "Lavadero de Auto",
@@ -259,23 +259,9 @@ const ProProfileView = () => {
             </CardContent>
           </Card>
 
-          {/* Coverage zone */}
-          <Card className="mb-6">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <MapPin className="h-5 w-5 text-primary" />
-                Zona de Cobertura
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Mendoza y alrededores — Gran Mendoza, Luján de Cuyo, Godoy Cruz, Guaymallén, Las Heras, Maipú.
-              </p>
-              <p className="text-xs text-muted-foreground mt-2 italic">
-                La zona de cobertura se amplía automáticamente según tu plan.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="mb-6">
+            <LocationManager />
+          </div>
 
           {/* Merit KPIs */}
           <Card>
