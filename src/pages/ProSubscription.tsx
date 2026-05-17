@@ -24,6 +24,7 @@ import {
   AlertTriangle,
   Trash2,
   Star,
+  Mail,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
@@ -41,6 +42,21 @@ const ProSubscription = () => {
   const [loading, setLoading] = useState(true);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [sendingTest, setSendingTest] = useState(false);
+
+  const handleSendTestEmail = async () => {
+    setSendingTest(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-test-notification");
+      if (error) throw error;
+      toast.success(`Email de prueba enviado a ${data?.sent_to || "tu casilla"}. Revisá la bandeja (y spam) en unos segundos.`);
+    } catch (err) {
+      console.error("Test email error:", err);
+      toast.error("No se pudo enviar el email de prueba.");
+    } finally {
+      setSendingTest(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -156,6 +172,31 @@ const ProSubscription = () => {
               >
                 <ArrowRightLeft className="h-4 w-4" />
                 {isPremium ? "Cambiar a Básico" : "Pasarme a Premium"}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Email test */}
+          <Card className="mb-6">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Mail className="h-5 w-5 text-primary" />
+                Notificaciones por email
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Enviá un email de prueba a <span className="font-semibold text-foreground">{user?.email}</span> para
+                verificar que las notificaciones lleguen correctamente a tu casilla.
+              </p>
+              <Button
+                variant="outline"
+                onClick={handleSendTestEmail}
+                disabled={sendingTest}
+                className="w-full gap-2"
+              >
+                {sendingTest ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                {sendingTest ? "Enviando…" : "Enviar email de prueba"}
               </Button>
             </CardContent>
           </Card>
