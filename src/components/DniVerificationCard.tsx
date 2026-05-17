@@ -107,7 +107,7 @@ const DniVerificationCard = () => {
 
       const { error } = await supabase
         .from("professional_profiles")
-        .update(updates)
+        .update(updates as any)
         .eq("user_id", user.id);
       if (error) throw error;
 
