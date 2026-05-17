@@ -36,6 +36,7 @@ import { parseGoogleMapsCoords } from "@/lib/parseGoogleMaps";
 import { cn } from "@/lib/utils";
 import { PROVINCES, getLocalities } from "@/lib/argentinaLocations";
 import { getLocalityCoords } from "@/lib/localityCoords";
+import { Clock } from "lucide-react";
 
 interface ProfessionalWithScore {
   id: string;
@@ -65,13 +66,13 @@ const ProfessionalsList = () => {
   const [professionals, setProfessionals] = useState<ProfessionalWithScore[]>([]);
   const [loading, setLoading] = useState(true);
   // Filtros pendientes (lo que el usuario va eligiendo)
-  const [pendingProvince, setPendingProvince] = useState<string>("all");
-  const [pendingLocality, setPendingLocality] = useState<string>("all");
+  const [pendingLocation, setPendingLocation] = useState<string>("all"); // "Provincia|Localidad"
   const [pendingDate, setPendingDate] = useState<Date | undefined>(undefined);
+  const [pendingTime, setPendingTime] = useState<string>("all"); // "HH:00"
   // Filtros aplicados (sólo cambian al tocar "Buscar")
-  const [provinceFilter, setProvinceFilter] = useState<string>("all");
-  const [localityFilter, setLocalityFilter] = useState<string>("all");
+  const [locationFilter, setLocationFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
+  const [timeFilter, setTimeFilter] = useState<string>("all");
   const [availableUserIds, setAvailableUserIds] = useState<Set<string> | null>(null);
   const [view, setView] = useState<"list" | "map">("list");
 
@@ -185,12 +186,22 @@ const ProfessionalsList = () => {
         blockedByPro.get(b.professional_id)!.add(b.slot_time.slice(0, 5));
       });
 
-      // 3) Para cada pro, generar slots de 1hr entre start/end y verificar si queda alguno libre
+      // 3) Para cada pro: si hay hora elegida, validar ese slot específico;
+      //    si no, validar que tenga al menos un slot libre.
       const result = new Set<string>();
       worksToday.forEach((window, proId) => {
         const startH = parseInt(window.start.slice(0, 2), 10);
         const endH = parseInt(window.end.slice(0, 2), 10);
         const blocks = blockedByPro.get(proId) || new Set();
+
+        if (timeFilter !== "all") {
+          const reqH = parseInt(timeFilter.slice(0, 2), 10);
+          if (reqH < startH || reqH >= endH) return;
+          if (blocks.has(timeFilter)) return;
+          result.add(proId);
+          return;
+        }
+
         for (let h = startH; h < endH; h++) {
           const slot = `${String(h).padStart(2, "0")}:00`;
           if (!blocks.has(slot)) {
@@ -200,42 +211,46 @@ const ProfessionalsList = () => {
         }
       });
 
-      console.log("[Availability] result:", {
-        availableCount: result.size,
-        availableIds: Array.from(result),
-      });
       setAvailableUserIds(result);
     };
 
     compute();
-  }, [dateFilter, professionals]);
+  }, [dateFilter, timeFilter, professionals]);
 
-  // Provincias del catálogo. Mendoza primero (mercado principal).
-  const provinces = useMemo(() => {
-    return [...PROVINCES].sort((a, b) => {
-      if (a === "Mendoza") return -1;
-      if (b === "Mendoza") return 1;
+  // Opciones de ubicación combinadas (Provincia, Localidad) derivadas de los pros existentes.
+  // Mendoza primero, después orden alfabético.
+  const locationOptions = useMemo(() => {
+    const set = new Set<string>();
+    professionals.forEach((p) => {
+      const prov = (p.province || "").trim();
+      const loc = (p.locality || "").trim();
+      if (prov && loc) set.add(`${prov}|${loc}`);
+    });
+    return Array.from(set).sort((a, b) => {
+      const [pa] = a.split("|");
+      const [pb] = b.split("|");
+      if (pa === "Mendoza" && pb !== "Mendoza") return -1;
+      if (pb === "Mendoza" && pa !== "Mendoza") return 1;
       return a.localeCompare(b);
     });
+  }, [professionals]);
+
+  // Horas disponibles según día seleccionado (rango amplio 07-21).
+  const timeOptions = useMemo(() => {
+    const arr: string[] = [];
+    for (let h = 7; h <= 21; h++) arr.push(`${String(h).padStart(2, "0")}:00`);
+    return arr;
   }, []);
 
-  // Todas las localidades del catálogo según provincia pendiente.
-  const localities = useMemo(() => {
-    if (pendingProvince === "all") return [];
-    return getLocalities(pendingProvince).filter((l) => l !== "Otra");
-  }, [pendingProvince]);
-
   const filtered = useMemo(() => {
-    const provNorm = provinceFilter.trim().toLowerCase();
-    const locNorm = localityFilter.trim().toLowerCase();
     const base = professionals.filter((p) => {
-      if (provinceFilter !== "all" && (p.province || "").trim().toLowerCase() !== provNorm)
-        return false;
-      if (localityFilter !== "all" && (p.locality || "").trim().toLowerCase() !== locNorm)
-        return false;
+      if (locationFilter !== "all") {
+        const key = `${(p.province || "").trim()}|${(p.locality || "").trim()}`;
+        if (key !== locationFilter) return false;
+      }
       return true;
     });
-    // Si hay filtro de fecha: no excluir, sólo mover los no disponibles al final
+    // Si hay filtro de fecha/hora: no excluir, sólo mover los no disponibles al final
     if (availableUserIds) {
       return [...base].sort((a, b) => {
         const aAv = availableUserIds.has(a.user_id) ? 0 : 1;
@@ -245,7 +260,7 @@ const ProfessionalsList = () => {
       });
     }
     return base;
-  }, [professionals, provinceFilter, localityFilter, availableUserIds]);
+  }, [professionals, locationFilter, availableUserIds]);
 
   const mapPros: MapPro[] = useMemo(() => {
     // 1) Resolver coords: reales del pro o centroide de su localidad/provincia
@@ -337,30 +352,31 @@ const ProfessionalsList = () => {
   };
 
   const applyFilters = () => {
-    setProvinceFilter(pendingProvince);
-    setLocalityFilter(pendingLocality);
+    setLocationFilter(pendingLocation);
     setDateFilter(pendingDate);
+    setTimeFilter(pendingDate ? pendingTime : "all");
   };
 
   const clearFilters = () => {
-    setPendingProvince("all");
-    setPendingLocality("all");
+    setPendingLocation("all");
     setPendingDate(undefined);
-    setProvinceFilter("all");
-    setLocalityFilter("all");
+    setPendingTime("all");
+    setLocationFilter("all");
     setDateFilter(undefined);
+    setTimeFilter("all");
   };
 
   const hasActiveFilters =
-    provinceFilter !== "all" || localityFilter !== "all" || !!dateFilter;
+    locationFilter !== "all" || !!dateFilter || timeFilter !== "all";
   const hasPendingChanges =
-    pendingProvince !== provinceFilter ||
-    pendingLocality !== localityFilter ||
-    (pendingDate?.getTime() || 0) !== (dateFilter?.getTime() || 0);
+    pendingLocation !== locationFilter ||
+    (pendingDate?.getTime() || 0) !== (dateFilter?.getTime() || 0) ||
+    (pendingDate ? pendingTime : "all") !== timeFilter;
 
   const goToPro = (userId: string) => {
     const params = new URLSearchParams();
     if (dateFilter) params.set("date", format(dateFilter, "yyyy-MM-dd"));
+    if (timeFilter !== "all") params.set("time", timeFilter);
     const qs = params.toString();
     navigate(`/profesional/${userId}${qs ? `?${qs}` : ""}`);
   };
@@ -389,83 +405,82 @@ const ProfessionalsList = () => {
 
         {/* Toolbar: filtros + toggle vista */}
         <div className="mb-6 space-y-3">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            {/* Provincia */}
-            <Select
-              value={pendingProvince}
-              onValueChange={(v) => {
-                setPendingProvince(v);
-                setPendingLocality("all");
-              }}
-            >
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {/* Ubicación (Provincia, Localidad) */}
+            <Select value={pendingLocation} onValueChange={setPendingLocation}>
               <SelectTrigger>
                 <div className="flex items-center gap-2 truncate">
                   <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <SelectValue placeholder="Provincia" />
+                  <SelectValue placeholder="Ubicación" />
                 </div>
               </SelectTrigger>
               <SelectContent className="max-h-72">
-                <SelectItem value="all">Todas las provincias</SelectItem>
-                {provinces.map((p) => (
-                  <SelectItem key={p} value={p}>
-                    {p}
-                  </SelectItem>
-                ))}
+                <SelectItem value="all">Todas las ubicaciones</SelectItem>
+                {locationOptions.map((opt) => {
+                  const [prov, loc] = opt.split("|");
+                  return (
+                    <SelectItem key={opt} value={opt}>
+                      {prov}, {loc}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
 
-            {/* Localidad */}
-            <Select
-              value={pendingLocality}
-              onValueChange={setPendingLocality}
-              disabled={pendingProvince === "all" || localities.length === 0}
-            >
-              <SelectTrigger>
-                <div className="flex items-center gap-2 truncate">
-                  <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <SelectValue
-                    placeholder={
-                      pendingProvince === "all" ? "Elegí provincia" : "Localidad"
-                    }
+            {/* Fecha + Hora */}
+            <div className="grid grid-cols-2 gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "justify-start font-normal",
+                      !pendingDate && "text-muted-foreground",
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">
+                      {pendingDate ? format(pendingDate, "d MMM", { locale: es }) : "Día"}
+                    </span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={pendingDate}
+                    onSelect={(d) => {
+                      setPendingDate(d);
+                      if (!d) setPendingTime("all");
+                    }}
+                    disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                    initialFocus
+                    locale={es}
+                    className={cn("p-3 pointer-events-auto")}
                   />
-                </div>
-              </SelectTrigger>
-              <SelectContent className="max-h-72">
-                <SelectItem value="all">Todas las localidades</SelectItem>
-                {localities.map((l) => (
-                  <SelectItem key={l} value={l}>
-                    {l}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                </PopoverContent>
+              </Popover>
 
-            {/* Fecha */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "justify-start font-normal",
-                    !pendingDate && "text-muted-foreground",
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {pendingDate ? format(pendingDate, "d 'de' MMMM", { locale: es }) : "Día"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={pendingDate}
-                  onSelect={setPendingDate}
-                  disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
-                  initialFocus
-                  locale={es}
-                  className={cn("p-3 pointer-events-auto")}
-                />
-              </PopoverContent>
-            </Popover>
+              <Select
+                value={pendingTime}
+                onValueChange={setPendingTime}
+                disabled={!pendingDate}
+              >
+                <SelectTrigger>
+                  <div className="flex items-center gap-2 truncate">
+                    <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <SelectValue placeholder={pendingDate ? "Hora" : "Elegí día"} />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="max-h-72">
+                  <SelectItem value="all">Cualquier hora</SelectItem>
+                  {timeOptions.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t} hs
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Botón Buscar */}
