@@ -405,83 +405,82 @@ const ProfessionalsList = () => {
 
         {/* Toolbar: filtros + toggle vista */}
         <div className="mb-6 space-y-3">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            {/* Provincia */}
-            <Select
-              value={pendingProvince}
-              onValueChange={(v) => {
-                setPendingProvince(v);
-                setPendingLocality("all");
-              }}
-            >
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {/* Ubicación (Provincia, Localidad) */}
+            <Select value={pendingLocation} onValueChange={setPendingLocation}>
               <SelectTrigger>
                 <div className="flex items-center gap-2 truncate">
                   <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <SelectValue placeholder="Provincia" />
+                  <SelectValue placeholder="Ubicación" />
                 </div>
               </SelectTrigger>
               <SelectContent className="max-h-72">
-                <SelectItem value="all">Todas las provincias</SelectItem>
-                {provinces.map((p) => (
-                  <SelectItem key={p} value={p}>
-                    {p}
-                  </SelectItem>
-                ))}
+                <SelectItem value="all">Todas las ubicaciones</SelectItem>
+                {locationOptions.map((opt) => {
+                  const [prov, loc] = opt.split("|");
+                  return (
+                    <SelectItem key={opt} value={opt}>
+                      {prov}, {loc}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
 
-            {/* Localidad */}
-            <Select
-              value={pendingLocality}
-              onValueChange={setPendingLocality}
-              disabled={pendingProvince === "all" || localities.length === 0}
-            >
-              <SelectTrigger>
-                <div className="flex items-center gap-2 truncate">
-                  <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <SelectValue
-                    placeholder={
-                      pendingProvince === "all" ? "Elegí provincia" : "Localidad"
-                    }
+            {/* Fecha + Hora */}
+            <div className="grid grid-cols-2 gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "justify-start font-normal",
+                      !pendingDate && "text-muted-foreground",
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">
+                      {pendingDate ? format(pendingDate, "d MMM", { locale: es }) : "Día"}
+                    </span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={pendingDate}
+                    onSelect={(d) => {
+                      setPendingDate(d);
+                      if (!d) setPendingTime("all");
+                    }}
+                    disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                    initialFocus
+                    locale={es}
+                    className={cn("p-3 pointer-events-auto")}
                   />
-                </div>
-              </SelectTrigger>
-              <SelectContent className="max-h-72">
-                <SelectItem value="all">Todas las localidades</SelectItem>
-                {localities.map((l) => (
-                  <SelectItem key={l} value={l}>
-                    {l}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                </PopoverContent>
+              </Popover>
 
-            {/* Fecha */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "justify-start font-normal",
-                    !pendingDate && "text-muted-foreground",
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {pendingDate ? format(pendingDate, "d 'de' MMMM", { locale: es }) : "Día"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={pendingDate}
-                  onSelect={setPendingDate}
-                  disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
-                  initialFocus
-                  locale={es}
-                  className={cn("p-3 pointer-events-auto")}
-                />
-              </PopoverContent>
-            </Popover>
+              <Select
+                value={pendingTime}
+                onValueChange={setPendingTime}
+                disabled={!pendingDate}
+              >
+                <SelectTrigger>
+                  <div className="flex items-center gap-2 truncate">
+                    <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <SelectValue placeholder={pendingDate ? "Hora" : "Elegí día"} />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="max-h-72">
+                  <SelectItem value="all">Cualquier hora</SelectItem>
+                  {timeOptions.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t} hs
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Botón Buscar */}
