@@ -468,11 +468,11 @@ export default function ServiceRequestForm({
             size="lg"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <DollarSign className="h-4 w-4" />}
-            Confirmar turno y seña ${depositAmount > 0 ? depositAmount.toLocaleString("es-AR") : ""}
+            Pagar seña con Mercado Pago ${depositAmount > 0 ? `· $${depositAmount.toLocaleString("es-AR")}` : ""}
           </Button>
 
           <p className="text-[10px] text-muted-foreground text-center">
-            El turno queda confirmado al instante. El resto se paga al finalizar el servicio. Próximamente: pago online con Mercado Pago.
+            Pagás la seña (10%) con Mercado Pago para confirmar el turno. El resto lo abonás al finalizar el servicio. Si el profesional rechaza o cancelás con +1h, te reembolsamos la seña.
           </p>
         </div>
       </DialogContent>
