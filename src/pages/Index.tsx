@@ -23,7 +23,6 @@ const Index = () => {
           Términos y Condiciones
         </Link>
       </footer>
-      <LavaderoChat />
     </div>
   );
 };
