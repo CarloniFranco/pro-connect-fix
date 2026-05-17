@@ -11,34 +11,6 @@ interface Testimonial {
   service: string;
 }
 
-// Placeholders realistas para mostrar mientras crece la base de reseñas
-const PLACEHOLDER_TESTIMONIALS: Testimonial[] = [
-  {
-    name: "Lucía M.",
-    location: "Palermo, CABA",
-    rating: 5,
-    comment:
-      "Pedí un plomero un domingo y me apareció uno cerca en 10 minutos. Llegó puntual, arregló todo y pagué con tranquilidad. Mil veces FIX antes que andar buscando por grupos.",
-    service: "Plomería",
-  },
-  {
-    name: "Martín R.",
-    location: "Vicente López",
-    rating: 5,
-    comment:
-      "Lo bueno es que ves la reseña real, el precio y el horario antes. Sin sorpresas. El electricista vino, hizo el trabajo y listo.",
-    service: "Electricidad",
-  },
-  {
-    name: "Carolina G.",
-    location: "Rosario",
-    rating: 5,
-    comment:
-      "Reservé un turno para mi gata con una veterinaria a domicilio. La seña te da seguridad de que el profesional va a venir. Excelente experiencia.",
-    service: "Veterinaria",
-  },
-];
-
 const renderStars = (rating: number) => (
   <div className="flex gap-0.5">
     {[1, 2, 3, 4, 5].map((i) => (
@@ -53,12 +25,10 @@ const renderStars = (rating: number) => (
 );
 
 const Testimonials = () => {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>(
-    PLACEHOLDER_TESTIMONIALS
-  );
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    // Si hay 3+ reseñas reales con comentario, las usamos
     (async () => {
       const { data } = await supabase
         .from("reviews")
@@ -73,9 +43,11 @@ const Testimonials = () => {
         (r) => r.comment && r.comment.trim().length > 20
       );
 
-      if (valid.length < 3) return; // mantenemos placeholders
+      if (valid.length === 0) {
+        setLoaded(true);
+        return;
+      }
 
-      // Traemos info del cliente y del servicio
       const requestIds = valid.map((r) => r.service_request_id);
       const { data: requests } = await supabase
         .from("service_requests")
@@ -99,8 +71,11 @@ const Testimonials = () => {
       });
 
       setTestimonials(real);
+      setLoaded(true);
     })();
   }, []);
+
+  if (!loaded || testimonials.length === 0) return null;
 
   return (
     <section className="px-4 py-12 md:py-16">
