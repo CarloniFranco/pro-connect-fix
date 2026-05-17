@@ -215,7 +215,7 @@ const ProfessionalsList = () => {
     };
 
     compute();
-  }, [dateFilter, professionals]);
+  }, [dateFilter, timeFilter, professionals]);
 
   // Opciones de ubicación combinadas (Provincia, Localidad) derivadas de los pros existentes.
   // Mendoza primero, después orden alfabético.
