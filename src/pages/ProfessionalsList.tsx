@@ -186,12 +186,22 @@ const ProfessionalsList = () => {
         blockedByPro.get(b.professional_id)!.add(b.slot_time.slice(0, 5));
       });
 
-      // 3) Para cada pro, generar slots de 1hr entre start/end y verificar si queda alguno libre
+      // 3) Para cada pro: si hay hora elegida, validar ese slot específico;
+      //    si no, validar que tenga al menos un slot libre.
       const result = new Set<string>();
       worksToday.forEach((window, proId) => {
         const startH = parseInt(window.start.slice(0, 2), 10);
         const endH = parseInt(window.end.slice(0, 2), 10);
         const blocks = blockedByPro.get(proId) || new Set();
+
+        if (timeFilter !== "all") {
+          const reqH = parseInt(timeFilter.slice(0, 2), 10);
+          if (reqH < startH || reqH >= endH) return;
+          if (blocks.has(timeFilter)) return;
+          result.add(proId);
+          return;
+        }
+
         for (let h = startH; h < endH; h++) {
           const slot = `${String(h).padStart(2, "0")}:00`;
           if (!blocks.has(slot)) {
@@ -201,10 +211,6 @@ const ProfessionalsList = () => {
         }
       });
 
-      console.log("[Availability] result:", {
-        availableCount: result.size,
-        availableIds: Array.from(result),
-      });
       setAvailableUserIds(result);
     };
 
