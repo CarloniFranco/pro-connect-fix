@@ -384,7 +384,7 @@ const ProfessionalsList = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto max-w-3xl px-4 pt-24 pb-16">
+      <div className="container mx-auto max-w-7xl px-4 pt-24 pb-16">
         <motion.button
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
