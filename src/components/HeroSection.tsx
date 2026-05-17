@@ -107,7 +107,7 @@ const HeroSection = () => {
               whileHover={{ y: -3 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => navigate(cat.route)}
-              className="group flex flex-col items-center gap-2 rounded-xl bg-primary-foreground/10 p-4 backdrop-blur-sm border border-primary-foreground/15 transition-all hover:bg-primary-foreground/15 md:gap-3 md:p-6"
+              className="group flex flex-col items-center gap-2 rounded-xl bg-primary-foreground/10 p-4 border border-primary-foreground/15 transition-colors hover:bg-primary-foreground/15 md:gap-3 md:p-6"
             >
               <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${cat.bg} shadow-md md:h-14 md:w-14`}>
                 <cat.icon className={`h-6 w-6 ${cat.fg} md:h-7 md:w-7`} />
