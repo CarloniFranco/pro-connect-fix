@@ -27,7 +27,6 @@ import {
   Star,
   Zap,
   CheckCircle,
-  MapPin,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
