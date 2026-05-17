@@ -15,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import ServiceRequestForm from "@/components/ServiceRequestForm";
 import PortfolioGallery from "@/components/PortfolioGallery";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 interface ScoreData {
   total_score: number;
