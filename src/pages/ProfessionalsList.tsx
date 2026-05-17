@@ -327,27 +327,6 @@ const ProfessionalsList = () => {
     return result;
   }, [filtered]);
 
-  const renderStars = (score: number) => {
-    const full = Math.floor(score);
-    const half = score - full >= 0.5;
-    return (
-      <div className="flex items-center gap-0.5">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Star
-            key={i}
-            className={`h-4 w-4 ${
-              i < full
-                ? "fill-accent text-accent"
-                : i === full && half
-                  ? "fill-accent/50 text-accent"
-                  : "text-muted-foreground/30"
-            }`}
-          />
-        ))}
-      </div>
-    );
-  };
-
   const applyFilters = () => {
     setLocationFilter(pendingLocation);
     setDateFilter(pendingDate);
