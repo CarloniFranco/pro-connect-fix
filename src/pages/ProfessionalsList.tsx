@@ -211,32 +211,40 @@ const ProfessionalsList = () => {
     compute();
   }, [dateFilter, professionals]);
 
-  // Provincias del catálogo. Mendoza primero (mercado principal).
-  const provinces = useMemo(() => {
-    return [...PROVINCES].sort((a, b) => {
-      if (a === "Mendoza") return -1;
-      if (b === "Mendoza") return 1;
+  // Opciones de ubicación combinadas (Provincia, Localidad) derivadas de los pros existentes.
+  // Mendoza primero, después orden alfabético.
+  const locationOptions = useMemo(() => {
+    const set = new Set<string>();
+    professionals.forEach((p) => {
+      const prov = (p.province || "").trim();
+      const loc = (p.locality || "").trim();
+      if (prov && loc) set.add(`${prov}|${loc}`);
+    });
+    return Array.from(set).sort((a, b) => {
+      const [pa] = a.split("|");
+      const [pb] = b.split("|");
+      if (pa === "Mendoza" && pb !== "Mendoza") return -1;
+      if (pb === "Mendoza" && pa !== "Mendoza") return 1;
       return a.localeCompare(b);
     });
+  }, [professionals]);
+
+  // Horas disponibles según día seleccionado (rango amplio 07-21).
+  const timeOptions = useMemo(() => {
+    const arr: string[] = [];
+    for (let h = 7; h <= 21; h++) arr.push(`${String(h).padStart(2, "0")}:00`);
+    return arr;
   }, []);
 
-  // Todas las localidades del catálogo según provincia pendiente.
-  const localities = useMemo(() => {
-    if (pendingProvince === "all") return [];
-    return getLocalities(pendingProvince).filter((l) => l !== "Otra");
-  }, [pendingProvince]);
-
   const filtered = useMemo(() => {
-    const provNorm = provinceFilter.trim().toLowerCase();
-    const locNorm = localityFilter.trim().toLowerCase();
     const base = professionals.filter((p) => {
-      if (provinceFilter !== "all" && (p.province || "").trim().toLowerCase() !== provNorm)
-        return false;
-      if (localityFilter !== "all" && (p.locality || "").trim().toLowerCase() !== locNorm)
-        return false;
+      if (locationFilter !== "all") {
+        const key = `${(p.province || "").trim()}|${(p.locality || "").trim()}`;
+        if (key !== locationFilter) return false;
+      }
       return true;
     });
-    // Si hay filtro de fecha: no excluir, sólo mover los no disponibles al final
+    // Si hay filtro de fecha/hora: no excluir, sólo mover los no disponibles al final
     if (availableUserIds) {
       return [...base].sort((a, b) => {
         const aAv = availableUserIds.has(a.user_id) ? 0 : 1;
@@ -246,7 +254,7 @@ const ProfessionalsList = () => {
       });
     }
     return base;
-  }, [professionals, provinceFilter, localityFilter, availableUserIds]);
+  }, [professionals, locationFilter, availableUserIds]);
 
   const mapPros: MapPro[] = useMemo(() => {
     // 1) Resolver coords: reales del pro o centroide de su localidad/provincia
