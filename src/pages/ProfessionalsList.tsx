@@ -74,7 +74,16 @@ const ProfessionalsList = () => {
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
   const [timeFilter, setTimeFilter] = useState<string>("all");
   const [availableUserIds, setAvailableUserIds] = useState<Set<string> | null>(null);
+  const [freeSlotsByPro, setFreeSlotsByPro] = useState<Map<string, string[]>>(new Map());
   const [view, setView] = useState<"list" | "map">("list");
+
+  // Fecha efectiva para calcular chips de horarios: la del filtro, o hoy
+  const effectiveDate = useMemo(() => {
+    if (dateFilter) return dateFilter;
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [dateFilter]);
 
   useEffect(() => {
     const fetchProfessionals = async () => {
