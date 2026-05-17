@@ -66,13 +66,13 @@ const ProfessionalsList = () => {
   const [professionals, setProfessionals] = useState<ProfessionalWithScore[]>([]);
   const [loading, setLoading] = useState(true);
   // Filtros pendientes (lo que el usuario va eligiendo)
-  const [pendingProvince, setPendingProvince] = useState<string>("all");
-  const [pendingLocality, setPendingLocality] = useState<string>("all");
+  const [pendingLocation, setPendingLocation] = useState<string>("all"); // "Provincia|Localidad"
   const [pendingDate, setPendingDate] = useState<Date | undefined>(undefined);
+  const [pendingTime, setPendingTime] = useState<string>("all"); // "HH:00"
   // Filtros aplicados (sólo cambian al tocar "Buscar")
-  const [provinceFilter, setProvinceFilter] = useState<string>("all");
-  const [localityFilter, setLocalityFilter] = useState<string>("all");
+  const [locationFilter, setLocationFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
+  const [timeFilter, setTimeFilter] = useState<string>("all");
   const [availableUserIds, setAvailableUserIds] = useState<Set<string> | null>(null);
   const [view, setView] = useState<"list" | "map">("list");
 
