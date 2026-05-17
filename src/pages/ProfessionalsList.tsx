@@ -352,30 +352,31 @@ const ProfessionalsList = () => {
   };
 
   const applyFilters = () => {
-    setProvinceFilter(pendingProvince);
-    setLocalityFilter(pendingLocality);
+    setLocationFilter(pendingLocation);
     setDateFilter(pendingDate);
+    setTimeFilter(pendingDate ? pendingTime : "all");
   };
 
   const clearFilters = () => {
-    setPendingProvince("all");
-    setPendingLocality("all");
+    setPendingLocation("all");
     setPendingDate(undefined);
-    setProvinceFilter("all");
-    setLocalityFilter("all");
+    setPendingTime("all");
+    setLocationFilter("all");
     setDateFilter(undefined);
+    setTimeFilter("all");
   };
 
   const hasActiveFilters =
-    provinceFilter !== "all" || localityFilter !== "all" || !!dateFilter;
+    locationFilter !== "all" || !!dateFilter || timeFilter !== "all";
   const hasPendingChanges =
-    pendingProvince !== provinceFilter ||
-    pendingLocality !== localityFilter ||
-    (pendingDate?.getTime() || 0) !== (dateFilter?.getTime() || 0);
+    pendingLocation !== locationFilter ||
+    (pendingDate?.getTime() || 0) !== (dateFilter?.getTime() || 0) ||
+    (pendingDate ? pendingTime : "all") !== timeFilter;
 
   const goToPro = (userId: string) => {
     const params = new URLSearchParams();
     if (dateFilter) params.set("date", format(dateFilter, "yyyy-MM-dd"));
+    if (timeFilter !== "all") params.set("time", timeFilter);
     const qs = params.toString();
     navigate(`/profesional/${userId}${qs ? `?${qs}` : ""}`);
   };
