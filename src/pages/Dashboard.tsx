@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Wrench, User, LogOut, Loader2, Power, ChevronDown, Briefcase, ClipboardList, CreditCard, BarChart3 } from "lucide-react";
+import { Wrench, User, LogOut, Loader2, Power, ChevronDown, Briefcase, ClipboardList, CreditCard, BarChart3, ShieldCheck } from "lucide-react";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import CalendarAgenda from "@/components/dashboard/CalendarAgenda";
@@ -27,6 +28,7 @@ const Dashboard = () => {
   const [available, setAvailable] = useState(true);
   const [togglingAvailable, setTogglingAvailable] = useState(false);
   const [stationsVersion, setStationsVersion] = useState(0);
+  const { isAdmin } = useIsAdmin();
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
@@ -120,6 +122,12 @@ const Dashboard = () => {
                   <CreditCard className="mr-2 h-4 w-4" />
                   Mi Suscripción
                 </DropdownMenuItem>
+                {isAdmin && (
+                  <DropdownMenuItem onClick={() => navigate("/admin/verificaciones")}>
+                    <ShieldCheck className="mr-2 h-4 w-4" />
+                    Admin · Verificaciones
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
