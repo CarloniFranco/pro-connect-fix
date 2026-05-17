@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
+import LocationManager from "@/components/dashboard/LocationManager";
 
 const RUBROS = [
   "Plomería", "Electricidad", "Gas", "Lavadero de Auto",
