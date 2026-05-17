@@ -354,7 +354,11 @@ export type Database = {
           completed_at: string | null
           created_at: string
           deposit_amount: number | null
+          deposit_init_point: string | null
           deposit_paid: boolean | null
+          deposit_payment_id: string | null
+          deposit_refund_id: string | null
+          deposit_status: string
           description: string
           dropoff_mode: boolean
           dropoff_time: string | null
@@ -369,6 +373,7 @@ export type Database = {
           schedule_met: boolean | null
           scheduled_date: string | null
           scheduled_time: string | null
+          service_amount: number | null
           service_type: string
           service_window_end: string | null
           service_window_start: string | null
@@ -385,7 +390,11 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           deposit_amount?: number | null
+          deposit_init_point?: string | null
           deposit_paid?: boolean | null
+          deposit_payment_id?: string | null
+          deposit_refund_id?: string | null
+          deposit_status?: string
           description?: string
           dropoff_mode?: boolean
           dropoff_time?: string | null
@@ -400,6 +409,7 @@ export type Database = {
           schedule_met?: boolean | null
           scheduled_date?: string | null
           scheduled_time?: string | null
+          service_amount?: number | null
           service_type?: string
           service_window_end?: string | null
           service_window_start?: string | null
@@ -416,7 +426,11 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           deposit_amount?: number | null
+          deposit_init_point?: string | null
           deposit_paid?: boolean | null
+          deposit_payment_id?: string | null
+          deposit_refund_id?: string | null
+          deposit_status?: string
           description?: string
           dropoff_mode?: boolean
           dropoff_time?: string | null
@@ -431,6 +445,7 @@ export type Database = {
           schedule_met?: boolean | null
           scheduled_date?: string | null
           scheduled_time?: string | null
+          service_amount?: number | null
           service_type?: string
           service_window_end?: string | null
           service_window_start?: string | null
@@ -447,11 +462,15 @@ export type Database = {
           current_period_start: string | null
           environment: string
           id: string
-          price_id: string
-          product_id: string
+          init_point: string | null
+          price_id: string | null
+          product_id: string | null
+          provider: string
+          provider_customer_id: string | null
+          provider_subscription_id: string | null
           status: string
-          stripe_customer_id: string
-          stripe_subscription_id: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
           updated_at: string | null
           user_id: string
         }
@@ -462,11 +481,15 @@ export type Database = {
           current_period_start?: string | null
           environment?: string
           id?: string
-          price_id: string
-          product_id: string
+          init_point?: string | null
+          price_id?: string | null
+          product_id?: string | null
+          provider?: string
+          provider_customer_id?: string | null
+          provider_subscription_id?: string | null
           status?: string
-          stripe_customer_id: string
-          stripe_subscription_id: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -477,11 +500,15 @@ export type Database = {
           current_period_start?: string | null
           environment?: string
           id?: string
-          price_id?: string
-          product_id?: string
+          init_point?: string | null
+          price_id?: string | null
+          product_id?: string | null
+          provider?: string
+          provider_customer_id?: string | null
+          provider_subscription_id?: string | null
           status?: string
-          stripe_customer_id?: string
-          stripe_subscription_id?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           updated_at?: string | null
           user_id?: string
         }
