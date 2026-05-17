@@ -69,6 +69,17 @@ const ProfessionalPublicProfile = () => {
   }, [searchParams]);
   const [viewDate, setViewDate] = useState<Date>(initialViewDate);
 
+  // Auto-abrir formulario si llega ?time= desde la lista
+  useEffect(() => {
+    const timeParam = searchParams.get("time");
+    if (timeParam && user && user.id !== userId) {
+      setPreselectedTime(timeParam);
+      setRequestOpen(true);
+    }
+    // Solo en mount inicial / cambio de auth, no en cada render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, userId]);
+
   const viewDateISO = format(viewDate, "yyyy-MM-dd");
   const todayISO = format(new Date(), "yyyy-MM-dd");
   const isToday = viewDateISO === todayISO;
