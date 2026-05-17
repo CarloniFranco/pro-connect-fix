@@ -135,19 +135,22 @@ const ProfessionalsList = () => {
     fetchProfessionals();
   }, [category]);
 
-  // Computar pros disponibles cuando hay filtro de fecha
+  // Computar slots libres por pro para la fecha efectiva (filtro o hoy)
   useEffect(() => {
-    if (!dateFilter || professionals.length === 0) {
+    if (professionals.length === 0) {
       setAvailableUserIds(null);
+      setFreeSlotsByPro(new Map());
       return;
     }
 
     const compute = async () => {
-      const dayOfWeek = dateFilter.getDay(); // 0 dom .. 6 sáb
-      const dateStr = format(dateFilter, "yyyy-MM-dd");
+      const dayOfWeek = effectiveDate.getDay();
+      const dateStr = format(effectiveDate, "yyyy-MM-dd");
       const userIds = professionals.map((p) => p.user_id);
+      const isToday =
+        effectiveDate.toDateString() === new Date().toDateString();
+      const currentHour = new Date().getHours();
 
-      // 1) Quién trabaja ese día (horario activo)
       const { data: avail } = await supabase
         .from("professional_availability")
         .select("professional_id, start_time, end_time")
@@ -160,21 +163,6 @@ const ProfessionalsList = () => {
         worksToday.set(a.professional_id, { start: a.start_time, end: a.end_time });
       });
 
-      console.log("[Availability]", {
-        dateStr,
-        dayOfWeek,
-        totalPros: userIds.length,
-        prosWorkingToday: worksToday.size,
-      });
-
-      if (worksToday.size === 0) {
-        // Nadie trabaja ese día: todos quedan marcados como "no disponibles"
-        // (Set vacío != null), pero NO se excluyen del listado.
-        setAvailableUserIds(new Set());
-        return;
-      }
-
-      // 2) Slots ya bloqueados ese día (confirmed o pending no expirado)
       const { data: blocked } = await supabase
         .from("blocked_slots")
         .select("professional_id, slot_time, slot_status, expires_at")
@@ -195,36 +183,39 @@ const ProfessionalsList = () => {
         blockedByPro.get(b.professional_id)!.add(b.slot_time.slice(0, 5));
       });
 
-      // 3) Para cada pro: si hay hora elegida, validar ese slot específico;
-      //    si no, validar que tenga al menos un slot libre.
-      const result = new Set<string>();
+      const slotsMap = new Map<string, string[]>();
       worksToday.forEach((window, proId) => {
         const startH = parseInt(window.start.slice(0, 2), 10);
         const endH = parseInt(window.end.slice(0, 2), 10);
         const blocks = blockedByPro.get(proId) || new Set();
-
-        if (timeFilter !== "all") {
-          const reqH = parseInt(timeFilter.slice(0, 2), 10);
-          if (reqH < startH || reqH >= endH) return;
-          if (blocks.has(timeFilter)) return;
-          result.add(proId);
-          return;
-        }
-
+        const free: string[] = [];
         for (let h = startH; h < endH; h++) {
+          if (isToday && h <= currentHour) continue;
           const slot = `${String(h).padStart(2, "0")}:00`;
-          if (!blocks.has(slot)) {
-            result.add(proId);
-            break;
-          }
+          if (!blocks.has(slot)) free.push(slot);
         }
+        if (free.length > 0) slotsMap.set(proId, free);
       });
 
+      setFreeSlotsByPro(slotsMap);
+
+      if (!dateFilter) {
+        setAvailableUserIds(null);
+        return;
+      }
+      const result = new Set<string>();
+      slotsMap.forEach((slots, proId) => {
+        if (timeFilter !== "all") {
+          if (slots.includes(timeFilter)) result.add(proId);
+        } else {
+          result.add(proId);
+        }
+      });
       setAvailableUserIds(result);
     };
 
     compute();
-  }, [dateFilter, timeFilter, professionals]);
+  }, [effectiveDate, dateFilter, timeFilter, professionals]);
 
   // Opciones de ubicación combinadas (Provincia, Localidad) derivadas de los pros existentes.
   // Mendoza primero, después orden alfabético.
