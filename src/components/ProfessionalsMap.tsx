@@ -171,7 +171,7 @@ const ProfessionalsMap = ({ pros }: Props) => {
   }, [pros, navigate]);
 
   return (
-    <div className="h-[60vh] w-full overflow-hidden rounded-2xl border-2 border-border shadow-md">
+    <div className="h-[420px] w-full overflow-hidden rounded-2xl border border-border shadow-md md:h-[480px]">
       <div ref={containerRef} style={{ height: "100%", width: "100%" }} />
     </div>
   );
