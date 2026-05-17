@@ -59,57 +59,7 @@ export default function MyServicesManager() {
     return true;
   };
 
-  const saveLocation = async () => {
-    if (!province) {
-      toast.error("Elegí una provincia");
-      return;
-    }
-    const finalLocality = locality === "Otra" ? localityCustom.trim() : locality;
-    if (!finalLocality) {
-      toast.error("Elegí una localidad");
-      return;
-    }
-    if (!neighborhood.trim()) {
-      toast.error("El barrio / zona es obligatorio");
-      return;
-    }
-    const url = mapsUrl.trim();
-    let coordsPatch: { lat?: number | null; lng?: number | null } = { lat: null, lng: null };
 
-    // Geocoding: priorizamos la dirección textual (más precisa a nivel calle)
-    // y usamos el link de Google Maps como fallback.
-    if (address.trim() || url) {
-      try {
-        const { data, error } = await supabase.functions.invoke("resolve-google-maps", {
-          body: {
-            url,
-            address: address.trim(),
-            locality: finalLocality,
-            province,
-          },
-        });
-        if (!error && data?.coords) {
-          coordsPatch = { lat: data.coords.lat, lng: data.coords.lng };
-        } else {
-          toast.warning(
-            "No pudimos ubicar tu dirección con precisión. Verificá que la calle, altura y localidad sean correctas; mientras tanto aparecerás en el centro de tu localidad.",
-          );
-        }
-      } catch (e) {
-        console.error("resolve-google-maps", e);
-      }
-    }
-
-    const ok = await persist({
-      address: address.trim(),
-      province,
-      locality: finalLocality,
-      neighborhood: neighborhood.trim(),
-      google_maps_url: url,
-      ...coordsPatch,
-    });
-    if (ok) toast.success("Ubicación guardada");
-  };
 
   const addVehicle = async () => {
     const v = newVehicle.trim();
