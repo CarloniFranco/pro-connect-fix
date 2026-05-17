@@ -19,14 +19,6 @@ export default function MyServicesManager() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Location
-  const [address, setAddress] = useState("");
-  const [province, setProvince] = useState("");
-  const [locality, setLocality] = useState("");
-  const [localityCustom, setLocalityCustom] = useState("");
-  const [neighborhood, setNeighborhood] = useState("");
-  const [mapsUrl, setMapsUrl] = useState("");
-
   // Vehicle types accepted
   const [vehicleTypes, setVehicleTypes] = useState<string[]>(DEFAULT_VEHICLES);
   const [newVehicle, setNewVehicle] = useState("");
@@ -39,25 +31,12 @@ export default function MyServicesManager() {
     if (!user) return;
     supabase
       .from("professional_profiles")
-      .select("address, neighborhood, province, locality, google_maps_url, vehicle_types, services")
+      .select("vehicle_types, services")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         const d = data as any;
         if (d) {
-          setAddress(d.address || "");
-          setNeighborhood(d.neighborhood || "");
-          setProvince(d.province || "");
-          // Si la localidad guardada no está en el listado fijo de la provincia → se trata como custom (Otra)
-          const loc = d.locality || "";
-          if (loc && d.province && getLocalities(d.province).includes(loc)) {
-            setLocality(loc);
-            setLocalityCustom("");
-          } else if (loc) {
-            setLocality("Otra");
-            setLocalityCustom(loc);
-          }
-          setMapsUrl(d.google_maps_url || "");
           setVehicleTypes(d.vehicle_types?.length ? d.vehicle_types : DEFAULT_VEHICLES);
           setServices(Array.isArray(d.services) ? (d.services as ServiceItem[]) : []);
         }
