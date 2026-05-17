@@ -28,8 +28,8 @@ const proSteps = [
   },
   {
     icon: Zap,
-    title: "Presupuestá en segundos",
-    text: "Utilizá nuestro asistente con inteligencia artificial para armar presupuestos profesionales de forma rápida y sin esfuerzo.",
+    title: "Analizá tu negocio con IA",
+    text: "Recibí reportes inteligentes sobre tu performance, clientes y áreas de mejora para tomar mejores decisiones y hacer crecer tu negocio.",
   },
   {
     icon: Coins,
