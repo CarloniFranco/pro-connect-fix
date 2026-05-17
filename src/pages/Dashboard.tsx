@@ -28,6 +28,7 @@ const Dashboard = () => {
   const [available, setAvailable] = useState(true);
   const [togglingAvailable, setTogglingAvailable] = useState(false);
   const [stationsVersion, setStationsVersion] = useState(0);
+  const { isAdmin } = useIsAdmin();
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
