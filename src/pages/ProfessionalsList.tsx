@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 import { PROVINCES, getLocalities } from "@/lib/argentinaLocations";
 import { getLocalityCoords } from "@/lib/localityCoords";
 import { Clock } from "lucide-react";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 interface ProfessionalWithScore {
   id: string;
