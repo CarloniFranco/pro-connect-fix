@@ -64,6 +64,7 @@ const App = () => (
             <Route path="/completar-perfil" element={<PrivateRoute><ClientProfileSetup /></PrivateRoute>} />
             <Route path="/mi-perfil" element={<PrivateRoute><ClientProfile /></PrivateRoute>} />
             <Route path="/mis-pedidos" element={<PrivateRoute><ClientOrders /></PrivateRoute>} />
+            <Route path="/mis-favoritos" element={<PrivateRoute><ClientFavorites /></PrivateRoute>} />
 
             {/* Professional protected routes */}
             <Route path="/perfil-profesional" element={<PrivateRoute><ProfessionalProfile /></PrivateRoute>} />
