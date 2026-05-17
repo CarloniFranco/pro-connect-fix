@@ -37,33 +37,33 @@ const createPhotoIcon = (pro: MapPro) => {
   return L.divIcon({
     className: "fix-photo-pin",
     html: `
-      <div style="position:relative;width:48px;height:56px;">
+      <div style="position:relative;width:36px;height:42px;">
         <div style="
-          width:48px;height:48px;border-radius:50%;
-          overflow:hidden;border:3px solid #fff;
-          box-shadow:0 3px 10px rgba(0,0,0,0.35);
+          width:36px;height:36px;border-radius:50%;
+          overflow:hidden;border:2px solid #fff;
+          box-shadow:0 2px 6px rgba(0,0,0,0.3);
           background:hsl(213,75%,30%);
         ">${inner}</div>
         <div style="
           position:absolute;left:50%;bottom:0;
-          width:2px;height:8px;background:#fff;
+          width:2px;height:6px;background:#fff;
           transform:translateX(-50%);
           box-shadow:0 1px 2px rgba(0,0,0,0.4);
         "></div>
         <div style="
-          position:absolute;top:-4px;right:-6px;
+          position:absolute;top:-3px;right:-5px;
           background:hsl(45,95%,55%);color:#1a1a1a;
-          font-weight:800;font-size:11px;
-          padding:2px 5px;border-radius:8px;
-          border:2px solid #fff;
+          font-weight:800;font-size:9px;
+          padding:1px 4px;border-radius:6px;
+          border:1.5px solid #fff;
           font-family:system-ui,-apple-system,sans-serif;
           line-height:1;
         ">★ ${pro.score.toFixed(1)}</div>
       </div>
     `,
-    iconSize: [48, 56],
-    iconAnchor: [24, 56],
-    popupAnchor: [0, -56],
+    iconSize: [36, 42],
+    iconAnchor: [18, 42],
+    popupAnchor: [0, -42],
   });
 };
 
@@ -171,7 +171,7 @@ const ProfessionalsMap = ({ pros }: Props) => {
   }, [pros, navigate]);
 
   return (
-    <div className="h-[60vh] w-full overflow-hidden rounded-2xl border-2 border-border shadow-md">
+    <div className="h-[420px] w-full overflow-hidden rounded-2xl border border-border shadow-md md:h-[480px]">
       <div ref={containerRef} style={{ height: "100%", width: "100%" }} />
     </div>
   );
