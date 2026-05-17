@@ -223,6 +223,11 @@ export type Database = {
           available: boolean
           created_at: string
           descripcion: string
+          dni_back_url: string | null
+          dni_front_url: string | null
+          dni_rejection_reason: string | null
+          dni_submitted_at: string | null
+          dni_verification_status: string
           full_name: string
           google_maps_url: string
           id: string
@@ -249,6 +254,11 @@ export type Database = {
           available?: boolean
           created_at?: string
           descripcion?: string
+          dni_back_url?: string | null
+          dni_front_url?: string | null
+          dni_rejection_reason?: string | null
+          dni_submitted_at?: string | null
+          dni_verification_status?: string
           full_name?: string
           google_maps_url?: string
           id?: string
@@ -275,6 +285,11 @@ export type Database = {
           available?: boolean
           created_at?: string
           descripcion?: string
+          dni_back_url?: string | null
+          dni_front_url?: string | null
+          dni_rejection_reason?: string | null
+          dni_submitted_at?: string | null
+          dni_verification_status?: string
           full_name?: string
           google_maps_url?: string
           id?: string

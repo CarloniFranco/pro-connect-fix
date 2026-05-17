@@ -8,6 +8,7 @@ import AvailabilityManager from "@/components/dashboard/AvailabilityManager";
 import MyServicesManager from "@/components/dashboard/MyServicesManager";
 import WorkStationsManager from "@/components/dashboard/WorkStationsManager";
 import NotificationBell from "@/components/NotificationBell";
+import DniVerificationCard from "@/components/DniVerificationCard";
 import { Switch } from "@/components/ui/switch";
 import {
   DropdownMenu,
@@ -153,6 +154,7 @@ const Dashboard = () => {
           </div>
         </div>
 
+        <DniVerificationCard />
         <CalendarAgenda />
         <AgendaOrders />
         <MyServicesManager />
