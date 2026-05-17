@@ -224,31 +224,32 @@ export default function ServiceRequestForm({
       return;
     }
 
-    // Bloquear el slot reservado
+    // Bloquear el slot reservado (pending hasta confirmación de pago vía webhook MP)
     const { error: slotError } = await supabase.from("blocked_slots").insert({
       professional_id: professionalId,
       service_request_id: inserted.id,
       slot_date: selectedDate,
       slot_time: selectedTime + ":00",
-      slot_status: "paid",
+      slot_status: "pending",
     });
     if (slotError) console.error("blocked_slots error:", slotError);
 
-    setLoading(false);
-    toast.success(
-      dropoffMode
-        ? "¡Reserva confirmada! Dejá el auto en el horario indicado."
-        : "¡Turno confirmado! La seña quedó registrada."
+    // Crear preferencia de pago en Mercado Pago y redirigir al checkout
+    const { data: prefData, error: prefErr } = await supabase.functions.invoke(
+      "mp-create-deposit-preference",
+      { body: { service_request_id: inserted.id } }
     );
-    onOpenChange(false);
-    setDescription("");
-    setSelectedDate("");
-    setSelectedTime("");
-    setVehicleType("");
-    setServiceName("");
-    setDropoffMode(false);
-    setDropoffTime("");
-    setPickupTime("");
+
+    setLoading(false);
+
+    if (prefErr || !prefData?.init_point) {
+      console.error("MP preference error:", prefErr, prefData);
+      toast.error("No se pudo iniciar el pago en Mercado Pago. Intentá de nuevo.");
+      return;
+    }
+
+    toast.success("Redirigiendo a Mercado Pago para pagar la seña…");
+    window.location.href = prefData.init_point as string;
   };
 
   const noServicesConfigured = proServices.length === 0 || vehicleTypes.length === 0;
