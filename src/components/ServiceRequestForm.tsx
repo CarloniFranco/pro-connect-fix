@@ -197,9 +197,11 @@ export default function ServiceRequestForm({
       scheduled_date: selectedDate,
       scheduled_time: selectedTime + ":00",
       quoted_amount: totalPrice,
+      service_amount: totalPrice,
       deposit_amount: depositAmount,
-      deposit_paid: true,
-      status: "aceptada",
+      deposit_paid: false,
+      deposit_status: "pending",
+      status: "pendiente_pago",
       responded_at: new Date().toISOString(),
     };
     if (dropoffMode) {
