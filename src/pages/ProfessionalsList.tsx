@@ -34,6 +34,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import ProfessionalsMap, { MapPro } from "@/components/ProfessionalsMap";
 import { parseGoogleMapsCoords } from "@/lib/parseGoogleMaps";
 import { cn } from "@/lib/utils";
+import { PROVINCES, getLocalities } from "@/lib/argentinaLocations";
 import { getLocalityCoords } from "@/lib/localityCoords";
 import { Clock } from "lucide-react";
 
