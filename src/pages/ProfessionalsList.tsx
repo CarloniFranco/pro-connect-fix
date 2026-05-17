@@ -3,10 +3,7 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft,
   Star,
-  Zap,
   Shield,
-  Award,
-  ChevronRight,
   User,
   MapPin,
   List,
