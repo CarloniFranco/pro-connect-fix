@@ -176,6 +176,31 @@ const ProSubscription = () => {
             </CardContent>
           </Card>
 
+          {/* Email test */}
+          <Card className="mb-6">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Mail className="h-5 w-5 text-primary" />
+                Notificaciones por email
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Enviá un email de prueba a <span className="font-semibold text-foreground">{user?.email}</span> para
+                verificar que las notificaciones lleguen correctamente a tu casilla.
+              </p>
+              <Button
+                variant="outline"
+                onClick={handleSendTestEmail}
+                disabled={sendingTest}
+                className="w-full gap-2"
+              >
+                {sendingTest ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                {sendingTest ? "Enviando…" : "Enviar email de prueba"}
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* Danger Zone */}
           <Separator className="my-6" />
           <Card className="border-destructive/30">
