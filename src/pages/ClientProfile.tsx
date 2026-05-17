@@ -108,8 +108,8 @@ const ClientProfile = () => {
     if (!user) return;
     setDeleting(true);
     try {
-      // Delete client profile (cascade will handle related data via RLS)
-      await supabase.from("client_profiles").delete().eq("user_id", user.id);
+      const { error } = await supabase.functions.invoke("delete-user-account");
+      if (error) throw error;
       await signOut();
       toast.success("Tu cuenta ha sido eliminada");
       navigate("/");

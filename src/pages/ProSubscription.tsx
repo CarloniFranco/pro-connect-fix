@@ -60,8 +60,9 @@ const ProSubscription = () => {
     if (!user) return;
     setDeleting(true);
     try {
-      await supabase.from("professional_profiles").delete().eq("user_id", user.id);
-      toast.success("Tu cuenta profesional fue eliminada.");
+      const { error } = await supabase.functions.invoke("delete-user-account");
+      if (error) throw error;
+      toast.success("Tu cuenta fue eliminada.");
       await signOut();
       navigate("/");
     } catch (err) {
