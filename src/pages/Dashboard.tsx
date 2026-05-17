@@ -122,6 +122,12 @@ const Dashboard = () => {
                   <CreditCard className="mr-2 h-4 w-4" />
                   Mi Suscripción
                 </DropdownMenuItem>
+                {isAdmin && (
+                  <DropdownMenuItem onClick={() => navigate("/admin/verificaciones")}>
+                    <ShieldCheck className="mr-2 h-4 w-4" />
+                    Admin · Verificaciones
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
