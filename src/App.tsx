@@ -13,6 +13,7 @@ import Register from "./pages/Register.tsx";
 import ClientProfileSetup from "./pages/ClientProfileSetup.tsx";
 import ClientProfile from "./pages/ClientProfile.tsx";
 import ClientOrders from "./pages/ClientOrders.tsx";
+import ClientFavorites from "./pages/ClientFavorites.tsx";
 import ProfessionalProfile from "./pages/ProfessionalProfile.tsx";
 import ProProfileView from "./pages/ProProfileView.tsx";
 import ProWorkHistory from "./pages/ProWorkHistory.tsx";
@@ -63,6 +64,7 @@ const App = () => (
             <Route path="/completar-perfil" element={<PrivateRoute><ClientProfileSetup /></PrivateRoute>} />
             <Route path="/mi-perfil" element={<PrivateRoute><ClientProfile /></PrivateRoute>} />
             <Route path="/mis-pedidos" element={<PrivateRoute><ClientOrders /></PrivateRoute>} />
+            <Route path="/mis-favoritos" element={<PrivateRoute><ClientFavorites /></PrivateRoute>} />
 
             {/* Professional protected routes */}
             <Route path="/perfil-profesional" element={<PrivateRoute><ProfessionalProfile /></PrivateRoute>} />

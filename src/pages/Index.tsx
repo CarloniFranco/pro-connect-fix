@@ -3,6 +3,8 @@ import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import ProCTA from "@/components/ProCTA";
 import HowItWorks from "@/components/HowItWorks";
+import SocialProof from "@/components/SocialProof";
+import Testimonials from "@/components/Testimonials";
 
 
 const Index = () => {
@@ -10,7 +12,9 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <HeroSection />
+      <SocialProof />
       <HowItWorks />
+      <Testimonials />
       <ProCTA />
       <footer className="border-t border-border px-4 py-8 text-center">
         <p className="font-display text-lg font-bold text-foreground">

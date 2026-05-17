@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Wrench, User, LogOut, ChevronDown, ClipboardList, Briefcase, CreditCard, BarChart3 } from "lucide-react";
+import { Wrench, User, LogOut, ChevronDown, ClipboardList, Briefcase, CreditCard, BarChart3, Heart } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -122,10 +122,16 @@ const Navbar = () => {
                   </DropdownMenuItem>
                 </>
               ) : (
-                <DropdownMenuItem onClick={() => navigate("/mi-perfil")}>
-                  <User className="mr-2 h-4 w-4" />
-                  Mi Perfil
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem onClick={() => navigate("/mi-perfil")}>
+                    <User className="mr-2 h-4 w-4" />
+                    Mi Perfil
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/mis-favoritos")}>
+                    <Heart className="mr-2 h-4 w-4" />
+                    Mis Favoritos
+                  </DropdownMenuItem>
+                </>
               )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
