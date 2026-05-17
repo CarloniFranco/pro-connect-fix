@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { CreditCard, Lock, ShieldCheck, ArrowLeft, Loader2 } from "lucide-react";
+import { CreditCard, ShieldCheck, ArrowLeft, Loader2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,10 +18,6 @@ const PaymentSetup = () => {
     fullPrice: number;
   } | null;
 
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvc, setCvc] = useState("");
-  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
 
   if (!state) {
@@ -31,62 +25,27 @@ const PaymentSetup = () => {
     return null;
   }
 
-  const firstBillingDate = new Date();
-  firstBillingDate.setMonth(firstBillingDate.getMonth() + 3);
-  const formattedDate = firstBillingDate.toLocaleDateString("es-AR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-
-  const formatCardNumber = (v: string) => {
-    const digits = v.replace(/\D/g, "").slice(0, 16);
-    return digits.replace(/(.{4})/g, "$1 ").trim();
-  };
-
-  const formatExpiry = (v: string) => {
-    const digits = v.replace(/\D/g, "").slice(0, 4);
-    if (digits.length > 2) return digits.slice(0, 2) + "/" + digits.slice(2);
-    return digits;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-
-    const cleanCard = cardNumber.replace(/\s/g, "");
-    if (cleanCard.length < 13) {
-      toast.error("Número de tarjeta inválido");
+  const handleSubscribe = async () => {
+    if (!user) {
+      toast.error("Debés iniciar sesión");
       return;
     }
-    if (expiry.length < 5) {
-      toast.error("Fecha de vencimiento inválida");
-      return;
-    }
-    if (cvc.length < 3) {
-      toast.error("CVC inválido");
-      return;
-    }
-
     setLoading(true);
     try {
-      // Save plan selection (no actual charge)
-      await supabase
-        .from("professional_profiles")
-        .update({
-          plan: state.planId === "premium" ? "premium" : "basico",
-        })
-        .eq("user_id", user.id);
-
-      toast.success(
-        state.planId === "premium"
-          ? "¡Plan Premium activado! Tu tarjeta fue vinculada."
-          : "Plan Básico activado. Tu tarjeta fue vinculada."
-      );
-      navigate("/dashboard");
-    } catch {
+      const { data, error } = await supabase.functions.invoke("mp-create-subscription", {
+        body: { plan_id: state.planId },
+      });
+      if (error || !data?.init_point) {
+        console.error("MP subscription error:", error, data);
+        toast.error("No se pudo iniciar la suscripción en Mercado Pago.");
+        setLoading(false);
+        return;
+      }
+      toast.success("Redirigiendo a Mercado Pago…");
+      window.location.href = data.init_point as string;
+    } catch (e) {
+      console.error(e);
       toast.error("Ocurrió un error. Intentá de nuevo.");
-    } finally {
       setLoading(false);
     }
   };
@@ -118,93 +77,37 @@ const PaymentSetup = () => {
             </div>
             <div>
               <h1 className="text-lg font-bold text-card-foreground">
-                Configuración de Pago
+                Activar suscripción
               </h1>
               <p className="text-xs text-muted-foreground">
-                Plan {state.planName} · {state.billing === "anual" ? "Anual" : "Mensual"}
+                Plan {state.planName} · {state.billing === "anual" ? "Anual" : "Mensual"} · {priceLabel}
               </p>
             </div>
           </div>
 
-          {/* No-charge banner */}
           <div className="rounded-xl bg-primary/5 border border-primary/20 p-3 mb-6 flex items-start gap-2">
             <ShieldCheck className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-xs font-semibold text-primary">
-                No se realizará ningún cargo hoy
+                Pago seguro con Mercado Pago
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Tu tarjeta se vincula para activar los 3 meses gratis y asegurar
-                la continuidad del servicio. El primer cobro de{" "}
-                <span className="font-semibold text-foreground">{priceLabel}</span>{" "}
-                será el <span className="font-semibold text-foreground">{formattedDate}</span>.
+                Te llevamos a Mercado Pago para que actives tu suscripción mensual. Podés pagar con tarjeta de crédito, débito o dinero en cuenta. Cancelás cuando quieras desde tu panel.
               </p>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="name" className="text-xs">Nombre del titular</Label>
-              <Input
-                id="name"
-                placeholder="Juan Pérez"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </div>
+          <Button onClick={handleSubscribe} disabled={loading} className="w-full gap-2" size="lg">
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <ExternalLink className="h-4 w-4" />
+            )}
+            {loading ? "Conectando con Mercado Pago…" : "Continuar con Mercado Pago"}
+          </Button>
 
-            <div>
-              <Label htmlFor="card" className="text-xs">Número de tarjeta</Label>
-              <Input
-                id="card"
-                placeholder="1234 5678 9012 3456"
-                value={cardNumber}
-                onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                maxLength={19}
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="expiry" className="text-xs">Vencimiento</Label>
-                <Input
-                  id="expiry"
-                  placeholder="MM/AA"
-                  value={expiry}
-                  onChange={(e) => setExpiry(formatExpiry(e.target.value))}
-                  maxLength={5}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="cvc" className="text-xs">CVC</Label>
-                <Input
-                  id="cvc"
-                  placeholder="123"
-                  type="password"
-                  value={cvc}
-                  onChange={(e) => setCvc(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                  maxLength={4}
-                  required
-                />
-              </div>
-            </div>
-
-            <Button type="submit" disabled={loading} className="w-full gap-2">
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Lock className="h-4 w-4" />
-              )}
-              {loading ? "Vinculando tarjeta..." : "Vincular tarjeta y activar plan"}
-            </Button>
-          </form>
-
-          <p className="mt-4 text-center text-[11px] text-muted-foreground flex items-center justify-center gap-1">
-            <Lock className="h-3 w-3" />
-            Datos protegidos con encriptación de grado bancario
+          <p className="mt-4 text-center text-[11px] text-muted-foreground">
+            Al continuar aceptás los términos del servicio y autorizás el débito mensual recurrente vía Mercado Pago.
           </p>
         </div>
       </motion.div>
