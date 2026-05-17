@@ -197,9 +197,11 @@ export default function ServiceRequestForm({
       scheduled_date: selectedDate,
       scheduled_time: selectedTime + ":00",
       quoted_amount: totalPrice,
+      service_amount: totalPrice,
       deposit_amount: depositAmount,
-      deposit_paid: true,
-      status: "aceptada",
+      deposit_paid: false,
+      deposit_status: "pending",
+      status: "pendiente_pago",
       responded_at: new Date().toISOString(),
     };
     if (dropoffMode) {
@@ -222,31 +224,32 @@ export default function ServiceRequestForm({
       return;
     }
 
-    // Bloquear el slot reservado
+    // Bloquear el slot reservado (pending hasta confirmación de pago vía webhook MP)
     const { error: slotError } = await supabase.from("blocked_slots").insert({
       professional_id: professionalId,
       service_request_id: inserted.id,
       slot_date: selectedDate,
       slot_time: selectedTime + ":00",
-      slot_status: "paid",
+      slot_status: "pending",
     });
     if (slotError) console.error("blocked_slots error:", slotError);
 
-    setLoading(false);
-    toast.success(
-      dropoffMode
-        ? "¡Reserva confirmada! Dejá el auto en el horario indicado."
-        : "¡Turno confirmado! La seña quedó registrada."
+    // Crear preferencia de pago en Mercado Pago y redirigir al checkout
+    const { data: prefData, error: prefErr } = await supabase.functions.invoke(
+      "mp-create-deposit-preference",
+      { body: { service_request_id: inserted.id } }
     );
-    onOpenChange(false);
-    setDescription("");
-    setSelectedDate("");
-    setSelectedTime("");
-    setVehicleType("");
-    setServiceName("");
-    setDropoffMode(false);
-    setDropoffTime("");
-    setPickupTime("");
+
+    setLoading(false);
+
+    if (prefErr || !prefData?.init_point) {
+      console.error("MP preference error:", prefErr, prefData);
+      toast.error("No se pudo iniciar el pago en Mercado Pago. Intentá de nuevo.");
+      return;
+    }
+
+    toast.success("Redirigiendo a Mercado Pago para pagar la seña…");
+    window.location.href = prefData.init_point as string;
   };
 
   const noServicesConfigured = proServices.length === 0 || vehicleTypes.length === 0;
@@ -465,11 +468,11 @@ export default function ServiceRequestForm({
             size="lg"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <DollarSign className="h-4 w-4" />}
-            Confirmar turno y seña ${depositAmount > 0 ? depositAmount.toLocaleString("es-AR") : ""}
+            Pagar seña con Mercado Pago ${depositAmount > 0 ? `· $${depositAmount.toLocaleString("es-AR")}` : ""}
           </Button>
 
           <p className="text-[10px] text-muted-foreground text-center">
-            El turno queda confirmado al instante. El resto se paga al finalizar el servicio. Próximamente: pago online con Mercado Pago.
+            Pagás la seña (10%) con Mercado Pago para confirmar el turno. El resto lo abonás al finalizar el servicio. Si el profesional rechaza o cancelás con +1h, te reembolsamos la seña.
           </p>
         </div>
       </DialogContent>
