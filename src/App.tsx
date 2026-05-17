@@ -31,6 +31,7 @@ import PaymentSetup from "./pages/PaymentSetup.tsx";
 import CheckoutReturn from "./pages/CheckoutReturn.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import LegacyRedirect from "./pages/Auth.tsx";
+import AdminDniVerifications from "./pages/AdminDniVerifications.tsx";
 
 
 
