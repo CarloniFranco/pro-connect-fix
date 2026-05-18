@@ -71,7 +71,7 @@ const Navbar = () => {
 
         {user ? (
           <div className="flex min-w-0 items-center gap-1">
-            {!isPro && (
+            {!isAdmin && !isPro && (
               <button
                 onClick={() => navigate("/mis-pedidos")}
                 title="Ver mis pedidos"
@@ -82,7 +82,7 @@ const Navbar = () => {
                 <span className="hidden xs:inline sm:inline">Mis Pedidos</span>
               </button>
             )}
-            <NotificationBell />
+            {!isAdmin && <NotificationBell />}
             <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="inline-flex min-w-0 items-center gap-1.5 rounded-lg bg-muted px-2 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted/80 sm:gap-2 sm:px-3">
@@ -96,7 +96,12 @@ const Navbar = () => {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
-              {isPro ? (
+              {isAdmin ? (
+                <DropdownMenuItem onClick={() => navigate("/admin/verificaciones")}>
+                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  Admin · Verificaciones
+                </DropdownMenuItem>
+              ) : isPro ? (
                 <>
                   <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                     <Wrench className="mr-2 h-4 w-4" />
@@ -136,13 +141,7 @@ const Navbar = () => {
                 </>
               )}
               {isAdmin && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate("/admin/verificaciones")}>
-                    <ShieldCheck className="mr-2 h-4 w-4" />
-                    Admin · Verificaciones
-                  </DropdownMenuItem>
-                </>
+                <DropdownMenuSeparator />
               )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
