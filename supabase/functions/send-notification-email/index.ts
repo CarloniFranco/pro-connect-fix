@@ -51,12 +51,6 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const auth = req.headers.get("x-internal-secret");
-    if (auth !== INTERNAL_SECRET) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
     if (!RESEND_API_KEY) {
       console.error("Missing RESEND_API_KEY");
