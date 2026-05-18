@@ -1,13 +1,20 @@
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import ProCTA from "@/components/ProCTA";
 import HowItWorks from "@/components/HowItWorks";
 import SocialProof from "@/components/SocialProof";
 import Testimonials from "@/components/Testimonials";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { isAdmin, loading } = useIsAdmin();
+  useEffect(() => {
+    if (!loading && isAdmin) navigate("/admin/verificaciones", { replace: true });
+  }, [isAdmin, loading, navigate]);
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
