@@ -8,6 +8,16 @@ import { supabase } from "@/integrations/supabase/client";
  * - No profile → onboarding based on role metadata
  */
 export const getRedirectPath = async (userId: string, fallbackRole?: string | null): Promise<string> => {
+  // Admins go straight to the admin panel (no pro/client onboarding)
+  const { data: adminRole } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+
+  if (adminRole) return "/admin/verificaciones";
+
   const { data: proProfile } = await supabase
     .from("professional_profiles")
     .select("id, rubro, plan")
