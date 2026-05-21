@@ -1,13 +1,17 @@
 project_id = "uugvnhmtmfiplpqcrxjg"
 
-[functions.payments-webhook]
+[functions.mp-create-subscription]
 verify_jwt = false
 
-[functions.create-checkout]
+[functions.mp-create-deposit-preference]
 verify_jwt = false
 
-[functions.get-stripe-price]
+[functions.mp-refund-deposit]
 verify_jwt = false
+
+[functions.mp-cancel-subscription]
+verify_jwt = false
+
 
 [functions.generate-budget]
 verify_jwt = false

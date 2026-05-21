@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
-import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+
 import { buildWhatsappUrl } from "@/lib/whatsapp";
 
 
@@ -420,7 +420,7 @@ const ClientOrders = () => {
   return (
     <>
       <Navbar />
-      <PaymentTestModeBanner />
+      
       <div className="min-h-screen bg-background pt-14">
         <div className="container mx-auto max-w-2xl px-4 py-8">
           <button
