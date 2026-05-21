@@ -27,7 +27,7 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
 
   // Admins only have access to admin routes
   if (isAdmin && !location.pathname.startsWith("/admin")) {
-    return <Navigate to="/admin/verificaciones" replace />;
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   return <>{children}</>;

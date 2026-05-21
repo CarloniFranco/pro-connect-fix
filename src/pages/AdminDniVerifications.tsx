@@ -126,12 +126,9 @@ const AdminDniVerifications = () => {
   if (!isAdmin) return null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <header className="border-b bg-card">
         <div className="container mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <button onClick={() => navigate("/dashboard")} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" /> Dashboard
-          </button>
           <h1 className="font-semibold">Verificaciones de identidad</h1>
           <Button variant="ghost" size="sm" onClick={load}>
             <RefreshCw className="h-4 w-4" />

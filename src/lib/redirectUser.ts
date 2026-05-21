@@ -16,7 +16,7 @@ export const getRedirectPath = async (userId: string, fallbackRole?: string | nu
     .eq("role", "admin")
     .maybeSingle();
 
-  if (adminRole) return "/admin/verificaciones";
+  if (adminRole) return "/admin/dashboard";
 
   const { data: proProfile } = await supabase
     .from("professional_profiles")

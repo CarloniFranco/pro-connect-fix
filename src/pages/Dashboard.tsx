@@ -123,7 +123,7 @@ const Dashboard = () => {
                   Mi Suscripción
                 </DropdownMenuItem>
                 {isAdmin && (
-                  <DropdownMenuItem onClick={() => navigate("/admin/verificaciones")}>
+                  <DropdownMenuItem onClick={() => navigate("/admin/dashboard")}>
                     <ShieldCheck className="mr-2 h-4 w-4" />
                     Admin · Verificaciones
                   </DropdownMenuItem>
