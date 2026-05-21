@@ -274,24 +274,7 @@ const ProfessionalPublicProfile = () => {
             </div>
             <FavoriteButton professionalId={profile.user_id} size="md" stopPropagation={false} />
           </div>
-          {profile.phone && canRequest && (() => {
-            const url = buildWhatsappUrl(
-              profile.phone,
-              `Hola ${profile.full_name}, te contacto desde FIX por tu servicio de ${profile.rubro}.`,
-            );
-            if (!url) return null;
-            return (
-              <a
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#25D366]/30 bg-[#25D366]/10 px-4 py-2.5 text-sm font-bold text-[#128C7E] transition-colors hover:bg-[#25D366]/20"
-              >
-                <MessageCircle className="h-4 w-4" />
-                Consultar por WhatsApp
-              </a>
-            );
-          })()}
+          {/* WhatsApp se habilita recién después de reservar el turno (ver Mis Pedidos) */}
         </motion.div>
 
         {/* LOCATION */}
