@@ -286,17 +286,20 @@ const AgendaOrders = () => {
           {/* Client info */}
           <div className="rounded-lg bg-muted/40 p-3 space-y-2">
             <p className="text-sm font-semibold text-foreground">{o.client_name}</p>
-            {(o.status === "aceptada" || o.status === "en_servicio") && (
+            {(o.status === "aceptada" || o.status === "en_servicio" || o.status === "finalizada") && (
               <>
                 {o.client_phone && (
                   <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                     <Phone className="h-3 w-3" />
                     <a href={`tel:${o.client_phone}`} className="text-primary underline">{o.client_phone}</a>
                     {(() => {
-                      const wa = buildWhatsappUrl(
-                        o.client_phone,
-                        `Hola ${o.client_name}, te escribo de FIX por tu pedido de ${o.service_type}.`,
-                      );
+                      const msg =
+                        o.status === "finalizada"
+                          ? `Hola ${o.client_name}, te escribo de FIX. Ya finalicé tu servicio de ${o.service_type}. ¡Cuando puedas, dejame tu reseña en la app!`
+                          : o.status === "en_servicio"
+                          ? `Hola ${o.client_name}, te escribo de FIX. Ya comencé tu servicio de ${o.service_type}.`
+                          : `Hola ${o.client_name}, te escribo de FIX por tu turno confirmado de ${o.service_type}.`;
+                      const wa = buildWhatsappUrl(o.client_phone, msg);
                       return wa ? (
                         <a
                           href={wa}
@@ -506,8 +509,26 @@ const AgendaOrders = () => {
 
           {/* Finalizada */}
           {o.status === "finalizada" && (
-            <div className="rounded-lg bg-green-500/10 p-3 text-center">
-              <p className="text-sm font-semibold text-green-700 dark:text-green-300">✅ Trabajo finalizado</p>
+            <div className="space-y-2">
+              <div className="rounded-lg bg-green-500/10 p-3 text-center">
+                <p className="text-sm font-semibold text-green-700 dark:text-green-300">✅ Trabajo finalizado</p>
+              </div>
+              {o.client_phone && (() => {
+                const wa = buildWhatsappUrl(
+                  o.client_phone,
+                  `Hola ${o.client_name}, te escribo de FIX. Ya finalicé tu servicio de ${o.service_type}. ¡Cuando puedas, dejame tu reseña en la app!`,
+                );
+                return wa ? (
+                  <a
+                    href={wa}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex w-full items-center justify-center gap-2 rounded-md bg-[#25D366] px-4 py-2 text-sm font-bold text-white hover:bg-[#128C7E] transition-colors"
+                  >
+                    <MessageCircle className="h-4 w-4" /> Avisar al cliente por WhatsApp
+                  </a>
+                ) : null;
+              })()}
             </div>
           )}
 
