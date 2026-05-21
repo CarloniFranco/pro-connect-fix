@@ -39,7 +39,7 @@ const AdminDashboard = () => {
         supabase.from("service_requests").select("id", { count: "exact", head: true }),
         supabase.from("service_requests").select("id", { count: "exact", head: true }).gte("created_at", startMonthIso),
         supabase.from("subscriptions").select("id", { count: "exact", head: true }).in("status", ["active", "authorized", "trialing"]),
-        supabase.from("professional_profiles").select("user_id", { count: "exact", head: true }).eq("dni_verification_status", "en_revision"),
+        supabase.from("professional_verification").select("user_id", { count: "exact", head: true }).eq("dni_verification_status", "en_revision"),
         supabase.from("service_requests").select("quoted_amount").eq("status", "finalizada").gte("completed_at", startMonthIso),
       ]);
 
