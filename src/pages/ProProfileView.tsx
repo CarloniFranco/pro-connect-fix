@@ -270,6 +270,10 @@ const ProProfileView = () => {
                     <p className="text-xs text-muted-foreground mb-1">Descripción</p>
                     <p className="text-sm text-foreground">{profile?.descripcion || "Sin descripción"}</p>
                   </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Teléfono / WhatsApp</p>
+                    <p className="text-sm text-foreground">{profile?.phone || "Sin teléfono cargado"}</p>
+                  </div>
                 </>
               )}
             </CardContent>
