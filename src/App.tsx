@@ -32,6 +32,13 @@ import CheckoutReturn from "./pages/CheckoutReturn.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import LegacyRedirect from "./pages/Auth.tsx";
 import AdminDniVerifications from "./pages/AdminDniVerifications.tsx";
+import AdminLayout from "./components/admin/AdminLayout.tsx";
+import AdminDashboard from "./pages/AdminDashboard.tsx";
+import AdminProfessionals from "./pages/AdminProfessionals.tsx";
+import AdminClients from "./pages/AdminClients.tsx";
+import AdminOrders from "./pages/AdminOrders.tsx";
+import AdminSubscriptions from "./pages/AdminSubscriptions.tsx";
+import AdminBroadcast from "./pages/AdminBroadcast.tsx";
 
 
 
@@ -76,7 +83,16 @@ const App = () => (
             <Route path="/seleccionar-plan" element={<PrivateRoute><PlanSelection /></PrivateRoute>} />
             <Route path="/configurar-pago" element={<PrivateRoute><PaymentSetup /></PrivateRoute>} />
             <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-            <Route path="/admin/verificaciones" element={<PrivateRoute><AdminDniVerifications /></PrivateRoute>} />
+            <Route path="/admin" element={<PrivateRoute><AdminLayout /></PrivateRoute>}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="verificaciones" element={<AdminDniVerifications />} />
+              <Route path="profesionales" element={<AdminProfessionals />} />
+              <Route path="clientes" element={<AdminClients />} />
+              <Route path="pedidos" element={<AdminOrders />} />
+              <Route path="suscripciones" element={<AdminSubscriptions />} />
+              <Route path="broadcast" element={<AdminBroadcast />} />
+            </Route>
 
             <Route path="*" element={<NotFound />} />
           </Routes>

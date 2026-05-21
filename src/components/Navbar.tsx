@@ -97,9 +97,9 @@ const Navbar = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
               {isAdmin ? (
-                <DropdownMenuItem onClick={() => navigate("/admin/verificaciones")}>
+                <DropdownMenuItem onClick={() => navigate("/admin/dashboard")}>
                   <ShieldCheck className="mr-2 h-4 w-4" />
-                  Admin · Verificaciones
+                  Panel de Admin
                 </DropdownMenuItem>
               ) : isPro ? (
                 <>
