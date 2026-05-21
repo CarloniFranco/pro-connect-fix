@@ -26,11 +26,16 @@ const AdminProfessionals = () => {
 
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase
+    const { data: profiles } = await supabase
       .from("professional_profiles")
-      .select("user_id, full_name, rubro, locality, province, verified, available, dni_verification_status, plan, created_at")
+      .select("user_id, full_name, rubro, locality, province, verified, available, plan, created_at")
       .order("created_at", { ascending: false });
-    setList((data as Pro[]) || []);
+    const ids = (profiles || []).map((p: any) => p.user_id);
+    const { data: verifs } = ids.length
+      ? await supabase.from("professional_verification").select("user_id, dni_verification_status").in("user_id", ids)
+      : { data: [] as any[] };
+    const vMap = new Map<string, string>((verifs || []).map((v: any) => [v.user_id, v.dni_verification_status]));
+    setList(((profiles as any[]) || []).map((p) => ({ ...p, dni_verification_status: vMap.get(p.user_id) || "pendiente" })) as Pro[]);
     setLoading(false);
   };
 

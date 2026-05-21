@@ -223,18 +223,12 @@ export type Database = {
           available: boolean
           created_at: string
           descripcion: string
-          dni_back_url: string | null
-          dni_front_url: string | null
-          dni_rejection_reason: string | null
-          dni_submitted_at: string | null
-          dni_verification_status: string
           full_name: string
           google_maps_url: string
           id: string
           lat: number | null
           lng: number | null
           locality: string
-          matricula_url: string | null
           neighborhood: string
           parking_spots: number
           photo_url: string | null
@@ -254,18 +248,12 @@ export type Database = {
           available?: boolean
           created_at?: string
           descripcion?: string
-          dni_back_url?: string | null
-          dni_front_url?: string | null
-          dni_rejection_reason?: string | null
-          dni_submitted_at?: string | null
-          dni_verification_status?: string
           full_name?: string
           google_maps_url?: string
           id?: string
           lat?: number | null
           lng?: number | null
           locality?: string
-          matricula_url?: string | null
           neighborhood?: string
           parking_spots?: number
           photo_url?: string | null
@@ -285,18 +273,12 @@ export type Database = {
           available?: boolean
           created_at?: string
           descripcion?: string
-          dni_back_url?: string | null
-          dni_front_url?: string | null
-          dni_rejection_reason?: string | null
-          dni_submitted_at?: string | null
-          dni_verification_status?: string
           full_name?: string
           google_maps_url?: string
           id?: string
           lat?: number | null
           lng?: number | null
           locality?: string
-          matricula_url?: string | null
           neighborhood?: string
           parking_spots?: number
           photo_url?: string | null
@@ -310,6 +292,42 @@ export type Database = {
           vehicle_types?: string[]
           verified?: boolean
           work_stations?: number
+        }
+        Relationships: []
+      }
+      professional_verification: {
+        Row: {
+          created_at: string
+          dni_back_url: string | null
+          dni_front_url: string | null
+          dni_rejection_reason: string | null
+          dni_submitted_at: string | null
+          dni_verification_status: string
+          matricula_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dni_back_url?: string | null
+          dni_front_url?: string | null
+          dni_rejection_reason?: string | null
+          dni_submitted_at?: string | null
+          dni_verification_status?: string
+          matricula_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dni_back_url?: string | null
+          dni_front_url?: string | null
+          dni_rejection_reason?: string | null
+          dni_submitted_at?: string | null
+          dni_verification_status?: string
+          matricula_url?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

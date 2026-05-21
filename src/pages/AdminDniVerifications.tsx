@@ -52,9 +52,9 @@ const AdminDniVerifications = () => {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("professional_profiles")
-      .select("user_id, full_name, rubro, dni_front_url, dni_back_url, dni_verification_status, dni_rejection_reason, dni_submitted_at")
+    const { data: verifs, error } = await supabase
+      .from("professional_verification")
+      .select("user_id, dni_front_url, dni_back_url, dni_verification_status, dni_rejection_reason, dni_submitted_at")
       .eq("dni_verification_status", tab)
       .order("dni_submitted_at", { ascending: false, nullsFirst: false });
     if (error) {
@@ -62,7 +62,23 @@ const AdminDniVerifications = () => {
       setLoading(false);
       return;
     }
-    const list = (data || []) as Row[];
+    const ids = (verifs || []).map((v) => v.user_id);
+    const { data: profiles } = ids.length
+      ? await supabase.from("professional_profiles").select("user_id, full_name, rubro").in("user_id", ids)
+      : { data: [] as any[] };
+    const profileMap = new Map<string, { full_name: string; rubro: string }>(
+      (profiles || []).map((p: any) => [p.user_id, { full_name: p.full_name, rubro: p.rubro }])
+    );
+    const list: Row[] = (verifs || []).map((v: any) => ({
+      user_id: v.user_id,
+      full_name: profileMap.get(v.user_id)?.full_name || "",
+      rubro: profileMap.get(v.user_id)?.rubro || "",
+      dni_front_url: v.dni_front_url,
+      dni_back_url: v.dni_back_url,
+      dni_verification_status: v.dni_verification_status,
+      dni_rejection_reason: v.dni_rejection_reason,
+      dni_submitted_at: v.dni_submitted_at,
+    }));
     setRows(list);
 
     const previewEntries = await Promise.all(
@@ -82,16 +98,15 @@ const AdminDniVerifications = () => {
 
   const verify = async (row: Row) => {
     setActingId(row.user_id);
-    const { error } = await supabase
-      .from("professional_profiles")
-      .update({
-        dni_verification_status: "verificado",
-        dni_rejection_reason: null,
-        verified: true,
-      } as any)
+    const { error: vErr } = await supabase
+      .from("professional_verification")
+      .update({ dni_verification_status: "verificado", dni_rejection_reason: null })
       .eq("user_id", row.user_id);
+    if (!vErr) {
+      await supabase.from("professional_profiles").update({ verified: true }).eq("user_id", row.user_id);
+    }
     setActingId(null);
-    if (error) return toast.error("No se pudo verificar");
+    if (vErr) return toast.error("No se pudo verificar");
     toast.success(`${row.full_name} verificado`);
     load();
   };
@@ -100,16 +115,15 @@ const AdminDniVerifications = () => {
     const reason = (reasonByUser[row.user_id] || "").trim();
     if (!reason) return toast.error("Indicá un motivo para el rechazo");
     setActingId(row.user_id);
-    const { error } = await supabase
-      .from("professional_profiles")
-      .update({
-        dni_verification_status: "rechazado",
-        dni_rejection_reason: reason,
-        verified: false,
-      } as any)
+    const { error: vErr } = await supabase
+      .from("professional_verification")
+      .update({ dni_verification_status: "rechazado", dni_rejection_reason: reason })
       .eq("user_id", row.user_id);
+    if (!vErr) {
+      await supabase.from("professional_profiles").update({ verified: false }).eq("user_id", row.user_id);
+    }
     setActingId(null);
-    if (error) return toast.error("No se pudo rechazar");
+    if (vErr) return toast.error("No se pudo rechazar");
     toast.success(`${row.full_name} rechazado`);
     setReasonByUser((s) => ({ ...s, [row.user_id]: "" }));
     load();
