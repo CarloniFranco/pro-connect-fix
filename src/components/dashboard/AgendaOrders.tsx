@@ -509,8 +509,26 @@ const AgendaOrders = () => {
 
           {/* Finalizada */}
           {o.status === "finalizada" && (
-            <div className="rounded-lg bg-green-500/10 p-3 text-center">
-              <p className="text-sm font-semibold text-green-700 dark:text-green-300">✅ Trabajo finalizado</p>
+            <div className="space-y-2">
+              <div className="rounded-lg bg-green-500/10 p-3 text-center">
+                <p className="text-sm font-semibold text-green-700 dark:text-green-300">✅ Trabajo finalizado</p>
+              </div>
+              {o.client_phone && (() => {
+                const wa = buildWhatsappUrl(
+                  o.client_phone,
+                  `Hola ${o.client_name}, te escribo de FIX. Ya finalicé tu servicio de ${o.service_type}. ¡Cuando puedas, dejame tu reseña en la app!`,
+                );
+                return wa ? (
+                  <a
+                    href={wa}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex w-full items-center justify-center gap-2 rounded-md bg-[#25D366] px-4 py-2 text-sm font-bold text-white hover:bg-[#128C7E] transition-colors"
+                  >
+                    <MessageCircle className="h-4 w-4" /> Avisar al cliente por WhatsApp
+                  </a>
+                ) : null;
+              })()}
             </div>
           )}
 
