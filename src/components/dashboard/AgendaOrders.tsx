@@ -106,7 +106,18 @@ const AgendaOrders = () => {
       toast.error("Error al cancelar el turno");
       return;
     }
-    toast.success("Turno cancelado. El cliente fue notificado.");
+    if (selectedOrder.deposit_paid) {
+      const { error: rErr } = await supabase.functions.invoke("mp-refund-deposit", {
+        body: { service_request_id: selectedOrder.id },
+      });
+      if (rErr) {
+        toast.warning("Turno cancelado, pero falló el reembolso automático. Contactá soporte.");
+      } else {
+        toast.success("Turno cancelado y seña reembolsada al cliente.");
+      }
+    } else {
+      toast.success("Turno cancelado. El cliente fue notificado.");
+    }
     setCancelDialogOpen(false);
     setCancelReason("");
     setSelectedOrder(null);
@@ -228,7 +239,18 @@ const AgendaOrders = () => {
       .eq("id", order.id);
     setSaving(false);
     if (error) { toast.error("Error al finalizar"); return; }
-    toast.success("Trabajo finalizado. Se solicitó reseña al cliente.");
+    if (order.deposit_paid) {
+      const { error: rErr } = await supabase.functions.invoke("mp-refund-deposit", {
+        body: { service_request_id: order.id },
+      });
+      if (rErr) {
+        toast.warning("Trabajo finalizado, pero falló el reembolso de la seña. Contactá soporte.");
+      } else {
+        toast.success("Trabajo finalizado. Seña reembolsada al cliente y reseña solicitada.");
+      }
+    } else {
+      toast.success("Trabajo finalizado. Se solicitó reseña al cliente.");
+    }
     setSelectedOrder(null);
     fetchOrders();
   };
