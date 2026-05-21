@@ -51,16 +51,16 @@ const DniVerificationCard = () => {
   useEffect(() => {
     if (!user) return;
     supabase
-      .from("professional_profiles")
+      .from("professional_verification")
       .select("dni_verification_status, dni_rejection_reason, dni_front_url, dni_back_url")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         if (data) {
-          setStatus(((data as any).dni_verification_status as Status) || "pendiente");
-          setRejectionReason((data as any).dni_rejection_reason || null);
-          setHasFront(Boolean((data as any).dni_front_url));
-          setHasBack(Boolean((data as any).dni_back_url));
+          setStatus((data.dni_verification_status as Status) || "pendiente");
+          setRejectionReason(data.dni_rejection_reason || null);
+          setHasFront(Boolean(data.dni_front_url));
+          setHasBack(Boolean(data.dni_back_url));
         }
         setLoading(false);
       });
@@ -98,6 +98,7 @@ const DniVerificationCard = () => {
     setSaving(true);
     try {
       const updates: Record<string, any> = {
+        user_id: user.id,
         dni_verification_status: "en_revision",
         dni_submitted_at: new Date().toISOString(),
         dni_rejection_reason: null,
@@ -106,9 +107,8 @@ const DniVerificationCard = () => {
       if (back) updates.dni_back_url = await uploadOne(back, "back");
 
       const { error } = await supabase
-        .from("professional_profiles")
-        .update(updates as any)
-        .eq("user_id", user.id);
+        .from("professional_verification")
+        .upsert(updates, { onConflict: "user_id" });
       if (error) throw error;
 
       setStatus("en_revision");
