@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
-import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+
 import { buildWhatsappUrl } from "@/lib/whatsapp";
 
 
