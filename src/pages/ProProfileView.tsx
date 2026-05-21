@@ -76,7 +76,7 @@ const ProProfileView = () => {
     const [{ data: prof }, { data: scoreData }] = await Promise.all([
       supabase
         .from("professional_profiles")
-        .select("full_name, rubro, descripcion, photo_url, plan, verified, created_at")
+        .select("full_name, rubro, descripcion, photo_url, plan, verified, created_at, phone")
         .eq("user_id", user.id)
         .maybeSingle(),
       supabase.rpc("get_professional_score", { p_professional_id: user.id }),
@@ -87,6 +87,7 @@ const ProProfileView = () => {
       setEditName(prof.full_name);
       setEditRubro(prof.rubro);
       setEditDesc(prof.descripcion);
+      setEditPhone((prof as any).phone || "");
       if (prof.photo_url) setPhotoPreview(prof.photo_url);
     }
     if (scoreData) setScore(scoreData as unknown as ScoreData);
