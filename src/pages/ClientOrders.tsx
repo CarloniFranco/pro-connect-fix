@@ -577,7 +577,7 @@ const ClientOrders = () => {
                       <p className="font-medium">{proNames[selectedRequest.professional_id] || "—"}</p>
                       {(() => {
                         const phone = proPhones[selectedRequest.professional_id];
-                        const activeStatuses = ["cotizada", "aceptada", "en_servicio"];
+                        const activeStatuses = ["aceptada", "en_servicio"];
                         if (!phone || !activeStatuses.includes(selectedRequest.status)) return null;
                         const wa = buildWhatsappUrl(
                           phone,
