@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { ClipboardList, Loader2, ChevronRight, Phone, MapPin, CheckCircle2, XCircle, Clock, Send, FileText, ArrowLeft, Brain, Sparkles, AlertTriangle, Ban } from "lucide-react";
+import { ClipboardList, Loader2, ChevronRight, Phone, MapPin, CheckCircle2, XCircle, Clock, Send, FileText, ArrowLeft, Brain, Sparkles, AlertTriangle, Ban, MessageCircle } from "lucide-react";
+import { buildWhatsappUrl } from "@/lib/whatsapp";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -266,9 +267,25 @@ const AgendaOrders = () => {
             {(o.status === "aceptada" || o.status === "en_servicio") && (
               <>
                 {o.client_phone && (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                     <Phone className="h-3 w-3" />
                     <a href={`tel:${o.client_phone}`} className="text-primary underline">{o.client_phone}</a>
+                    {(() => {
+                      const wa = buildWhatsappUrl(
+                        o.client_phone,
+                        `Hola ${o.client_name}, te escribo de FIX por tu pedido de ${o.service_type}.`,
+                      );
+                      return wa ? (
+                        <a
+                          href={wa}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-full bg-[#25D366]/15 px-2 py-0.5 text-[10px] font-bold text-[#128C7E] hover:bg-[#25D366]/25"
+                        >
+                          <MessageCircle className="h-3 w-3" /> WhatsApp
+                        </a>
+                      ) : null;
+                    })()}
                   </div>
                 )}
                 {o.client_address && (

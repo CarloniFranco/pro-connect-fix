@@ -231,6 +231,7 @@ export type Database = {
           locality: string
           neighborhood: string
           parking_spots: number
+          phone: string | null
           photo_url: string | null
           plan: string
           province: string
@@ -256,6 +257,7 @@ export type Database = {
           locality?: string
           neighborhood?: string
           parking_spots?: number
+          phone?: string | null
           photo_url?: string | null
           plan?: string
           province?: string
@@ -281,6 +283,7 @@ export type Database = {
           locality?: string
           neighborhood?: string
           parking_spots?: number
+          phone?: string | null
           photo_url?: string | null
           plan?: string
           province?: string

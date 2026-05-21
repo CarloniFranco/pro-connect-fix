@@ -31,6 +31,7 @@ const ProfessionalProfile = () => {
   const [fullName, setFullName] = useState("");
   const [rubro, setRubro] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  const [phone, setPhone] = useState("");
   const [workStations, setWorkStations] = useState(1);
   const [matriculaFile, setMatriculaFile] = useState<File | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -61,6 +62,7 @@ const ProfessionalProfile = () => {
       setFullName(data.full_name);
       setRubro(data.rubro);
       setDescripcion(data.descripcion);
+      setPhone((data as any).phone || "");
       setWorkStations((data as any).work_stations || 1);
       if (data.photo_url) setPhotoPreview(data.photo_url);
       if (data.rubro && data.descripcion) {
@@ -129,6 +131,7 @@ const ProfessionalProfile = () => {
         full_name: fullName,
         rubro,
         descripcion,
+        phone: phone.trim() || null,
         work_stations: isLavadero ? Math.max(1, Math.min(20, workStations)) : 1,
         ...(photoUrl && { photo_url: photoUrl }),
       };
@@ -258,6 +261,21 @@ const ProfessionalProfile = () => {
               rows={4}
               required
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone">Teléfono / WhatsApp</Label>
+            <Input
+              id="phone"
+              type="tel"
+              inputMode="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Ej: 11 1234 5678"
+            />
+            <p className="text-xs text-muted-foreground">
+              Los clientes podrán escribirte por WhatsApp para coordinar el servicio.
+            </p>
           </div>
 
           <div className="space-y-2">
