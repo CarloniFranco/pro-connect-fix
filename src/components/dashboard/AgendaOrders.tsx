@@ -239,12 +239,21 @@ const AgendaOrders = () => {
       .eq("id", order.id);
     setSaving(false);
     if (error) { toast.error("Error al finalizar"); return; }
-    toast.success("Trabajo finalizado. Se solicitó reseña al cliente.");
+    if (order.deposit_paid) {
+      const { error: rErr } = await supabase.functions.invoke("mp-refund-deposit", {
+        body: { service_request_id: order.id },
+      });
+      if (rErr) {
+        toast.warning("Trabajo finalizado, pero falló el reembolso de la seña. Contactá soporte.");
+      } else {
+        toast.success("Trabajo finalizado. Seña reembolsada al cliente y reseña solicitada.");
+      }
+    } else {
+      toast.success("Trabajo finalizado. Se solicitó reseña al cliente.");
+    }
     setSelectedOrder(null);
     fetchOrders();
   };
-
-  const handleStartService = async (order: ServiceRequest) => {
     setSaving(true);
     const { error } = await supabase
       .from("service_requests")
