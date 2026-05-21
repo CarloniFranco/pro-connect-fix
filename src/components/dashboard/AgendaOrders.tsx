@@ -254,6 +254,8 @@ const AgendaOrders = () => {
     setSelectedOrder(null);
     fetchOrders();
   };
+
+  const handleStartService = async (order: ServiceRequest) => {
     setSaving(true);
     const { error } = await supabase
       .from("service_requests")
