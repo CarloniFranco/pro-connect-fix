@@ -23,10 +23,12 @@ import {
   Star,
   CheckCircle2,
   XCircle,
+  MessageCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { buildWhatsappUrl } from "@/lib/whatsapp";
 
 
 type ServiceRequest = {
@@ -146,6 +148,7 @@ const ClientOrders = () => {
   const { user } = useAuth();
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
   const [proNames, setProNames] = useState<Record<string, string>>({});
+  const [proPhones, setProPhones] = useState<Record<string, string | null>>({});
   const [reviewedIds, setReviewedIds] = useState<Set<string>>(new Set());
   const [existingReviews, setExistingReviews] = useState<Record<string, { rating: number; comment: string | null }>>({});
   const [loading, setLoading] = useState(true);
@@ -212,11 +215,16 @@ const ClientOrders = () => {
     if (proIds.length > 0) {
       const { data: pros } = await supabase
         .from("professional_profiles")
-        .select("user_id, full_name")
+        .select("user_id, full_name, phone")
         .in("user_id", proIds);
       const names: Record<string, string> = {};
-      (pros || []).forEach((p) => { names[p.user_id] = p.full_name; });
+      const phones: Record<string, string | null> = {};
+      (pros || []).forEach((p) => {
+        names[p.user_id] = p.full_name;
+        phones[p.user_id] = (p as any).phone || null;
+      });
       setProNames(names);
+      setProPhones(phones);
     }
 
     const { data: reviews } = await supabase
@@ -567,6 +575,26 @@ const ClientOrders = () => {
                     <div>
                       <p className="text-xs text-muted-foreground">Profesional</p>
                       <p className="font-medium">{proNames[selectedRequest.professional_id] || "—"}</p>
+                      {(() => {
+                        const phone = proPhones[selectedRequest.professional_id];
+                        const activeStatuses = ["cotizada", "aceptada", "en_servicio"];
+                        if (!phone || !activeStatuses.includes(selectedRequest.status)) return null;
+                        const wa = buildWhatsappUrl(
+                          phone,
+                          `Hola, te escribo desde FIX por mi pedido de ${selectedRequest.service_type}.`,
+                        );
+                        if (!wa) return null;
+                        return (
+                          <a
+                            href={wa}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-[#128C7E] hover:underline"
+                          >
+                            <MessageCircle className="h-3 w-3" /> WhatsApp
+                          </a>
+                        );
+                      })()}
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Fecha</p>
