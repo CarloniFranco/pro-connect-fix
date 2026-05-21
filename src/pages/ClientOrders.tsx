@@ -488,6 +488,28 @@ const ClientOrders = () => {
                             <StarsDisplay rating={existingReviews[req.id].rating} />
                           </div>
                         )}
+                        {(() => {
+                          const phone = proPhones[req.professional_id];
+                          const activeStatuses = ["aceptada", "en_servicio"];
+                          if (!phone || !activeStatuses.includes(req.status)) return null;
+                          const proName = proNames[req.professional_id] || "";
+                          const wa = buildWhatsappUrl(
+                            phone,
+                            `Hola${proName ? " " + proName.split(" ")[0] : ""}, te escribo desde FIX por mi pedido de ${req.service_type}.`,
+                          );
+                          if (!wa) return null;
+                          return (
+                            <a
+                              href={wa}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#25D366] px-3 py-1 text-xs font-bold text-white hover:bg-[#128C7E] transition-colors"
+                            >
+                              <MessageCircle className="h-3 w-3" /> Contactar por WhatsApp
+                            </a>
+                          );
+                        })()}
                       </div>
                       <div className="flex flex-col items-end gap-1">
                         <Badge
