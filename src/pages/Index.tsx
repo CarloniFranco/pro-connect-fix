@@ -13,7 +13,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { isAdmin, loading } = useIsAdmin();
   useEffect(() => {
-    if (!loading && isAdmin) navigate("/admin/verificaciones", { replace: true });
+    if (!loading && isAdmin) navigate("/admin/dashboard", { replace: true });
   }, [isAdmin, loading, navigate]);
   return (
     <div className="min-h-screen bg-background">
