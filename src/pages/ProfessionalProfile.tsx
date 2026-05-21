@@ -130,7 +130,6 @@ const ProfessionalProfile = () => {
         rubro,
         descripcion,
         work_stations: isLavadero ? Math.max(1, Math.min(20, workStations)) : 1,
-        ...(matriculaUrl && { matricula_url: matriculaUrl }),
         ...(photoUrl && { photo_url: photoUrl }),
       };
 
@@ -145,6 +144,12 @@ const ProfessionalProfile = () => {
           .from("professional_profiles")
           .insert({ ...profileData, user_id: user.id });
         if (error) throw error;
+      }
+
+      if (matriculaUrl) {
+        await supabase
+          .from("professional_verification")
+          .upsert({ user_id: user.id, matricula_url: matriculaUrl }, { onConflict: "user_id" });
       }
 
       toast.success("¡Perfil guardado! Tu verificación está en proceso.");

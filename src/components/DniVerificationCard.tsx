@@ -108,7 +108,7 @@ const DniVerificationCard = () => {
 
       const { error } = await supabase
         .from("professional_verification")
-        .upsert(updates, { onConflict: "user_id" });
+        .upsert(updates as any, { onConflict: "user_id" });
       if (error) throw error;
 
       setStatus("en_revision");
