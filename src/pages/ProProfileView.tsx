@@ -60,6 +60,7 @@ const ProProfileView = () => {
   const [editName, setEditName] = useState("");
   const [editRubro, setEditRubro] = useState("");
   const [editDesc, setEditDesc] = useState("");
+  const [editPhone, setEditPhone] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
