@@ -223,6 +223,19 @@ const ProProfileView = () => {
                     <Label>Descripción del servicio</Label>
                     <Textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} rows={4} />
                   </div>
+                  <div className="space-y-2">
+                    <Label>Teléfono / WhatsApp</Label>
+                    <Input
+                      type="tel"
+                      inputMode="tel"
+                      value={editPhone}
+                      onChange={(e) => setEditPhone(e.target.value)}
+                      placeholder="Ej: 11 1234 5678"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Los clientes podrán escribirte por WhatsApp para coordinar el servicio.
+                    </p>
+                  </div>
                   <div className="flex gap-2 pt-2">
                     <Button onClick={handleSave} disabled={saving} className="gap-1">
                       {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
