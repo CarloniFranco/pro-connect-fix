@@ -60,6 +60,7 @@ const ProProfileView = () => {
   const [editName, setEditName] = useState("");
   const [editRubro, setEditRubro] = useState("");
   const [editDesc, setEditDesc] = useState("");
+  const [editPhone, setEditPhone] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
@@ -75,7 +76,7 @@ const ProProfileView = () => {
     const [{ data: prof }, { data: scoreData }] = await Promise.all([
       supabase
         .from("professional_profiles")
-        .select("full_name, rubro, descripcion, photo_url, plan, verified, created_at")
+        .select("full_name, rubro, descripcion, photo_url, plan, verified, created_at, phone")
         .eq("user_id", user.id)
         .maybeSingle(),
       supabase.rpc("get_professional_score", { p_professional_id: user.id }),
@@ -86,6 +87,7 @@ const ProProfileView = () => {
       setEditName(prof.full_name);
       setEditRubro(prof.rubro);
       setEditDesc(prof.descripcion);
+      setEditPhone((prof as any).phone || "");
       if (prof.photo_url) setPhotoPreview(prof.photo_url);
     }
     if (scoreData) setScore(scoreData as unknown as ScoreData);
@@ -123,6 +125,7 @@ const ProProfileView = () => {
           full_name: editName.trim(),
           rubro: editRubro,
           descripcion: editDesc.trim(),
+          phone: editPhone.trim() || null,
           ...(photoUrl && { photo_url: photoUrl }),
         })
         .eq("user_id", user.id);
@@ -220,12 +223,25 @@ const ProProfileView = () => {
                     <Label>Descripción del servicio</Label>
                     <Textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} rows={4} />
                   </div>
+                  <div className="space-y-2">
+                    <Label>Teléfono / WhatsApp</Label>
+                    <Input
+                      type="tel"
+                      inputMode="tel"
+                      value={editPhone}
+                      onChange={(e) => setEditPhone(e.target.value)}
+                      placeholder="Ej: 11 1234 5678"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Los clientes podrán escribirte por WhatsApp para coordinar el servicio.
+                    </p>
+                  </div>
                   <div className="flex gap-2 pt-2">
                     <Button onClick={handleSave} disabled={saving} className="gap-1">
                       {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                       Guardar
                     </Button>
-                    <Button variant="outline" onClick={() => { setEditing(false); if (profile) { setEditName(profile.full_name); setEditRubro(profile.rubro); setEditDesc(profile.descripcion); setPhotoPreview(profile.photo_url); } setPhotoFile(null); }}>
+                    <Button variant="outline" onClick={() => { setEditing(false); if (profile) { setEditName(profile.full_name); setEditRubro(profile.rubro); setEditDesc(profile.descripcion); setEditPhone(profile.phone || ""); setPhotoPreview(profile.photo_url); } setPhotoFile(null); }}>
                       Cancelar
                     </Button>
                   </div>
@@ -253,6 +269,10 @@ const ProProfileView = () => {
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Descripción</p>
                     <p className="text-sm text-foreground">{profile?.descripcion || "Sin descripción"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Teléfono / WhatsApp</p>
+                    <p className="text-sm text-foreground">{profile?.phone || "Sin teléfono cargado"}</p>
                   </div>
                 </>
               )}
