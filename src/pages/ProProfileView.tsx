@@ -241,7 +241,7 @@ const ProProfileView = () => {
                       {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                       Guardar
                     </Button>
-                    <Button variant="outline" onClick={() => { setEditing(false); if (profile) { setEditName(profile.full_name); setEditRubro(profile.rubro); setEditDesc(profile.descripcion); setPhotoPreview(profile.photo_url); } setPhotoFile(null); }}>
+                    <Button variant="outline" onClick={() => { setEditing(false); if (profile) { setEditName(profile.full_name); setEditRubro(profile.rubro); setEditDesc(profile.descripcion); setEditPhone(profile.phone || ""); setPhotoPreview(profile.photo_url); } setPhotoFile(null); }}>
                       Cancelar
                     </Button>
                   </div>
