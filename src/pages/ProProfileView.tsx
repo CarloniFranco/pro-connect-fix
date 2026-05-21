@@ -125,6 +125,7 @@ const ProProfileView = () => {
           full_name: editName.trim(),
           rubro: editRubro,
           descripcion: editDesc.trim(),
+          phone: editPhone.trim() || null,
           ...(photoUrl && { photo_url: photoUrl }),
         })
         .eq("user_id", user.id);
