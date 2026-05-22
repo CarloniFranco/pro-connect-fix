@@ -65,7 +65,7 @@ const ClientProfile = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("client_profiles")
-      .select("full_name, phone, address, age, gender")
+      .select("full_name, phone, address, age, gender, email_notifications_enabled")
       .eq("user_id", user.id)
       .maybeSingle();
 
