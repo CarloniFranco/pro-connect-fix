@@ -32,15 +32,13 @@ async function getInternalSecret(): Promise<string | null> {
 
 // Tipos de notificación que disparan email
 const EMAIL_ENABLED_TYPES = new Set([
+  // Profesional
   "nueva_solicitud",
-  "presupuesto_recibido",
-  "seña_pagada",
-  "presupuesto_aceptado",
+  "cliente_cancelo",
+  // Cliente
   "servicio_iniciado",
   "servicio_finalizado",
-  "cliente_cancelo",
   "profesional_cancelo",
-  "solicitud_rechazada",
   "sena_reembolsada",
 ]);
 
