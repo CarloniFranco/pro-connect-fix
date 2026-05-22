@@ -51,6 +51,13 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
+    // Internal-only endpoint: require shared secret header injected by the DB trigger
+    const providedSecret = req.headers.get("x-internal-secret");
+    if (!providedSecret || providedSecret !== INTERNAL_SECRET) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     if (!RESEND_API_KEY) {
       console.error("Missing RESEND_API_KEY");
@@ -58,6 +65,7 @@ serve(async (req) => {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
     const { notification_id } = await req.json();
     if (!notification_id || typeof notification_id !== "string") {
