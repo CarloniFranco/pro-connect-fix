@@ -143,6 +143,27 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Require authenticated user — prevents SSRF/open-proxy abuse
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized", coords: null }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 },
+      );
+    }
+    const userClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: userData, error: userErr } = await userClient.auth.getUser();
+    if (userErr || !userData?.user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized", coords: null }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 },
+      );
+    }
+
     const body = await req.json();
     const url: string = typeof body?.url === "string" ? body.url : "";
     const address: string = typeof body?.address === "string" ? body.address : "";
@@ -152,6 +173,13 @@ Deno.serve(async (req) => {
     if (!url && !address) {
       return new Response(
         JSON.stringify({ error: "URL o dirección requerida", coords: null }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 },
+      );
+    }
+
+    if (url && !isAllowedMapsUrl(url)) {
+      return new Response(
+        JSON.stringify({ error: "URL no permitida", coords: null }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 },
       );
     }
