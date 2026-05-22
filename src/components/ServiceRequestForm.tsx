@@ -335,68 +335,123 @@ export default function ServiceRequestForm({
             </div>
           )}
 
-          {/* Date */}
+          {/* Date + Time selector (estilo barra del perfil) */}
           <div>
             <label className="mb-2 block text-xs font-semibold text-muted-foreground">
-              <CalendarDays className="inline h-3 w-3 mr-1" /> Día
+              <CalendarDays className="inline h-3 w-3 mr-1" /> Día y horario
             </label>
-            {availableDates.length === 0 ? (
+
+            {availability.length === 0 ? (
               <p className="text-sm text-muted-foreground rounded-lg bg-muted/50 p-3 text-center">
                 Sin horarios configurados.
               </p>
             ) : (
-              <div className="flex flex-wrap gap-2">
-                {availableDates.map((d) => (
-                  <button
-                    key={d.date}
-                    onClick={() => { setSelectedDate(d.date); setSelectedTime(""); }}
-                    className={`rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${
-                      selectedDate === d.date
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-card text-card-foreground hover:border-primary/50"
-                    }`}
+              <>
+                {/* Barra de navegación de día */}
+                <div className="flex items-center gap-2 mb-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9 flex-shrink-0"
+                    onClick={() => {
+                      const current = selectedDate ? new Date(selectedDate + "T00:00:00") : new Date();
+                      const prev = subDays(current, 1);
+                      if (isBefore(prev, startOfDay(new Date()))) return;
+                      setSelectedDate(format(prev, "yyyy-MM-dd"));
+                      setSelectedTime("");
+                    }}
+                    aria-label="Día anterior"
                   >
-                    {d.label}
-                  </button>
-                ))}
-              </div>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="flex-1 justify-center gap-2 h-9 font-semibold">
+                        <CalendarDays className="h-4 w-4" />
+                        {selectedDate
+                          ? format(new Date(selectedDate + "T00:00:00"), "EEE d 'de' MMM", { locale: es })
+                          : "Elegí un día"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="center">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate ? new Date(selectedDate + "T00:00:00") : undefined}
+                        onSelect={(d) => {
+                          if (!d) return;
+                          setSelectedDate(format(d, "yyyy-MM-dd"));
+                          setSelectedTime("");
+                        }}
+                        disabled={(d) => {
+                          if (isBefore(d, startOfDay(new Date()))) return true;
+                          const allowedDows = new Set(availability.map((a) => a.day_of_week));
+                          return !allowedDows.has(d.getDay());
+                        }}
+                        initialFocus
+                        locale={es}
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9 flex-shrink-0"
+                    onClick={() => {
+                      const current = selectedDate ? new Date(selectedDate + "T00:00:00") : new Date();
+                      setSelectedDate(format(addDays(current, 1), "yyyy-MM-dd"));
+                      setSelectedTime("");
+                    }}
+                    aria-label="Día siguiente"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Grilla de horarios del día seleccionado */}
+                {!selectedDate ? (
+                  <p className="text-sm text-muted-foreground rounded-lg bg-muted/50 p-3 text-center">
+                    Elegí un día para ver los horarios disponibles.
+                  </p>
+                ) : timeSlots.length === 0 ? (
+                  <p className="text-sm text-muted-foreground rounded-lg bg-muted/50 p-3 text-center">
+                    Este profesional no atiende este día. Probá con otro.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                    {timeSlots.map(({ time: t, taken }) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => !taken && setSelectedTime(t)}
+                        disabled={taken}
+                        title={taken ? "Turno reservado por otro cliente" : "Seleccionar"}
+                        className={`rounded-lg border-2 px-2 py-2 text-sm font-bold transition-all ${
+                          taken
+                            ? "border-border bg-muted text-muted-foreground/50 line-through cursor-not-allowed"
+                            : selectedTime === t
+                              ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                              : "border-primary/30 bg-primary/5 text-primary hover:border-primary hover:bg-primary hover:text-primary-foreground"
+                        }`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {selectedDate && selectedTime && (
+                  <p className="mt-2 text-center text-xs text-secondary font-semibold">
+                    ✓ Turno seleccionado: {format(new Date(selectedDate + "T00:00:00"), "EEEE d 'de' MMMM", { locale: es })} a las {selectedTime} hs
+                  </p>
+                )}
+              </>
             )}
           </div>
-
-          {/* Time */}
-          {selectedDate && (
-            <div>
-              <label className="mb-2 block text-xs font-semibold text-muted-foreground">
-                <Clock className="inline h-3 w-3 mr-1" /> Horario
-              </label>
-              {timeSlots.length === 0 ? (
-                <p className="text-sm text-muted-foreground rounded-lg bg-muted/50 p-3 text-center">
-                  Sin horarios disponibles.
-                </p>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {timeSlots.map(({ time: t, taken }) => (
-                    <button
-                      key={t}
-                      onClick={() => !taken && setSelectedTime(t)}
-                      disabled={taken}
-                      title={taken ? "Turno reservado por otro cliente" : undefined}
-                      className={`relative rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${
-                        taken
-                          ? "border-border bg-muted text-muted-foreground line-through cursor-not-allowed opacity-70"
-                          : selectedTime === t
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-border bg-card text-card-foreground hover:border-primary/50"
-                      }`}
-                    >
-                      {t}
-                      {taken && <span className="ml-1 text-[10px] font-bold">· reservado</span>}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
 
           {/* Dropoff "dejá y retirá" — solo si el lavadero tiene estacionamiento */}
           {parkingSpots > 0 && selectedTime && (
