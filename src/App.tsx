@@ -66,6 +66,7 @@ const App = () => (
             <Route path="/profesionales/:category" element={<ProfessionalsList />} />
             <Route path="/profesional/:userId" element={<ProfessionalPublicProfile />} />
             <Route path="/checkout/return" element={<CheckoutReturn />} />
+            <Route path="/sena/confirmada" element={<DepositConfirmed />} />
             <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Client protected routes */}
