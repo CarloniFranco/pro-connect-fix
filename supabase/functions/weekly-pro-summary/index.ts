@@ -12,7 +12,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const RESEND_FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") ?? "FIX <notificaciones@resend.dev>";
-const CRON_SECRET = Deno.env.get("CRON_SECRET");
+// CRON_SECRET is loaded from the private app_config table
 
 const APP_URL = "https://pro-connect-fix.lovable.app";
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
@@ -54,10 +54,11 @@ function buildHtml(proName: string, items: any[]) {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  // Auth: cron secret OR service-role JWT
-  const cronHeader = req.headers.get("x-cron-secret");
-  const authorized = (CRON_SECRET && cronHeader === CRON_SECRET);
-  if (!authorized) {
+  // Auth: cron secret stored in app_config
+  const providedSecret = req.headers.get("x-cron-secret");
+  const { data: cfg } = await admin.from("app_config").select("value").eq("key", "cron_secret").maybeSingle();
+  const expected = cfg?.value;
+  if (!expected || !providedSecret || providedSecret !== expected) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
