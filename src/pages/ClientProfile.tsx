@@ -107,6 +107,21 @@ const ClientProfile = () => {
     setSaving(false);
   };
 
+  const handleToggleEmailNotifications = async (enabled: boolean) => {
+    if (!user || !profile) return;
+    setProfile({ ...profile, email_notifications_enabled: enabled });
+    const { error } = await (supabase
+      .from("client_profiles") as any)
+      .update({ email_notifications_enabled: enabled })
+      .eq("user_id", user.id);
+    if (error) {
+      setProfile({ ...profile, email_notifications_enabled: !enabled });
+      toast.error("No se pudo actualizar la preferencia");
+    } else {
+      toast.success(enabled ? "Notificaciones por email activadas" : "Notificaciones por email desactivadas");
+    }
+  };
+
   const handleDeleteAccount = async () => {
     if (!user) return;
     setDeleting(true);
