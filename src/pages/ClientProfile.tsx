@@ -73,7 +73,7 @@ const ClientProfile = () => {
       console.error("Error loading profile:", error);
     }
     if (data) {
-      setProfile(data);
+      setProfile({ ...data, email_notifications_enabled: (data as any).email_notifications_enabled ?? true });
       setEditName(data.full_name);
       setEditPhone(data.phone);
       setEditAddress(data.address);
