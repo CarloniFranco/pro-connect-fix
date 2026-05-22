@@ -26,7 +26,8 @@ async function verifySignature(req: Request, dataId: string): Promise<boolean> {
   const v1 = parts.v1;
   if (!ts || !v1) return false;
 
-  const manifest = `id:${dataId};request-id:${reqId};ts:${ts};`;
+  // MP requiere data.id en minúsculas dentro del manifest
+  const manifest = `id:${String(dataId).toLowerCase()};request-id:${reqId};ts:${ts};`;
   const keyData = new TextEncoder().encode(MP_WEBHOOK_SECRET);
   const key = await crypto.subtle.importKey(
     "raw", keyData, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
