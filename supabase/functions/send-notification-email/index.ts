@@ -12,11 +12,23 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const RESEND_FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") ?? "FIX <notificaciones@resend.dev>";
-const INTERNAL_SECRET = Deno.env.get("INTERNAL_TRIGGER_SECRET") ?? SERVICE_ROLE_KEY;
+// INTERNAL_SECRET is loaded lazily from the private app_config table (see getInternalSecret).
 
 const APP_URL = "https://pro-connect-fix.lovable.app";
 
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+
+let cachedInternalSecret: string | null = null;
+async function getInternalSecret(): Promise<string | null> {
+  if (cachedInternalSecret) return cachedInternalSecret;
+  const { data } = await admin
+    .from("app_config")
+    .select("value")
+    .eq("key", "internal_trigger_secret")
+    .maybeSingle();
+  cachedInternalSecret = data?.value ?? null;
+  return cachedInternalSecret;
+}
 
 // Tipos de notificación que disparan email
 const EMAIL_ENABLED_TYPES = new Set([
@@ -51,6 +63,14 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
+    // Internal-only endpoint: require shared secret header injected by the DB trigger
+    const providedSecret = req.headers.get("x-internal-secret");
+    const expectedSecret = await getInternalSecret();
+    if (!expectedSecret || !providedSecret || providedSecret !== expectedSecret) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     if (!RESEND_API_KEY) {
       console.error("Missing RESEND_API_KEY");
@@ -58,6 +78,7 @@ serve(async (req) => {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
     const { notification_id } = await req.json();
     if (!notification_id || typeof notification_id !== "string") {

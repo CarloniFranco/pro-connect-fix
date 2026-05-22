@@ -13,7 +13,8 @@ const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 // x-signature: ts=<ts>,v1=<hash>
 // manifest = "id:<dataId>;request-id:<x-request-id>;ts:<ts>;"
 async function verifySignature(req: Request, dataId: string): Promise<boolean> {
-  if (!MP_WEBHOOK_SECRET) return true; // si no está configurado, permitir (dev)
+  if (!MP_WEBHOOK_SECRET) return false; // require secret in all envs
+
   const sigHeader = req.headers.get("x-signature");
   const reqId = req.headers.get("x-request-id") ?? "";
   if (!sigHeader) return false;
@@ -51,11 +52,11 @@ serve(async (req) => {
 
     if (!dataId) return json({ ok: true, skipped: "no data id" });
 
-    // Verificar firma (no bloqueante en dev)
+    // Verificar firma — rechazamos eventos inválidos para prevenir spoofing
     const sigOk = await verifySignature(req, dataId);
     if (!sigOk) {
-      console.warn("MP webhook signature mismatch");
-      // No rechazamos para no perder eventos, pero logueamos
+      console.warn("MP webhook signature mismatch — rejecting");
+      return json({ error: "Invalid signature" }, 401);
     }
 
     // === PAYMENTS (seña) ===
