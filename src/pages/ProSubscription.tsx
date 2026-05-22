@@ -44,6 +44,26 @@ const ProSubscription = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [sendingTest, setSendingTest] = useState(false);
+  const [emailNotifEnabled, setEmailNotifEnabled] = useState(true);
+  const [savingPref, setSavingPref] = useState(false);
+
+  const handleToggleEmailNotifications = async (enabled: boolean) => {
+    if (!user) return;
+    const prev = emailNotifEnabled;
+    setEmailNotifEnabled(enabled);
+    setSavingPref(true);
+    const { error } = await (supabase
+      .from("professional_profiles") as any)
+      .update({ email_notifications_enabled: enabled })
+      .eq("user_id", user.id);
+    setSavingPref(false);
+    if (error) {
+      setEmailNotifEnabled(prev);
+      toast.error("No se pudo actualizar la preferencia");
+    } else {
+      toast.success(enabled ? "Notificaciones por email activadas" : "Notificaciones por email desactivadas");
+    }
+  };
 
   const handleSendTestEmail = async () => {
     setSendingTest(true);
