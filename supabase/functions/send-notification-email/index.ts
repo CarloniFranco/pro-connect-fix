@@ -18,6 +18,18 @@ const APP_URL = "https://pro-connect-fix.lovable.app";
 
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
+let cachedInternalSecret: string | null = null;
+async function getInternalSecret(): Promise<string | null> {
+  if (cachedInternalSecret) return cachedInternalSecret;
+  const { data } = await admin
+    .from("app_config")
+    .select("value")
+    .eq("key", "internal_trigger_secret")
+    .maybeSingle();
+  cachedInternalSecret = data?.value ?? null;
+  return cachedInternalSecret;
+}
+
 // Tipos de notificación que disparan email
 const EMAIL_ENABLED_TYPES = new Set([
   "nueva_solicitud",
