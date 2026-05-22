@@ -42,6 +42,7 @@ const ClientProfile = () => {
     address: string;
     age: number | null;
     gender: string;
+    email_notifications_enabled: boolean;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
