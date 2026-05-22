@@ -65,7 +65,8 @@ serve(async (req) => {
   try {
     // Internal-only endpoint: require shared secret header injected by the DB trigger
     const providedSecret = req.headers.get("x-internal-secret");
-    if (!providedSecret || providedSecret !== INTERNAL_SECRET) {
+    const expectedSecret = await getInternalSecret();
+    if (!expectedSecret || !providedSecret || providedSecret !== expectedSecret) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
