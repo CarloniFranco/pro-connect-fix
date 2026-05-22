@@ -61,9 +61,9 @@ serve(async (req) => {
           kind: "deposit",
         },
         back_urls: {
-          success: `${APP_URL}/mis-pedidos?deposit=success&request=${sr.id}`,
-          failure: `${APP_URL}/mis-pedidos?deposit=failure&request=${sr.id}`,
-          pending: `${APP_URL}/mis-pedidos?deposit=pending&request=${sr.id}`,
+          success: `${APP_URL}/sena/confirmada?deposit=success&request=${sr.id}`,
+          failure: `${APP_URL}/sena/confirmada?deposit=failure&request=${sr.id}`,
+          pending: `${APP_URL}/sena/confirmada?deposit=pending&request=${sr.id}`,
         },
         auto_return: "approved",
         notification_url: `${SUPABASE_URL}/functions/v1/mp-webhook`,
