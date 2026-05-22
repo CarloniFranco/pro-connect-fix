@@ -52,11 +52,11 @@ serve(async (req) => {
 
     if (!dataId) return json({ ok: true, skipped: "no data id" });
 
-    // Verificar firma (no bloqueante en dev)
+    // Verificar firma — rechazamos eventos inválidos para prevenir spoofing
     const sigOk = await verifySignature(req, dataId);
     if (!sigOk) {
-      console.warn("MP webhook signature mismatch");
-      // No rechazamos para no perder eventos, pero logueamos
+      console.warn("MP webhook signature mismatch — rejecting");
+      return json({ error: "Invalid signature" }, 401);
     }
 
     // === PAYMENTS (seña) ===
