@@ -52,6 +52,26 @@ export default function DepositConfirmed() {
         await new Promise((res) => setTimeout(res, 1500));
         attempts++;
       }
+
+      // Safety net: si MP nos devolvió success pero el webhook no llegó, reconciliamos
+      if (status === "success" && data && !data.deposit_paid) {
+        try {
+          const { data: rec } = await supabase.functions.invoke("mp-reconcile-deposit", {
+            body: { service_request_id: requestId },
+          });
+          if (rec?.paid) {
+            const r2 = await supabase
+              .from("service_requests")
+              .select("id, service_type, quoted_amount, deposit_amount, scheduled_date, scheduled_time, professional_id, deposit_paid, status")
+              .eq("id", requestId)
+              .maybeSingle();
+            data = r2.data;
+          }
+        } catch (e) {
+          console.warn("reconcile failed", e);
+        }
+      }
+
       setReq(data);
       if (data?.professional_id) {
         const { data: p } = await supabase
