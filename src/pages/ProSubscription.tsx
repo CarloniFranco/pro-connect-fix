@@ -83,12 +83,13 @@ const ProSubscription = () => {
     if (!user) return;
     supabase
       .from("professional_profiles")
-      .select("plan, created_at")
+      .select("plan, created_at, email_notifications_enabled")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         setPlan(data?.plan || "basico");
         setCreatedAt(data?.created_at || null);
+        setEmailNotifEnabled((data as any)?.email_notifications_enabled ?? true);
         setLoading(false);
       });
   }, [user]);
