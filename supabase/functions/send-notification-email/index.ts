@@ -12,7 +12,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const RESEND_FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") ?? "FIX <notificaciones@resend.dev>";
-const INTERNAL_SECRET = Deno.env.get("INTERNAL_TRIGGER_SECRET") ?? SERVICE_ROLE_KEY;
+// INTERNAL_SECRET is loaded lazily from the private app_config table (see getInternalSecret).
 
 const APP_URL = "https://pro-connect-fix.lovable.app";
 
