@@ -132,6 +132,7 @@ serve(async (req) => {
       body: JSON.stringify({
         from: RESEND_FROM_EMAIL,
         to: [userData.user.email],
+        reply_to: "somosfix.oficial@gmail.com",
         subject: notif.title,
         html: html(notif.title, notif.message, notif.link),
       }),
