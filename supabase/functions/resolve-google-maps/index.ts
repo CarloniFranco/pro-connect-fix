@@ -1,4 +1,15 @@
 import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+const ALLOWED_URL_PREFIXES = [
+  "https://maps.google.com",
+  "https://www.google.com/maps",
+  "https://google.com/maps",
+  "https://goo.gl/",
+  "https://maps.app.goo.gl/",
+];
+const isAllowedMapsUrl = (u: string) =>
+  ALLOWED_URL_PREFIXES.some((p) => u.startsWith(p));
 
 interface Coords {
   lat: number;
