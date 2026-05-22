@@ -27,20 +27,21 @@ serve(async (req) => {
 
     const { data: sr, error: sErr } = await admin
       .from("service_requests")
-      .select("id, service_type, service_amount, client_user_id, professional_id, deposit_status, deposit_payment_id")
+      .select("id, service_type, service_amount, quoted_amount, client_user_id, professional_id, deposit_status, deposit_payment_id")
       .eq("id", service_request_id)
       .maybeSingle();
     if (sErr || !sr) return json({ error: "Service request not found" }, 404);
     if (sr.client_user_id !== userId) return json({ error: "Forbidden" }, 403);
     if (sr.deposit_status === "paid") return json({ error: "Deposit already paid" }, 400);
 
-    const serviceAmount = Number(sr.service_amount ?? 0);
-    if (!serviceAmount || serviceAmount <= 0) {
-      return json({ error: "service_amount must be > 0 to compute deposit" }, 400);
+    // Si el profesional cotizó un monto, ese es el monto de referencia (puede haber cambiado el original)
+    const referenceAmount = Number(sr.quoted_amount ?? sr.service_amount ?? 0);
+    if (!referenceAmount || referenceAmount <= 0) {
+      return json({ error: "amount must be > 0 to compute deposit" }, 400);
     }
 
     // Seña = 10% del monto del servicio, mínimo $500
-    const depositAmount = Math.max(500, Math.round(serviceAmount * 0.10));
+    const depositAmount = Math.max(500, Math.round(referenceAmount * 0.10));
 
     const preference = await mpFetch("/checkout/preferences", {
       method: "POST",
