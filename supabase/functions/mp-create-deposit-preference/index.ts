@@ -40,8 +40,8 @@ serve(async (req) => {
       return json({ error: "amount must be > 0 to compute deposit" }, 400);
     }
 
-    // Seña = 10% del monto del servicio, mínimo $500
-    const depositAmount = Math.max(500, Math.round(referenceAmount * 0.10));
+    // Seña = 10% del monto del servicio
+    const depositAmount = Math.round(referenceAmount * 0.10);
 
     const preference = await mpFetch("/checkout/preferences", {
       method: "POST",
