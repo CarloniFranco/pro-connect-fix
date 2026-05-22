@@ -40,9 +40,10 @@ const isSafeUrl = (u: string | null | undefined): u is string =>
   !!u && /^https?:\/\//i.test(u);
 
 const createPhotoIcon = (pro: MapPro) => {
-  const initial = (pro.full_name || "?").charAt(0).toUpperCase();
-  const inner = pro.photo_url
-    ? `<img src="${pro.photo_url}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none';this.parentElement.innerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:hsl(213,75%,30%);color:#fff;font-weight:800;font-size:18px;\\'>${initial}</div>';" />`
+  const initial = escHtml((pro.full_name || "?").charAt(0).toUpperCase());
+  const safePhoto = isSafeUrl(pro.photo_url) ? pro.photo_url : null;
+  const inner = safePhoto
+    ? `<img src="${escHtml(safePhoto)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none';this.parentElement.innerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:hsl(213,75%,30%);color:#fff;font-weight:800;font-size:18px;\\'>${initial}</div>';" />`
     : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:hsl(213,75%,30%);color:#fff;font-weight:800;font-size:18px;">${initial}</div>`;
 
   return L.divIcon({
