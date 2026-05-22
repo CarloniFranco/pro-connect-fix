@@ -239,11 +239,17 @@ const AgendaOrders = () => {
       .eq("id", order.id);
     setSaving(false);
     if (error) { toast.error("Error al finalizar"); return; }
+
+    // Liberamos el turno de la agenda (borramos los slots bloqueados de este pedido)
+    await supabase.from("blocked_slots").delete().eq("service_request_id", order.id);
+
     if (order.deposit_paid) {
-      const { error: rErr } = await supabase.functions.invoke("mp-refund-deposit", {
+      const { data: rData, error: rErr } = await supabase.functions.invoke("mp-refund-deposit", {
         body: { service_request_id: order.id },
       });
-      if (rErr) {
+      if (rErr || (rData as any)?.error) {
+        const msg = (rData as any)?.error || rErr?.message || "";
+        console.error("Refund error:", msg);
         toast.warning("Trabajo finalizado, pero falló el reembolso de la seña. Contactá soporte.");
       } else {
         toast.success("Trabajo finalizado. Seña reembolsada al cliente y reseña solicitada.");
