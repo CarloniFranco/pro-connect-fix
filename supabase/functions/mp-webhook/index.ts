@@ -13,7 +13,8 @@ const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 // x-signature: ts=<ts>,v1=<hash>
 // manifest = "id:<dataId>;request-id:<x-request-id>;ts:<ts>;"
 async function verifySignature(req: Request, dataId: string): Promise<boolean> {
-  if (!MP_WEBHOOK_SECRET) return true; // si no está configurado, permitir (dev)
+  if (!MP_WEBHOOK_SECRET) return false; // require secret in all envs
+
   const sigHeader = req.headers.get("x-signature");
   const reqId = req.headers.get("x-request-id") ?? "";
   if (!sigHeader) return false;
