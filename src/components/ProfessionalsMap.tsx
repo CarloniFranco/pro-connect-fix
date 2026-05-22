@@ -132,16 +132,21 @@ const ProfessionalsMap = ({ pros }: Props) => {
 
     pros.forEach((p) => {
       const marker = L.marker([p.lat, p.lng], { icon: createPhotoIcon(p) });
+      const safeName = escHtml(p.full_name);
+      const safeInitial = escHtml((p.full_name || "?").charAt(0).toUpperCase());
+      const safeNeighborhood = escHtml(p.neighborhood);
+      const safePhoto = isSafeUrl(p.photo_url) ? escHtml(p.photo_url) : null;
+      const safeProId = escHtml(p.user_id);
       const popupHtml = `
         <div style="min-width:220px;font-family:system-ui,-apple-system,sans-serif;">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
             ${
-              p.photo_url
-                ? `<img src="${p.photo_url}" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid hsl(213,75%,30%);" />`
-                : `<div style="width:44px;height:44px;border-radius:50%;background:hsl(213,75%,30%);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;border:2px solid hsl(213,75%,30%);">${(p.full_name || "?").charAt(0).toUpperCase()}</div>`
+              safePhoto
+                ? `<img src="${safePhoto}" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid hsl(213,75%,30%);" />`
+                : `<div style="width:44px;height:44px;border-radius:50%;background:hsl(213,75%,30%);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;border:2px solid hsl(213,75%,30%);">${safeInitial}</div>`
             }
             <div style="flex:1;min-width:0;">
-              <p style="margin:0;font-weight:800;font-size:14px;line-height:1.2;color:#111;">${p.full_name}</p>
+              <p style="margin:0;font-weight:800;font-size:14px;line-height:1.2;color:#111;">${safeName}</p>
               <div style="display:flex;align-items:center;gap:4px;margin-top:2px;">
                 ${renderStarsHtml(p.score)}
                 <span style="font-size:12px;font-weight:600;color:#374151;margin-left:4px;">${p.score.toFixed(1)}</span>
@@ -150,11 +155,11 @@ const ProfessionalsMap = ({ pros }: Props) => {
           </div>
           ${
             p.neighborhood
-              ? `<p style="margin:0 0 10px 0;font-size:12px;color:#6b7280;display:flex;align-items:center;gap:4px;">📍 ${p.neighborhood}</p>`
+              ? `<p style="margin:0 0 10px 0;font-size:12px;color:#6b7280;display:flex;align-items:center;gap:4px;">📍 ${safeNeighborhood}</p>`
               : ""
           }
           <button
-            data-pro-id="${p.user_id}"
+            data-pro-id="${safeProId}"
             class="fix-map-select-btn"
             style="width:100%;padding:8px 12px;border:none;border-radius:8px;background:hsl(213,75%,30%);color:#fff;font-weight:700;font-size:12px;cursor:pointer;"
           >
