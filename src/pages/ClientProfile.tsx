@@ -281,6 +281,31 @@ const ClientProfile = () => {
             </CardContent>
           </Card>
 
+          {/* Notification preferences */}
+          <Card className="mb-6">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Bell className="h-5 w-5 text-primary" />
+                Notificaciones
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground">Recibir notificaciones por email</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Te avisamos por mail cuando recibís un presupuesto, se confirma un turno, o hay novedades sobre tu servicio. Las notificaciones dentro de la app siguen funcionando igual.
+                  </p>
+                </div>
+                <Switch
+                  checked={profile?.email_notifications_enabled ?? true}
+                  onCheckedChange={handleToggleEmailNotifications}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+
           {/* Danger Zone */}
           <Separator className="my-6" />
           <Card className="border-destructive/30">
