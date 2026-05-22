@@ -1,0 +1,1 @@
+UPDATE service_requests SET deposit_paid = true, deposit_status = 'paid', status = 'aceptada' WHERE id = '62a1ae83-1cd0-4549-b97c-5fe095a5a415';
