@@ -177,7 +177,7 @@ export default function ServiceRequestForm({
 
   // Pricing
   const totalPrice = selectedServiceItem && vehicleType ? selectedServiceItem.prices[vehicleType] || 0 : 0;
-  const depositAmount = Math.round(totalPrice * 0.1);
+  const depositAmount = totalPrice > 0 ? Math.max(500, Math.round(totalPrice * 0.1)) : 0;
 
   const handleSubmit = async () => {
     if (!user) { toast.error("Debés iniciar sesión"); return; }
@@ -326,11 +326,11 @@ export default function ServiceRequestForm({
                 <span className="font-bold text-foreground">${totalPrice.toLocaleString("es-AR")}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Seña (10%)</span>
+                <span className="text-muted-foreground">Seña{depositAmount > totalPrice * 0.1 ? " (mínimo)" : " (10%)"}</span>
                 <span className="font-bold text-primary">${depositAmount.toLocaleString("es-AR")}</span>
               </div>
               <p className="text-[10px] text-muted-foreground pt-1 border-t border-primary/20">
-                El resto (${(totalPrice - depositAmount).toLocaleString("es-AR")}) se paga al finalizar el servicio.
+                El resto (${Math.max(0, totalPrice - depositAmount).toLocaleString("es-AR")}) se paga al finalizar el servicio.
               </p>
             </div>
           )}
