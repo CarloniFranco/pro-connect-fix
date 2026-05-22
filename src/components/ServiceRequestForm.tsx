@@ -177,7 +177,7 @@ export default function ServiceRequestForm({
 
   // Pricing
   const totalPrice = selectedServiceItem && vehicleType ? selectedServiceItem.prices[vehicleType] || 0 : 0;
-  const depositAmount = totalPrice > 0 ? Math.max(500, Math.round(totalPrice * 0.1)) : 0;
+  const depositAmount = totalPrice > 0 ? Math.round(totalPrice * 0.1) : 0;
 
   const handleSubmit = async () => {
     if (!user) { toast.error("Debés iniciar sesión"); return; }
