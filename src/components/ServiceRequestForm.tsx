@@ -1,9 +1,14 @@
 import { useState, useEffect } from "react";
-import { CalendarDays, Clock, Send, Loader2, Car, Wrench, DollarSign, ParkingCircle } from "lucide-react";
+import { CalendarDays, Clock, Send, Loader2, Car, Wrench, DollarSign, ParkingCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { format, addDays, subDays, isBefore, startOfDay } from "date-fns";
+import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
