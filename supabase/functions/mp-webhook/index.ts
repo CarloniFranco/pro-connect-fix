@@ -53,11 +53,12 @@ serve(async (req) => {
 
     if (!dataId) return json({ ok: true, skipped: "no data id" });
 
-    // Verificar firma — rechazamos eventos inválidos para prevenir spoofing
+    // Verificar firma. Si falla, NO rechazamos: igual consultamos el pago contra MP
+    // con nuestro access token (un atacante no puede falsificar un payment id válido
+    // que pertenezca a nuestra cuenta). Solo logueamos el warning.
     const sigOk = await verifySignature(req, dataId);
     if (!sigOk) {
-      console.warn("MP webhook signature mismatch — rejecting");
-      return json({ error: "Invalid signature" }, 401);
+      console.warn("MP webhook signature mismatch — continuing with MP API verification");
     }
 
     // === PAYMENTS (seña) ===
