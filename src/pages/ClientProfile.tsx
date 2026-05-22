@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +28,7 @@ import {
   ArrowLeft,
   Loader2,
   AlertTriangle,
+  Bell,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
@@ -40,6 +42,7 @@ const ClientProfile = () => {
     address: string;
     age: number | null;
     gender: string;
+    email_notifications_enabled: boolean;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -62,7 +65,7 @@ const ClientProfile = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("client_profiles")
-      .select("full_name, phone, address, age, gender")
+      .select("full_name, phone, address, age, gender, email_notifications_enabled")
       .eq("user_id", user.id)
       .maybeSingle();
 
@@ -70,7 +73,7 @@ const ClientProfile = () => {
       console.error("Error loading profile:", error);
     }
     if (data) {
-      setProfile(data);
+      setProfile({ ...data, email_notifications_enabled: (data as any).email_notifications_enabled ?? true });
       setEditName(data.full_name);
       setEditPhone(data.phone);
       setEditAddress(data.address);
@@ -102,6 +105,21 @@ const ClientProfile = () => {
       loadProfile();
     }
     setSaving(false);
+  };
+
+  const handleToggleEmailNotifications = async (enabled: boolean) => {
+    if (!user || !profile) return;
+    setProfile({ ...profile, email_notifications_enabled: enabled });
+    const { error } = await (supabase
+      .from("client_profiles") as any)
+      .update({ email_notifications_enabled: enabled })
+      .eq("user_id", user.id);
+    if (error) {
+      setProfile({ ...profile, email_notifications_enabled: !enabled });
+      toast.error("No se pudo actualizar la preferencia");
+    } else {
+      toast.success(enabled ? "Notificaciones por email activadas" : "Notificaciones por email desactivadas");
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -262,6 +280,31 @@ const ClientProfile = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Notification preferences */}
+          <Card className="mb-6">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Bell className="h-5 w-5 text-primary" />
+                Notificaciones
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground">Recibir notificaciones por email</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Te avisamos por mail cuando recibís un presupuesto, se confirma un turno, o hay novedades sobre tu servicio. Las notificaciones dentro de la app siguen funcionando igual.
+                  </p>
+                </div>
+                <Switch
+                  checked={profile?.email_notifications_enabled ?? true}
+                  onCheckedChange={handleToggleEmailNotifications}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
 
           {/* Danger Zone */}
           <Separator className="my-6" />

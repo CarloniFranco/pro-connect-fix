@@ -101,6 +101,20 @@ serve(async (req) => {
       });
     }
 
+    // Respect user preference: check both profile tables (client + professional)
+    const [{ data: cliPref }, { data: proPref }] = await Promise.all([
+      admin.from("client_profiles").select("email_notifications_enabled").eq("user_id", notif.user_id).maybeSingle(),
+      admin.from("professional_profiles").select("email_notifications_enabled").eq("user_id", notif.user_id).maybeSingle(),
+    ]);
+    const cliOptedOut = cliPref && cliPref.email_notifications_enabled === false;
+    const proOptedOut = proPref && proPref.email_notifications_enabled === false;
+    // If user has a profile and explicitly disabled emails there, skip
+    if (cliOptedOut || proOptedOut) {
+      return new Response(JSON.stringify({ skipped: true, reason: "user opted out" }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { data: userData, error: uErr } = await admin.auth.admin.getUserById(notif.user_id);
     if (uErr || !userData?.user?.email) {
       console.log("No email for user", notif.user_id);
