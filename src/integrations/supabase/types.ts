@@ -81,6 +81,7 @@ export type Database = {
           address: string
           age: number | null
           created_at: string
+          email_notifications_enabled: boolean
           full_name: string
           gender: string
           id: string
@@ -92,6 +93,7 @@ export type Database = {
           address?: string
           age?: number | null
           created_at?: string
+          email_notifications_enabled?: boolean
           full_name?: string
           gender?: string
           id?: string
@@ -103,6 +105,7 @@ export type Database = {
           address?: string
           age?: number | null
           created_at?: string
+          email_notifications_enabled?: boolean
           full_name?: string
           gender?: string
           id?: string
@@ -238,6 +241,7 @@ export type Database = {
           available: boolean
           created_at: string
           descripcion: string
+          email_notifications_enabled: boolean
           full_name: string
           google_maps_url: string
           id: string
@@ -264,6 +268,7 @@ export type Database = {
           available?: boolean
           created_at?: string
           descripcion?: string
+          email_notifications_enabled?: boolean
           full_name?: string
           google_maps_url?: string
           id?: string
@@ -290,6 +295,7 @@ export type Database = {
           available?: boolean
           created_at?: string
           descripcion?: string
+          email_notifications_enabled?: boolean
           full_name?: string
           google_maps_url?: string
           id?: string
