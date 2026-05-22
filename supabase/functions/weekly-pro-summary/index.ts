@@ -12,7 +12,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const RESEND_FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") ?? "FIX <notificaciones@resend.dev>";
-const CRON_SECRET = Deno.env.get("CRON_SECRET");
+// CRON_SECRET is loaded from the private app_config table
 
 const APP_URL = "https://pro-connect-fix.lovable.app";
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
