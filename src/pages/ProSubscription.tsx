@@ -206,20 +206,36 @@ const ProSubscription = () => {
                 Notificaciones por email
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="mb-4 text-sm text-muted-foreground">
-                Enviá un email de prueba a <span className="font-semibold text-foreground">{user?.email}</span> para
-                verificar que las notificaciones lleguen correctamente a tu casilla.
-              </p>
-              <Button
-                variant="outline"
-                onClick={handleSendTestEmail}
-                disabled={sendingTest}
-                className="w-full gap-2"
-              >
-                {sendingTest ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
-                {sendingTest ? "Enviando…" : "Enviar email de prueba"}
-              </Button>
+            <CardContent className="space-y-4">
+              <div className="flex items-start justify-between gap-4 rounded-lg border border-border p-3">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground">Recibir notificaciones por email</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Te avisamos por mail cuando tenés un nuevo pedido, se confirma un turno o un cliente cancela. Las notificaciones dentro de la app siguen funcionando.
+                  </p>
+                </div>
+                <Switch
+                  checked={emailNotifEnabled}
+                  onCheckedChange={handleToggleEmailNotifications}
+                  disabled={savingPref}
+                />
+              </div>
+
+              <div>
+                <p className="mb-3 text-sm text-muted-foreground">
+                  Enviá un email de prueba a <span className="font-semibold text-foreground">{user?.email}</span> para
+                  verificar que las notificaciones lleguen correctamente a tu casilla.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={handleSendTestEmail}
+                  disabled={sendingTest}
+                  className="w-full gap-2"
+                >
+                  {sendingTest ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                  {sendingTest ? "Enviando…" : "Enviar email de prueba"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
