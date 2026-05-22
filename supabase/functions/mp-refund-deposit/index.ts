@@ -35,11 +35,26 @@ serve(async (req) => {
     if (sr.professional_id !== userId && sr.client_user_id !== userId) {
       return json({ error: "Forbidden" }, 403);
     }
-    if (sr.deposit_status !== "paid" || !sr.deposit_payment_id) {
+    if (sr.deposit_status !== "paid") {
       return json({ error: "Deposit not refundable", current_status: sr.deposit_status }, 400);
     }
 
-    const refund = await mpFetch(`/v1/payments/${sr.deposit_payment_id}/refunds`, {
+    // Si no tenemos el payment_id guardado (webhook nunca llegó / falló firma), buscamos en MP por external_reference
+    let paymentId = sr.deposit_payment_id as string | null;
+    if (!paymentId) {
+      const search = await mpFetch(
+        `/v1/payments/search?external_reference=${encodeURIComponent(`deposit:${sr.id}`)}&status=approved&sort=date_created&criteria=desc`
+      );
+      const results = (search?.results ?? []) as any[];
+      const approved = results.find((p) => p.status === "approved");
+      if (!approved) {
+        return json({ error: "No approved payment found in MP for this deposit" }, 400);
+      }
+      paymentId = String(approved.id);
+      await admin.from("service_requests").update({ deposit_payment_id: paymentId }).eq("id", sr.id);
+    }
+
+    const refund = await mpFetch(`/v1/payments/${paymentId}/refunds`, {
       method: "POST",
       body: JSON.stringify({}), // refund total
     });
@@ -52,7 +67,10 @@ serve(async (req) => {
       })
       .eq("id", sr.id);
 
-    return json({ refunded: true, refund_id: refund.id });
+    // Borramos los slots bloqueados ya que el servicio finalizó / fue reembolsado
+    await admin.from("blocked_slots").delete().eq("service_request_id", sr.id);
+
+    return json({ refunded: true, refund_id: refund.id, payment_id: paymentId });
   } catch (e) {
     console.error("mp-refund-deposit error", e);
     return json({ error: String(e) }, 500);
