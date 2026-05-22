@@ -28,6 +28,17 @@ interface Props {
   pros: MapPro[];
 }
 
+const escHtml = (s: unknown) =>
+  String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const isSafeUrl = (u: string | null | undefined): u is string =>
+  !!u && /^https?:\/\//i.test(u);
+
 const createPhotoIcon = (pro: MapPro) => {
   const initial = (pro.full_name || "?").charAt(0).toUpperCase();
   const inner = pro.photo_url
