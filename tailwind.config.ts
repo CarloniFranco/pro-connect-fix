@@ -22,8 +22,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Syne", "sans-serif"],
-        body: ["'DM Sans'", "sans-serif"],
+        display: ["Fredoka", "sans-serif"],
+        body: ["Nunito", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -79,11 +79,6 @@ export default {
         "personal-cat": {
           DEFAULT: "hsl(var(--personal-cat))",
           foreground: "hsl(var(--personal-cat-foreground))",
-        },
-        brand: {
-          DEFAULT: "hsl(var(--brand))",
-          light: "hsl(var(--brand-light))",
-          bg: "hsl(var(--brand-bg))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
