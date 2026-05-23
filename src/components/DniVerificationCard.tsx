@@ -140,9 +140,13 @@ const DniVerificationCard = () => {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-semibold">Verificación de identidad</p>
-            <span className="rounded-full bg-white/70 px-2 py-0.5 text-xs font-medium">{meta.label}</span>
+            {status !== "verificado" && (
+              <span className="rounded-full bg-white/70 px-2 py-0.5 text-xs font-medium">{meta.label}</span>
+            )}
           </div>
-          <p className="mt-1 text-sm opacity-90">{meta.description}</p>
+          {status !== "verificado" && (
+            <p className="mt-1 text-sm opacity-90">{meta.description}</p>
+          )}
           {status === "rechazado" && rejectionReason && (
             <p className="mt-2 text-sm font-medium">Motivo: {rejectionReason}</p>
           )}
