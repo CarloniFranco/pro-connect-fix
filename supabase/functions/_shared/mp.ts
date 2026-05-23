@@ -8,12 +8,13 @@ export const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-export async function mpFetch(path: string, init?: RequestInit) {
-  if (!MP_ACCESS_TOKEN) throw new Error("MP_ACCESS_TOKEN not configured");
+export async function mpFetch(path: string, init?: RequestInit, token?: string) {
+  const accessToken = token ?? MP_ACCESS_TOKEN;
+  if (!accessToken) throw new Error("MP access token not provided");
   const resp = await fetch(`${MP_BASE}${path}`, {
     ...init,
     headers: {
-      "Authorization": `Bearer ${MP_ACCESS_TOKEN}`,
+      "Authorization": `Bearer ${accessToken}`,
       "Content-Type": "application/json",
       ...(init?.headers || {}),
     },
@@ -24,6 +25,21 @@ export async function mpFetch(path: string, init?: RequestInit) {
     throw new Error(`MP API ${resp.status}: ${JSON.stringify(body)}`);
   }
   return body;
+}
+
+// Obtiene el access_token del profesional desde professional_mp_credentials.
+// admin debe ser un cliente service_role.
+export async function getProMpToken(admin: any, professionalUserId: string): Promise<string | null> {
+  const { data, error } = await admin
+    .from("professional_mp_credentials")
+    .select("access_token")
+    .eq("user_id", professionalUserId)
+    .maybeSingle();
+  if (error) {
+    console.error("getProMpToken error", error);
+    return null;
+  }
+  return data?.access_token ?? null;
 }
 
 export function json(data: unknown, status = 200) {
