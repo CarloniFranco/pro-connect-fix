@@ -2,7 +2,7 @@
 // Public endpoint — validates against MP_WEBHOOK_SECRET via x-signature header.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders, json, mpFetch } from "../_shared/mp.ts";
+import { corsHeaders, json, mpFetch, getProMpToken } from "../_shared/mp.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -63,10 +63,22 @@ serve(async (req) => {
 
     // === PAYMENTS (seña) ===
     if (eventType === "payment") {
-      const payment: any = await mpFetch(`/v1/payments/${dataId}`);
+      // Si la seña fue a la cuenta del pro, necesitamos su token para consultar el pago.
+      // Lo pasamos como query param ?pro=<professional_id> en el notification_url.
+      const proIdParam = url.searchParams.get("pro");
+      const srIdParam = url.searchParams.get("sr");
+      let paymentToken: string | undefined;
+      if (proIdParam) {
+        const t = await getProMpToken(admin, proIdParam);
+        if (t) paymentToken = t;
+      }
+      // Si no tenemos token del pro (caso legacy), intentamos con el de FIX
+      const payment: any = await mpFetch(`/v1/payments/${dataId}`, undefined, paymentToken);
       const extRef: string = payment.external_reference ?? "";
       const kind = payment.metadata?.kind;
-      const srId = payment.metadata?.service_request_id ?? (extRef.startsWith("deposit:") ? extRef.replace("deposit:", "") : null);
+      const srId = payment.metadata?.service_request_id
+        ?? (extRef.startsWith("deposit:") ? extRef.replace("deposit:", "") : null)
+        ?? srIdParam;
 
       if (kind === "deposit" && srId) {
         let newStatus = "pending";
@@ -79,7 +91,6 @@ serve(async (req) => {
           deposit_status: newStatus,
         };
 
-        // Si se aprobó la seña, marcamos la solicitud como aceptada y deposit_paid=true
         if (newStatus === "paid") {
           update.deposit_paid = true;
           update.status = "aceptada";

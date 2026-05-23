@@ -2,7 +2,7 @@
 // Called by the client when creating a service request.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders, json, mpFetch, APP_URL } from "../_shared/mp.ts";
+import { corsHeaders, json, mpFetch, getProMpToken, APP_URL } from "../_shared/mp.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -43,6 +43,15 @@ serve(async (req) => {
     // Seña = 10% del monto del servicio
     const depositAmount = Math.round(referenceAmount * 0.10);
 
+    // Obtenemos el token MP del profesional — la seña va a SU cuenta
+    const proToken = await getProMpToken(admin, sr.professional_id);
+    if (!proToken) {
+      return json({
+        error: "El profesional no tiene Mercado Pago conectado. No se puede pagar la seña.",
+        code: "PRO_MP_NOT_CONNECTED",
+      }, 400);
+    }
+
     const preference = await mpFetch("/checkout/preferences", {
       method: "POST",
       body: JSON.stringify({
@@ -66,10 +75,10 @@ serve(async (req) => {
           pending: `${APP_URL}/sena/confirmada?deposit=pending&request=${sr.id}`,
         },
         auto_return: "approved",
-        notification_url: `${SUPABASE_URL}/functions/v1/mp-webhook`,
+        notification_url: `${SUPABASE_URL}/functions/v1/mp-webhook?pro=${sr.professional_id}&sr=${sr.id}`,
         statement_descriptor: "FIX SEÑA",
       }),
-    });
+    }, proToken);
 
     await admin
       .from("service_requests")

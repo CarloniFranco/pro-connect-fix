@@ -2,7 +2,7 @@
 // Called from the deposit-confirmed page as a safety net when the webhook hasn't arrived.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders, json, mpFetch } from "../_shared/mp.ts";
+import { corsHeaders, json, mpFetch, getProMpToken } from "../_shared/mp.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -33,9 +33,15 @@ serve(async (req) => {
     if (sr.client_user_id !== userId && sr.professional_id !== userId) return json({ error: "Forbidden" }, 403);
     if (sr.deposit_paid) return json({ ok: true, already_paid: true });
 
-    // Buscar pago aprobado en MP por external_reference
+    // Buscar pago aprobado en MP por external_reference usando el token del PRO
+    const proToken = await getProMpToken(admin, sr.professional_id);
+    if (!proToken) {
+      return json({ ok: true, found: false, paid: false, error: "pro_mp_not_connected" });
+    }
     const search: any = await mpFetch(
-      `/v1/payments/search?external_reference=deposit:${service_request_id}&sort=date_created&criteria=desc&limit=10`
+      `/v1/payments/search?external_reference=deposit:${service_request_id}&sort=date_created&criteria=desc&limit=10`,
+      undefined,
+      proToken,
     );
     const results: any[] = search?.results ?? [];
     const approved = results.find((p) => p.status === "approved");
