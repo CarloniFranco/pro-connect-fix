@@ -40,6 +40,8 @@ import AdminClients from "./pages/AdminClients.tsx";
 import AdminOrders from "./pages/AdminOrders.tsx";
 import AdminSubscriptions from "./pages/AdminSubscriptions.tsx";
 import AdminBroadcast from "./pages/AdminBroadcast.tsx";
+import MercadoPagoConnect from "./pages/MercadoPagoConnect.tsx";
+import MercadoPagoCallback from "./pages/MercadoPagoCallback.tsx";
 
 
 
@@ -84,6 +86,8 @@ const App = () => (
             <Route path="/indicadores" element={<PrivateRoute><ProIndicators /></PrivateRoute>} />
             <Route path="/seleccionar-plan" element={<PrivateRoute><PlanSelection /></PrivateRoute>} />
             <Route path="/configurar-pago" element={<PrivateRoute><PaymentSetup /></PrivateRoute>} />
+            <Route path="/conectar-mercadopago" element={<PrivateRoute><MercadoPagoConnect /></PrivateRoute>} />
+            <Route path="/mp-oauth-callback" element={<PrivateRoute><MercadoPagoCallback /></PrivateRoute>} />
             <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
             <Route path="/admin" element={<PrivateRoute><AdminLayout /></PrivateRoute>}>
               <Route index element={<AdminDashboard />} />
