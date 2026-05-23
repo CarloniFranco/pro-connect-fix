@@ -34,16 +34,25 @@ serve(async (req) => {
       });
     }
 
-    // Also update those service_requests back to "nueva" or mark as expired
+    // Also update those service_requests back to a terminal state so they
+    // don't appear as "pendientes" in the professional's agenda forever.
     if (data && data.length > 0) {
       const requestIds = [...new Set(data.filter(d => d.service_request_id).map(d => d.service_request_id))];
-      
+
       for (const reqId of requestIds) {
+        // Cotizada sin respuesta del cliente → rechazada_cliente
         await supabase
           .from("service_requests")
-          .update({ status: "rechazada_cliente" })
+          .update({ status: "rechazada_cliente", cancellation_reason: "Sin respuesta del cliente", cancelled_by: "system" })
           .eq("id", reqId)
-          .eq("status", "cotizada"); // Only if still pending
+          .eq("status", "cotizada");
+
+        // Reserva directa con seña no pagada a tiempo → rechazada_cliente
+        await supabase
+          .from("service_requests")
+          .update({ status: "rechazada_cliente", cancellation_reason: "Seña no pagada a tiempo", cancelled_by: "system" })
+          .eq("id", reqId)
+          .eq("status", "pendiente_pago");
       }
     }
 
