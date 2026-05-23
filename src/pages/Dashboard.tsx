@@ -28,6 +28,7 @@ const Dashboard = () => {
   const [available, setAvailable] = useState(true);
   const [togglingAvailable, setTogglingAvailable] = useState(false);
   const [stationsVersion, setStationsVersion] = useState(0);
+  const [mpConnected, setMpConnected] = useState<boolean | null>(null);
   const { isAdmin } = useIsAdmin();
 
   useEffect(() => {
@@ -38,12 +39,13 @@ const Dashboard = () => {
     if (!user) return;
     supabase
       .from("professional_profiles")
-      .select("full_name, available")
+      .select("full_name, available, mp_connected")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         if (data?.full_name) setProfileName(data.full_name);
         if (data?.available !== undefined && data?.available !== null) setAvailable(data.available);
+        setMpConnected(!!(data as any)?.mp_connected);
       });
   }, [user]);
 
@@ -161,6 +163,20 @@ const Dashboard = () => {
             />
           </div>
         </div>
+
+        {mpConnected === false && (
+          <button
+            onClick={() => navigate("/conectar-mercadopago")}
+            className="w-full rounded-xl border border-[#009ee3]/40 bg-[#009ee3]/10 p-4 text-left transition hover:bg-[#009ee3]/15"
+          >
+            <p className="text-sm font-semibold text-foreground">
+              Conectá tu Mercado Pago para recibir señas
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Sin MP conectado tus clientes no pueden reservar turnos con seña. La plata va directo a tu cuenta MP — FIX no cobra comisión.
+            </p>
+          </button>
+        )}
 
         <DniVerificationCard />
         <CalendarAgenda />
