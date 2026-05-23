@@ -8,13 +8,13 @@ const HeroSection = () => {
   return (
     <section className="relative overflow-hidden bg-primary px-4 pb-16 pt-20 sm:pb-20 sm:pt-24 md:pb-28 md:pt-36">
       {/* Subtle geometric accents */}
-      <div className="absolute inset-0 opacity-10">
+      <div className="absolute inset-0 opacity-10 bg-[#f9f9fa]">
         <div className="absolute left-[10%] top-[20%] h-24 w-24 rounded-2xl border-2 border-primary-foreground/40 rotate-12" />
         <div className="absolute right-[12%] top-[30%] h-16 w-16 rounded-full border-2 border-primary-foreground/30" />
         <div className="absolute left-[40%] bottom-[15%] h-20 w-20 rounded-xl border-2 border-primary-foreground/20 -rotate-6" />
       </div>
 
-      <div className="container relative z-10 mx-auto max-w-3xl text-center">
+      <div className="container relative z-10 mx-auto max-w-3xl text-center border-[#f0f3f9]">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -26,7 +26,7 @@ const HeroSection = () => {
             </span>
           </div>
 
-          <h1 className="mb-3 font-display text-[3.25rem] leading-none font-bold tracking-tight text-primary-foreground sm:text-6xl md:text-7xl">
+          <h1 className="mb-3 font-display text-[3.25rem] leading-none font-bold tracking-tight text-primary-foreground sm:text-6xl md:text-7xl border-slate-50 bg-[#474190]">
             <span className="relative inline-flex items-center">
               {/* FIX text — starts tilted/broken, then straightens on hammer hit */}
               <motion.span
@@ -38,7 +38,7 @@ const HeroSection = () => {
                   times: [0, 0.45, 0.6, 0.75, 0.85],
                   ease: "easeOut",
                 }}
-                className="inline-block origin-bottom-left"
+                className="inline-block origin-bottom-left font-semibold text-7xl"
                 style={{ animation: "fixPulse 30s ease-in-out 3s infinite" }}
               >
                 FIX
@@ -85,7 +85,7 @@ const HeroSection = () => {
               </motion.span>
             </span>
           </h1>
-          <p className="mx-auto mb-8 max-w-md text-base font-medium text-primary-foreground/70 sm:mb-12 sm:text-lg md:text-xl">
+          <p className="mx-auto mb-8 max-w-md text-base font-medium text-primary-foreground/70 sm:mb-12 sm:text-lg md:text-xl bg-[#474190]">
             ¿Qué tipo de servicio necesitás?
           </p>
         </motion.div>
