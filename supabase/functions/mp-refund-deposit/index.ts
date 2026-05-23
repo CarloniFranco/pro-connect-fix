@@ -39,11 +39,19 @@ serve(async (req) => {
       return json({ error: "Deposit not refundable", current_status: sr.deposit_status }, 400);
     }
 
+    // El refund debe hacerse con el token del PRO (es su cuenta la que recibió el pago)
+    const proToken = await getProMpToken(admin, sr.professional_id);
+    if (!proToken) {
+      return json({ error: "Profesional sin Mercado Pago conectado, no se puede reembolsar" }, 400);
+    }
+
     // Si no tenemos el payment_id guardado (webhook nunca llegó / falló firma), buscamos en MP por external_reference
     let paymentId = sr.deposit_payment_id as string | null;
     if (!paymentId) {
       const search = await mpFetch(
-        `/v1/payments/search?external_reference=${encodeURIComponent(`deposit:${sr.id}`)}&status=approved&sort=date_created&criteria=desc`
+        `/v1/payments/search?external_reference=${encodeURIComponent(`deposit:${sr.id}`)}&status=approved&sort=date_created&criteria=desc`,
+        undefined,
+        proToken,
       );
       const results = (search?.results ?? []) as any[];
       const approved = results.find((p) => p.status === "approved");
@@ -57,7 +65,7 @@ serve(async (req) => {
     const refund = await mpFetch(`/v1/payments/${paymentId}/refunds`, {
       method: "POST",
       body: JSON.stringify({}), // refund total
-    });
+    }, proToken);
 
     await admin
       .from("service_requests")
