@@ -27,6 +27,8 @@ import {
   Star,
   Zap,
   CheckCircle,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
