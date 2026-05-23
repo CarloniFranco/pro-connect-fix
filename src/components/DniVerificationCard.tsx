@@ -128,9 +128,10 @@ const DniVerificationCard = () => {
 
   if (loading) return null;
 
+  if (status === "verificado") return null;
+
   const meta = STATUS_META[status];
   const Icon = meta.icon;
-  const canEdit = status !== "verificado";
   const needsResubmit = status === "rechazado" || status === "pendiente";
 
   return (
@@ -153,8 +154,7 @@ const DniVerificationCard = () => {
         </div>
       </div>
 
-      {canEdit && (
-        <div className="mt-4 space-y-3">
+      <div className="mt-4 space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="dni-front" className="text-xs font-medium">
@@ -210,8 +210,7 @@ const DniVerificationCard = () => {
           <p className="text-xs opacity-75">
             Tus fotos son privadas — solo nuestro equipo de verificación las puede ver.
           </p>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
