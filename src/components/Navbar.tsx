@@ -58,7 +58,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed left-0 right-0 top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md" style={{ paddingTop: "env(safe-area-inset-top)" }}>
+    <nav className="fixed left-0 right-0 top-0 z-50 border-b border-border bg-card" style={{ paddingTop: "env(safe-area-inset-top)" }}>
       <div className="container mx-auto flex h-14 max-w-4xl items-center justify-between gap-2 px-3 sm:px-4">
         <button onClick={() => navigate("/")} className="flex shrink-0 items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-brand-light" />
