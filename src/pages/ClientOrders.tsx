@@ -323,6 +323,16 @@ const ClientOrders = () => {
     const hrs = hoursUntilAppointment(req);
     if (hrs !== null && hrs < 24 && req.deposit_paid) {
       toast.error("Turno cancelado. La seña no será reembolsada por cancelar con menos de 24hs.");
+    } else if (req.deposit_paid) {
+      // Cancelación con más de 24hs y seña pagada → reembolso automático
+      const { error: rErr } = await supabase.functions.invoke("mp-refund-deposit", {
+        body: { service_request_id: req.id },
+      });
+      if (rErr) {
+        toast.warning("Turno cancelado, pero falló el reembolso automático. Contactá soporte.");
+      } else {
+        toast.success("Turno cancelado y seña reembolsada al cliente.");
+      }
     } else {
       toast.success("Turno cancelado correctamente.");
     }
