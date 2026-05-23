@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Home, Scissors, Wrench, Car, PawPrint } from "lucide-react";
+import { Home, Scissors, Car, PawPrint } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
