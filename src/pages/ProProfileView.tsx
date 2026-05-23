@@ -261,11 +261,36 @@ const ProProfileView = () => {
                     <div>
                       <p className="font-semibold text-foreground">{profile?.full_name}</p>
                       <p className="text-sm text-primary font-medium">{profile?.rubro}</p>
-                      {profile?.verified && (
-                        <span className="inline-flex items-center gap-1 text-xs text-secondary font-medium mt-1">
-                          <CheckCircle className="h-3 w-3" /> Verificado
+                      <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                            profile?.mp_connected
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {profile?.mp_connected ? (
+                            <CheckCircle2 className="h-3 w-3" />
+                          ) : (
+                            <XCircle className="h-3 w-3" />
+                          )}
+                          MP {profile?.mp_connected ? "conectado" : "sin conectar"}
                         </span>
-                      )}
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                            profile?.verified
+                              ? "bg-green-100 text-green-700"
+                              : "bg-amber-100 text-amber-700"
+                          }`}
+                        >
+                          {profile?.verified ? (
+                            <CheckCircle2 className="h-3 w-3" />
+                          ) : (
+                            <XCircle className="h-3 w-3" />
+                          )}
+                          {profile?.verified ? "Verificado" : "Sin verificar"}
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <div>
