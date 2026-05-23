@@ -64,6 +64,7 @@ serve(async (req) => {
 
     const refund = await mpFetch(`/v1/payments/${paymentId}/refunds`, {
       method: "POST",
+      headers: { "X-Idempotency-Key": `refund-${sr.id}-${paymentId}` },
       body: JSON.stringify({}), // refund total
     }, proToken);
 
