@@ -104,13 +104,12 @@ serve(async (req) => {
       });
     }
 
-    if (!RESEND_API_KEY) {
-      console.error("Missing RESEND_API_KEY");
+    if (!LOVABLE_API_KEY || !GOOGLE_MAIL_API_KEY) {
+      console.error("Gmail connector not configured");
       return new Response(JSON.stringify({ error: "Email service not configured" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
 
     const { notification_id } = await req.json();
     if (!notification_id || typeof notification_id !== "string") {
@@ -133,14 +132,12 @@ serve(async (req) => {
       });
     }
 
-    // Respect user preference: check both profile tables (client + professional)
     const [{ data: cliPref }, { data: proPref }] = await Promise.all([
       admin.from("client_profiles").select("email_notifications_enabled").eq("user_id", notif.user_id).maybeSingle(),
       admin.from("professional_profiles").select("email_notifications_enabled").eq("user_id", notif.user_id).maybeSingle(),
     ]);
     const cliOptedOut = cliPref && cliPref.email_notifications_enabled === false;
     const proOptedOut = proPref && proPref.email_notifications_enabled === false;
-    // If user has a profile and explicitly disabled emails there, skip
     if (cliOptedOut || proOptedOut) {
       return new Response(JSON.stringify({ skipped: true, reason: "user opted out" }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -155,25 +152,26 @@ serve(async (req) => {
       });
     }
 
-    const resp = await fetch("https://api.resend.com/emails", {
+    const raw = buildRawEmail(
+      userData.user.email,
+      notif.title,
+      html(notif.title, notif.message, notif.link),
+    );
+
+    const resp = await fetch(`${GMAIL_GATEWAY}/users/me/messages/send`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "X-Connection-Api-Key": GOOGLE_MAIL_API_KEY,
       },
-      body: JSON.stringify({
-        from: RESEND_FROM_EMAIL,
-        to: [userData.user.email],
-        reply_to: "somosfix.oficial@gmail.com",
-        subject: notif.title,
-        html: html(notif.title, notif.message, notif.link),
-      }),
+      body: JSON.stringify({ raw }),
     });
 
     const result = await resp.json().catch(() => ({}));
     if (!resp.ok) {
-      console.error("Resend error", resp.status, result);
-      return new Response(JSON.stringify({ error: "Resend failed", detail: result }), {
+      console.error("Gmail send error", resp.status, result);
+      return new Response(JSON.stringify({ error: "Gmail send failed", detail: result }), {
         status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -181,6 +179,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ sent: true, id: result.id }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+
   } catch (e) {
     console.error("send-notification-email error", e);
     return new Response(JSON.stringify({ error: String(e) }), {
