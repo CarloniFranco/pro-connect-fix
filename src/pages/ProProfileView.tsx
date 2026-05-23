@@ -78,7 +78,7 @@ const ProProfileView = () => {
     const [{ data: prof }, { data: scoreData }] = await Promise.all([
       supabase
         .from("professional_profiles")
-        .select("full_name, rubro, descripcion, photo_url, plan, verified, created_at, phone")
+        .select("full_name, rubro, descripcion, photo_url, plan, verified, created_at, phone, mp_connected")
         .eq("user_id", user.id)
         .maybeSingle(),
       supabase.rpc("get_professional_score", { p_professional_id: user.id }),
