@@ -75,7 +75,7 @@ serve(async (req) => {
           pending: `${APP_URL}/sena/confirmada?deposit=pending&request=${sr.id}`,
         },
         auto_return: "approved",
-        notification_url: `${SUPABASE_URL}/functions/v1/mp-webhook`,
+        notification_url: `${SUPABASE_URL}/functions/v1/mp-webhook?pro=${sr.professional_id}&sr=${sr.id}`,
         statement_descriptor: "FIX SEÑA",
       }),
     }, proToken);
