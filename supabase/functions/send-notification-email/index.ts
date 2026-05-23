@@ -74,6 +74,8 @@ const EMAIL_ENABLED_TYPES = new Set([
   "servicio_finalizado",
   "profesional_cancelo",
   "sena_reembolsada",
+  // Admin
+  "broadcast",
 ]);
 
 function html(title: string, message: string, link?: string) {
