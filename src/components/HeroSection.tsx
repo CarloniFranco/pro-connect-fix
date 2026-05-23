@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Home, Scissors, Wrench, Car, PawPrint } from "lucide-react";
+import { Home, Scissors, Car, PawPrint } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
@@ -21,7 +21,6 @@ const HeroSection = () => {
           transition={{ duration: 0.6 }}
         >
           <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-primary-foreground/10 px-4 py-2">
-            <Wrench className="h-4 w-4 text-accent" />
             <span className="text-sm font-medium text-primary-foreground/80">
               Tu solución a un click
             </span>
