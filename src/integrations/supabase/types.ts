@@ -136,6 +136,27 @@ export type Database = {
         }
         Relationships: []
       }
+      mp_oauth_states: {
+        Row: {
+          created_at: string
+          expires_at: string
+          state: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          state: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          state?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -205,6 +226,45 @@ export type Database = {
         }
         Relationships: []
       }
+      professional_mp_credentials: {
+        Row: {
+          access_token: string
+          created_at: string
+          expires_at: string | null
+          live_mode: boolean
+          mp_user_id: string
+          public_key: string | null
+          refresh_token: string | null
+          scope: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          expires_at?: string | null
+          live_mode?: boolean
+          mp_user_id: string
+          public_key?: string | null
+          refresh_token?: string | null
+          scope?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          expires_at?: string | null
+          live_mode?: boolean
+          mp_user_id?: string
+          public_key?: string | null
+          refresh_token?: string | null
+          scope?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       professional_portfolio: {
         Row: {
           created_at: string
@@ -248,6 +308,8 @@ export type Database = {
           lat: number | null
           lng: number | null
           locality: string
+          mp_connected: boolean
+          mp_connected_at: string | null
           neighborhood: string
           parking_spots: number
           phone: string | null
@@ -275,6 +337,8 @@ export type Database = {
           lat?: number | null
           lng?: number | null
           locality?: string
+          mp_connected?: boolean
+          mp_connected_at?: string | null
           neighborhood?: string
           parking_spots?: number
           phone?: string | null
@@ -302,6 +366,8 @@ export type Database = {
           lat?: number | null
           lng?: number | null
           locality?: string
+          mp_connected?: boolean
+          mp_connected_at?: string | null
           neighborhood?: string
           parking_spots?: number
           phone?: string | null
