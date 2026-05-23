@@ -29,6 +29,7 @@ const Dashboard = () => {
   const [togglingAvailable, setTogglingAvailable] = useState(false);
   const [stationsVersion, setStationsVersion] = useState(0);
   const [mpConnected, setMpConnected] = useState<boolean | null>(null);
+  const [verified, setVerified] = useState<boolean | null>(null);
   const { isAdmin } = useIsAdmin();
 
   useEffect(() => {
@@ -39,13 +40,14 @@ const Dashboard = () => {
     if (!user) return;
     supabase
       .from("professional_profiles")
-      .select("full_name, available, mp_connected")
+      .select("full_name, available, mp_connected, verified")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         if (data?.full_name) setProfileName(data.full_name);
         if (data?.available !== undefined && data?.available !== null) setAvailable(data.available);
         setMpConnected(!!(data as any)?.mp_connected);
+        setVerified(!!(data as any)?.verified);
       });
   }, [user]);
 
