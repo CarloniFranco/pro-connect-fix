@@ -155,7 +155,8 @@ const Navbar = () => {
         ) : (
           <button
             onClick={() => navigate("/login")}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            className="inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            style={{ borderRadius: "10px" }}
           >
             <User className="h-4 w-4" />
             Ingresar
