@@ -78,7 +78,7 @@ serve(async (req) => {
         notification_url: `${SUPABASE_URL}/functions/v1/mp-webhook`,
         statement_descriptor: "FIX SEÑA",
       }),
-    });
+    }, proToken);
 
     await admin
       .from("service_requests")
