@@ -43,6 +43,15 @@ serve(async (req) => {
     // Seña = 10% del monto del servicio
     const depositAmount = Math.round(referenceAmount * 0.10);
 
+    // Obtenemos el token MP del profesional — la seña va a SU cuenta
+    const proToken = await getProMpToken(admin, sr.professional_id);
+    if (!proToken) {
+      return json({
+        error: "El profesional no tiene Mercado Pago conectado. No se puede pagar la seña.",
+        code: "PRO_MP_NOT_CONNECTED",
+      }, 400);
+    }
+
     const preference = await mpFetch("/checkout/preferences", {
       method: "POST",
       body: JSON.stringify({
