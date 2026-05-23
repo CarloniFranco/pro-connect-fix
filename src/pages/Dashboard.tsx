@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Wrench, User, LogOut, Loader2, Power, ChevronDown, Briefcase, ClipboardList, CreditCard, BarChart3, ShieldCheck } from "lucide-react";
+import { Wrench, User, LogOut, Loader2, Power, ChevronDown, Briefcase, ClipboardList, CreditCard, BarChart3, ShieldCheck, CheckCircle2, XCircle } from "lucide-react";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,6 +29,7 @@ const Dashboard = () => {
   const [togglingAvailable, setTogglingAvailable] = useState(false);
   const [stationsVersion, setStationsVersion] = useState(0);
   const [mpConnected, setMpConnected] = useState<boolean | null>(null);
+  const [verified, setVerified] = useState<boolean | null>(null);
   const { isAdmin } = useIsAdmin();
 
   useEffect(() => {
@@ -39,13 +40,14 @@ const Dashboard = () => {
     if (!user) return;
     supabase
       .from("professional_profiles")
-      .select("full_name, available, mp_connected")
+      .select("full_name, available, mp_connected, verified")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         if (data?.full_name) setProfileName(data.full_name);
         if (data?.available !== undefined && data?.available !== null) setAvailable(data.available);
         setMpConnected(!!(data as any)?.mp_connected);
+        setVerified(!!(data as any)?.verified);
       });
   }, [user]);
 
@@ -150,6 +152,36 @@ const Dashboard = () => {
                 Hola, <span className="font-semibold text-foreground">{profileName}</span> 👋
               </p>
             )}
+            <div className="mt-1.5 flex flex-wrap items-center gap-2">
+              <span
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                  mpConnected
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
+                }`}
+              >
+                {mpConnected ? (
+                  <CheckCircle2 className="h-3 w-3" />
+                ) : (
+                  <XCircle className="h-3 w-3" />
+                )}
+                MP {mpConnected ? "conectado" : "sin conectar"}
+              </span>
+              <span
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                  verified
+                    ? "bg-green-100 text-green-700"
+                    : "bg-amber-100 text-amber-700"
+                }`}
+              >
+                {verified ? (
+                  <CheckCircle2 className="h-3 w-3" />
+                ) : (
+                  <XCircle className="h-3 w-3" />
+                )}
+                {verified ? "Verificado" : "Sin verificar"}
+              </span>
+            </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <Power className={`h-4 w-4 ${available ? "text-green-500" : "text-muted-foreground"}`} />
