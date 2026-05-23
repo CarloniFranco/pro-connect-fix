@@ -128,9 +128,10 @@ const DniVerificationCard = () => {
 
   if (loading) return null;
 
+  if (status === "verificado") return null;
+
   const meta = STATUS_META[status];
   const Icon = meta.icon;
-  const canEdit = status !== "verificado";
   const needsResubmit = status === "rechazado" || status === "pendiente";
 
   return (
@@ -140,21 +141,16 @@ const DniVerificationCard = () => {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-semibold">Verificación de identidad</p>
-            {status !== "verificado" && (
-              <span className="rounded-full bg-white/70 px-2 py-0.5 text-xs font-medium">{meta.label}</span>
-            )}
+            <span className="rounded-full bg-white/70 px-2 py-0.5 text-xs font-medium">{meta.label}</span>
           </div>
-          {status !== "verificado" && (
-            <p className="mt-1 text-sm opacity-90">{meta.description}</p>
-          )}
+          <p className="mt-1 text-sm opacity-90">{meta.description}</p>
           {status === "rechazado" && rejectionReason && (
             <p className="mt-2 text-sm font-medium">Motivo: {rejectionReason}</p>
           )}
         </div>
       </div>
 
-      {canEdit && (
-        <div className="mt-4 space-y-3">
+      <div className="mt-4 space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="dni-front" className="text-xs font-medium">
@@ -210,8 +206,7 @@ const DniVerificationCard = () => {
           <p className="text-xs opacity-75">
             Tus fotos son privadas — solo nuestro equipo de verificación las puede ver.
           </p>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
