@@ -80,6 +80,11 @@ export default {
           DEFAULT: "hsl(var(--personal-cat))",
           foreground: "hsl(var(--personal-cat-foreground))",
         },
+        brand: {
+          DEFAULT: "hsl(var(--brand))",
+          light: "hsl(var(--brand-light))",
+          bg: "hsl(var(--brand-bg))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
