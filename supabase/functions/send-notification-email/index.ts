@@ -1,4 +1,4 @@
-// Sends an email via Resend (direct REST API) when a notification is created.
+// Sends an email via Gmail (Lovable connector gateway) when a notification is created.
 // Triggered by a DB AFTER INSERT trigger on public.notifications via pg_net.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -10,13 +10,47 @@ const corsHeaders = {
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const RESEND_FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") ?? "FIX <notificaciones@resend.dev>";
-// INTERNAL_SECRET is loaded lazily from the private app_config table (see getInternalSecret).
+const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+const GOOGLE_MAIL_API_KEY = Deno.env.get("GOOGLE_MAIL_API_KEY");
+const FROM_EMAIL = "somosfix.oficial@gmail.com";
+const FROM_NAME = "FIX";
+
+const GMAIL_GATEWAY = "https://connector-gateway.lovable.dev/google_mail/gmail/v1";
 
 const APP_URL = "https://pro-connect-fix.lovable.app";
 
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+
+// base64url encode a UTF-8 string
+function b64url(input: string): string {
+  const bytes = new TextEncoder().encode(input);
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+// Encode subject per RFC 2047 (UTF-8 base64) so acentos/emoji se ven bien
+function encodeHeader(value: string): string {
+  // ASCII-only? return as is
+  if (/^[\x20-\x7E]*$/.test(value)) return value;
+  return `=?UTF-8?B?${btoa(unescape(encodeURIComponent(value)))}?=`;
+}
+
+function buildRawEmail(to: string, subject: string, htmlBody: string): string {
+  const msg = [
+    `From: ${FROM_NAME} <${FROM_EMAIL}>`,
+    `To: ${to}`,
+    `Subject: ${encodeHeader(subject)}`,
+    "MIME-Version: 1.0",
+    'Content-Type: text/html; charset="UTF-8"',
+    "Content-Transfer-Encoding: 7bit",
+    "",
+    htmlBody,
+  ].join("\r\n");
+  return b64url(msg);
+}
+
+
 
 let cachedInternalSecret: string | null = null;
 async function getInternalSecret(): Promise<string | null> {
