@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,60 +6,66 @@
 
 @layer base {
   :root {
-    --background: 210 20% 97%;
-    --foreground: 215 25% 15%;
+    /* FIX brand system — flat violet */
+    --background: 252 100% 98%;            /* #f7f5ff brand bg */
+    --foreground: 258 53% 13%;             /* #1a1033 text primary */
 
-    --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card: 0 0% 100%;                     /* #ffffff */
+    --card-foreground: 258 53% 13%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover-foreground: 258 53% 13%;
 
-    --primary: 215 50% 30%;
-    --primary-foreground: 210 20% 97%;
+    --primary: 250 69% 53%;                /* #4c35d9 brand */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 168 45% 38%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 258 90% 76%;              /* #a78bfa brand light */
+    --secondary-foreground: 258 53% 13%;
 
-    --muted: 210 15% 92%;
-    --muted-foreground: 215 15% 50%;
+    --muted: 247 100% 96%;                 /* #ece9ff */
+    --muted-foreground: 257 19% 53%;       /* #7c6fa0 text secondary */
 
-    --accent: 38 60% 52%;
-    --accent-foreground: 215 25% 12%;
+    --accent: 252 100% 96%;                /* #ede9ff pill bg */
+    --accent-foreground: 250 69% 53%;
 
-    --destructive: 0 65% 50%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 15% 88%;
-    --input: 210 15% 88%;
-    --ring: 215 50% 30%;
+    --border: 247 100% 96%;                /* #ece9ff */
+    --input: 247 100% 96%;
+    --ring: 250 69% 53%;
 
-    --radius: 0.625rem;
+    --radius: 1rem;                        /* 16px cards */
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --brand: 250 69% 53%;
+    --brand-light: 258 90% 76%;
+    --brand-bg: 252 100% 98%;
+    --text-secondary: 257 19% 53%;
 
-    --warm-surface: 210 12% 94%;
-    --pipe-green: 168 45% 38%;
-    --coin-gold: 38 60% 52%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 258 53% 13%;
+    --sidebar-primary: 250 69% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 247 100% 96%;
+    --sidebar-accent-foreground: 250 69% 53%;
+    --sidebar-border: 247 100% 96%;
+    --sidebar-ring: 250 69% 53%;
+
+    --warm-surface: 252 100% 98%;
+    --pipe-green: 142 76% 36%;
+    --coin-gold: 38 92% 50%;
     --brick: 30 25% 55%;
-    --sky: 210 40% 60%;
+    --sky: 201 96% 39%;
 
-    /* Category brand colors */
-    --vehicle: 265 55% 55%;            /* Profesional violet */
-    --vehicle-foreground: 0 0% 100%;
-    --pet: 200 75% 75%;                /* Soft pastel sky blue */
-    --pet-foreground: 215 35% 20%;
-    --home-cat: 168 45% 38%;           /* Reuse teal */
-    --home-cat-foreground: 0 0% 100%;
-    --personal-cat: 340 65% 62%;       /* Warm rose */
-    --personal-cat-foreground: 0 0% 100%;
+    /* Category soft bg + icon color pairs (flat) */
+    --vehicle: 252 100% 96%;               /* #ede9ff */
+    --vehicle-foreground: 250 69% 53%;     /* #4c35d9 */
+    --home-cat: 141 79% 93%;               /* #dcfce7 */
+    --home-cat-foreground: 142 76% 36%;    /* #16a34a */
+    --personal-cat: 356 100% 97%;          /* #fff1f2 */
+    --personal-cat-foreground: 347 77% 50%;/* #e11d48 */
+    --pet: 204 94% 94%;                    /* #e0f2fe */
+    --pet-foreground: 201 96% 39%;         /* #0284c7 */
   }
 
   .dark {
