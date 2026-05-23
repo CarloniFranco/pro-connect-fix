@@ -2,7 +2,7 @@
 // Public endpoint — validates against MP_WEBHOOK_SECRET via x-signature header.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders, json, mpFetch } from "../_shared/mp.ts";
+import { corsHeaders, json, mpFetch, getProMpToken } from "../_shared/mp.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
