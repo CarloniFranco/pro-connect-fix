@@ -80,7 +80,7 @@ const HowItWorks = () => {
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            🔧 Busco una mano
+            Busco una mano
           </button>
           <button
             onClick={() => setTab("pro")}
@@ -90,7 +90,7 @@ const HowItWorks = () => {
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            🛠️ Ofrezco mi oficio
+            Ofrezco mi oficio
           </button>
         </div>
 
