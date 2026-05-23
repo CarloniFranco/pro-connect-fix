@@ -58,13 +58,14 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed left-0 right-0 top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md" style={{ paddingTop: "env(safe-area-inset-top)" }}>
+    <nav className="fixed left-0 right-0 top-0 z-50 border-b border-border bg-card" style={{ paddingTop: "env(safe-area-inset-top)" }}>
       <div className="container mx-auto flex h-14 max-w-4xl items-center justify-between gap-2 px-3 sm:px-4">
         <button onClick={() => navigate("/")} className="flex shrink-0 items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shadow-sm">
-            <Wrench className="h-4 w-4 text-primary-foreground" />
-          </div>
-          <span className="font-display text-xl font-bold text-foreground">
+          <span className="h-2.5 w-2.5 rounded-full bg-brand-light" />
+          <span
+            className="font-display text-xl font-extrabold text-primary"
+            style={{ letterSpacing: "-1px" }}
+          >
             FIX
           </span>
         </button>
@@ -154,7 +155,8 @@ const Navbar = () => {
         ) : (
           <button
             onClick={() => navigate("/login")}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            className="inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            style={{ borderRadius: "10px" }}
           >
             <User className="h-4 w-4" />
             Ingresar
