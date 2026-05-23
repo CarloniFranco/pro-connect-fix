@@ -97,7 +97,13 @@
     @apply bg-background text-foreground font-body;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Fredoka', sans-serif;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  button {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
   }
 
   /* Mobile UX: evitar zoom automático en iOS al enfocar inputs (<16px lo dispara) */
