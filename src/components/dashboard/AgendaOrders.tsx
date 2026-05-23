@@ -294,7 +294,7 @@ const AgendaOrders = () => {
             <p className="text-sm font-semibold text-foreground">{o.client_name}</p>
             {(o.status === "aceptada" || o.status === "en_servicio" || o.status === "finalizada") && (
               <>
-                {o.client_phone && (
+                {o.client_phone ? (
                   <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                     <Phone className="h-3 w-3" />
                     <a href={`tel:${o.client_phone}`} className="text-primary underline">{o.client_phone}</a>
@@ -318,6 +318,10 @@ const AgendaOrders = () => {
                       ) : null;
                     })()}
                   </div>
+                ) : (
+                  <p className="text-[11px] italic text-muted-foreground">
+                    El cliente aún no cargó su WhatsApp.
+                  </p>
                 )}
                 {o.client_address && (
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -326,6 +330,7 @@ const AgendaOrders = () => {
                 )}
               </>
             )}
+
           </div>
 
           <div>

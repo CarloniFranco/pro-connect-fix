@@ -490,8 +490,17 @@ const ClientOrders = () => {
                         )}
                         {(() => {
                           const phone = proPhones[req.professional_id];
-                          const activeStatuses = ["aceptada", "en_servicio"];
-                          if (!phone || !activeStatuses.includes(req.status)) return null;
+                          const isActive =
+                            ["aceptada", "en_servicio"].includes(req.status) ||
+                            (req.status === "pendiente_pago" && (req as any).deposit_paid === true);
+                          if (!isActive) return null;
+                          if (!phone) {
+                            return (
+                              <p className="mt-2 text-[11px] italic text-muted-foreground">
+                                El profesional aún no cargó su WhatsApp.
+                              </p>
+                            );
+                          }
                           const proName = proNames[req.professional_id] || "";
                           const wa = buildWhatsappUrl(
                             phone,
@@ -510,6 +519,7 @@ const ClientOrders = () => {
                             </a>
                           );
                         })()}
+
                       </div>
                       <div className="flex flex-col items-end gap-1">
                         <Badge
@@ -599,8 +609,17 @@ const ClientOrders = () => {
                       <p className="font-medium">{proNames[selectedRequest.professional_id] || "—"}</p>
                       {(() => {
                         const phone = proPhones[selectedRequest.professional_id];
-                        const activeStatuses = ["aceptada", "en_servicio"];
-                        if (!phone || !activeStatuses.includes(selectedRequest.status)) return null;
+                        const isActive =
+                          ["aceptada", "en_servicio"].includes(selectedRequest.status) ||
+                          (selectedRequest.status === "pendiente_pago" && (selectedRequest as any).deposit_paid === true);
+                        if (!isActive) return null;
+                        if (!phone) {
+                          return (
+                            <p className="mt-1 text-[11px] italic text-muted-foreground">
+                              El profesional aún no cargó su WhatsApp.
+                            </p>
+                          );
+                        }
                         const wa = buildWhatsappUrl(
                           phone,
                           `Hola, te escribo desde FIX por mi pedido de ${selectedRequest.service_type}.`,
@@ -617,6 +636,7 @@ const ClientOrders = () => {
                           </a>
                         );
                       })()}
+
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Fecha</p>
