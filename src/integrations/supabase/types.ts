@@ -684,6 +684,87 @@ export type Database = {
         }
         Relationships: []
       }
+      public_professional_profiles: {
+        Row: {
+          address: string | null
+          available: boolean | null
+          created_at: string | null
+          descripcion: string | null
+          full_name: string | null
+          google_maps_url: string | null
+          id: string | null
+          lat: number | null
+          lng: number | null
+          locality: string | null
+          mp_connected_at: string | null
+          neighborhood: string | null
+          parking_spots: number | null
+          photo_url: string | null
+          plan: string | null
+          province: string | null
+          rubro: string | null
+          services: Json | null
+          slot_duration_minutes: number | null
+          updated_at: string | null
+          user_id: string | null
+          vehicle_types: string[] | null
+          verified: boolean | null
+          work_stations: number | null
+        }
+        Insert: {
+          address?: string | null
+          available?: boolean | null
+          created_at?: string | null
+          descripcion?: string | null
+          full_name?: string | null
+          google_maps_url?: string | null
+          id?: string | null
+          lat?: number | null
+          lng?: number | null
+          locality?: string | null
+          mp_connected_at?: string | null
+          neighborhood?: string | null
+          parking_spots?: number | null
+          photo_url?: string | null
+          plan?: string | null
+          province?: string | null
+          rubro?: string | null
+          services?: Json | null
+          slot_duration_minutes?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          vehicle_types?: string[] | null
+          verified?: boolean | null
+          work_stations?: number | null
+        }
+        Update: {
+          address?: string | null
+          available?: boolean | null
+          created_at?: string | null
+          descripcion?: string | null
+          full_name?: string | null
+          google_maps_url?: string | null
+          id?: string | null
+          lat?: number | null
+          lng?: number | null
+          locality?: string | null
+          mp_connected_at?: string | null
+          neighborhood?: string | null
+          parking_spots?: number | null
+          photo_url?: string | null
+          plan?: string | null
+          province?: string | null
+          rubro?: string | null
+          services?: Json | null
+          slot_duration_minutes?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          vehicle_types?: string[] | null
+          verified?: boolean | null
+          work_stations?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_professional_score: {
