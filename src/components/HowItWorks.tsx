@@ -1,21 +1,21 @@
-import { Wrench, Sparkles, HeartHandshake, BellRing, Zap, Coins } from "lucide-react";
+import { Wrench, HeartHandshake, Star, BellRing, Zap, Coins } from "lucide-react";
 import { useState } from "react";
 
 const clientSteps = [
   {
     icon: Wrench,
     title: "Elegí servicio y profesional",
-    text: "Buscá el rubro que necesitás, elegí al profesional que más te convenza y seleccioná un día disponible. Nosotros nos encargamos del resto.",
-  },
-  {
-    icon: Sparkles,
-    title: "Recibí tu presupuesto",
-    text: "El profesional te envía un presupuesto detallado y transparente. Sin sorpresas, con todo claro desde el inicio.",
+    text: "Buscá el rubro que necesitás, elegí al profesional que más te convenza y seleccioná un día y horario disponible.",
   },
   {
     icon: HeartHandshake,
-    title: "Confirmá con una seña",
-    text: "Si el presupuesto te convence, abonás una seña del 10% y tu turno queda reservado. Rápido, seguro y sin complicaciones.",
+    title: "Pagá la seña y reservá",
+    text: "Abonás una seña del 10% por Mercado Pago y tu turno queda confirmado al instante. Rápido, seguro y sin vueltas.",
+  },
+  {
+    icon: Star,
+    title: "Recibí el servicio y reseñá",
+    text: "El profesional realiza el trabajo en el día acordado. Después contás tu experiencia con una reseña para ayudar a la comunidad.",
   },
 ];
 
