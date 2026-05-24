@@ -49,4 +49,36 @@ export function json(data: unknown, status = 200) {
   });
 }
 
-export const APP_URL = Deno.env.get("APP_PUBLIC_URL") ?? "https://somofix.lovable.app";
+const FALLBACK_APP_URL = "https://somofix.lovable.app";
+
+function normalizeAppUrl(value: string | null | undefined): string | null {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:" && url.hostname !== "localhost") return null;
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
+function isTrustedReturnUrl(value: string | null): value is string {
+  if (!value) return false;
+  const { hostname } = new URL(value);
+  return hostname === "somofix.lovable.app"
+    || hostname.endsWith(".lovable.app")
+    || hostname === "localhost"
+    || hostname === "127.0.0.1";
+}
+
+export const APP_URL = normalizeAppUrl(Deno.env.get("APP_PUBLIC_URL")) ?? FALLBACK_APP_URL;
+
+export function getAppReturnUrl(req: Request, requestedOrigin?: string | null) {
+  const explicitOrigin = normalizeAppUrl(requestedOrigin);
+  if (isTrustedReturnUrl(explicitOrigin)) return explicitOrigin;
+
+  const requestOrigin = normalizeAppUrl(req.headers.get("Origin"));
+  if (isTrustedReturnUrl(requestOrigin)) return requestOrigin;
+
+  return APP_URL;
+}
