@@ -97,6 +97,26 @@ serve(async (req) => {
         }
 
         await admin.from("service_requests").update(update).eq("id", srId);
+
+        // Sincronizar blocked_slots: si se pagó, confirmar el slot para que no aparezca
+        // duplicado como "pendiente" en la agenda del profesional. Si falló, liberarlo.
+        if (newStatus === "paid") {
+          await admin
+            .from("blocked_slots")
+            .update({ slot_status: "confirmed", expires_at: null })
+            .eq("service_request_id", srId);
+        } else if (newStatus === "failed") {
+          await admin.from("blocked_slots").delete().eq("service_request_id", srId);
+          await admin
+            .from("service_requests")
+            .update({
+              status: "rechazada_cliente",
+              cancellation_reason: "Pago de seña rechazado",
+              cancelled_by: "system",
+            })
+            .eq("id", srId)
+            .eq("status", "pendiente_pago");
+        }
       }
       return json({ ok: true, kind: "payment", status: payment.status });
     }
