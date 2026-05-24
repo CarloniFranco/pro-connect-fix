@@ -51,7 +51,7 @@ const HeroSection = () => {
           </div>
 
           <p className="mx-auto mb-8 max-w-md text-base font-medium text-muted-foreground sm:mb-12 sm:text-lg md:text-xl">
-            ¿Qué tipo de servicio necesitás?
+            ¿Qué tipo de servicio necesitas?
           </p>
         </motion.div>
 
