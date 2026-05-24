@@ -18,8 +18,8 @@ interface FelixLogoProps {
  * X violeta con carita amistosa. SVG vectorial, escala perfecta.
  */
 const FelixLogo = ({ className, wink = true, animate = false, color, withShadow = false }: FelixLogoProps) => {
-  // Si animate, arranca con los dos ojos abiertos y guiña al entrar.
-  const [isWinking, setIsWinking] = useState(animate ? false : wink);
+  // Si animate, queda guiñado por defecto.
+  const [isWinking, setIsWinking] = useState(animate ? true : wink);
   const fill = color ?? "hsl(var(--primary))";
 
   useEffect(() => {
@@ -27,20 +27,13 @@ const FelixLogo = ({ className, wink = true, animate = false, color, withShadow 
       setIsWinking(wink);
       return;
     }
-    // Guiño inicial al montar
-    const initialTimeout = setTimeout(() => {
-      setIsWinking(true);
-      setTimeout(() => setIsWinking(false), 280);
-    }, 500);
-    // Luego, cada 2 minutos guiña una vez
+    setIsWinking(true);
+    // Cada 2 minutos: abre los dos ojos 5s, vuelve a guiñar.
     const interval = setInterval(() => {
-      setIsWinking(true);
-      setTimeout(() => setIsWinking(false), 280);
+      setIsWinking(false);
+      setTimeout(() => setIsWinking(true), 5000);
     }, 120000);
-    return () => {
-      clearTimeout(initialTimeout);
-      clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, [animate, wink]);
 
   return (
