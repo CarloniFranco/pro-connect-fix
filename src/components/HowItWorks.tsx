@@ -1,5 +1,4 @@
 import { Wrench, Sparkles, HeartHandshake, BellRing, Zap, Coins } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 
 const clientSteps = [
@@ -51,24 +50,24 @@ const HowItWorks = () => {
   return (
     <section className="px-4 py-16">
       <div className="mx-auto max-w-4xl">
-        <motion.h2
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4 }}
+        <h2
+         
+         
+         
+         
           className="mb-2 text-center font-display text-2xl font-bold text-foreground sm:text-3xl"
         >
           ¿Cómo funciona?
-        </motion.h2>
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.1 }}
+        </h2>
+        <p
+         
+         
+         
+         
           className="mb-8 text-center text-sm text-muted-foreground"
         >
           Tres pasos simples, según lo que necesites
-        </motion.p>
+        </p>
 
         {/* Tab selector */}
         <div className="mx-auto mb-10 flex max-w-md overflow-hidden rounded-2xl border border-border bg-muted/60 p-1.5">
@@ -95,21 +94,21 @@ const HowItWorks = () => {
         </div>
 
         {/* Steps */}
-        <AnimatePresence mode="wait">
-          <motion.div
+        
+          <div
             key={tab}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.3 }}
+           
+           
+           
+           
             className="grid gap-6 sm:grid-cols-3"
           >
             {steps.map((step, i) => (
-              <motion.div
+              <div
                 key={step.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.35, delay: 0.1 * i }}
+               
+               
+               
                 className={`group rounded-3xl border border-border/60 p-6 text-center transition-shadow hover:shadow-lg ${accentClass}`}
               >
                 <div className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl transition-transform duration-200 group-hover:scale-110 ${iconBg}`}>
@@ -124,10 +123,10 @@ const HowItWorks = () => {
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   {step.text}
                 </p>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
-        </AnimatePresence>
+          </div>
+        
       </div>
     </section>
   );

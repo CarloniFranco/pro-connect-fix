@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Briefcase, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -7,11 +6,11 @@ const ProCTA = () => {
   return (
     <section className="px-4 pb-16 pt-8 md:pb-24 md:pt-12">
       <div className="container mx-auto max-w-4xl">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+        <div
+         
+         
+         
+         
           className="relative overflow-hidden rounded-2xl border-primary/20 bg-gradient-to-br from-primary to-accent p-6 text-center shadow-[var(--shadow-felix)] md:p-10 border-slate-600 border-4"
         >
 
@@ -25,17 +24,17 @@ const ProCTA = () => {
             <p className="mb-6 text-sm text-primary-foreground/80 md:text-base">
               Digitalizá tu negocio y llegá a más clientes
             </p>
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
+            <button
+             
+             
               onClick={() => navigate("/registro")}
               className="inline-flex items-center gap-2 rounded-xl bg-primary-foreground px-6 py-3 font-display text-sm font-bold text-primary shadow-lg transition-colors hover:bg-primary-foreground/90 md:px-8 md:py-4 md:text-base"
             >
               Quiero Digitalizar mi Negocio
               <ArrowRight className="h-4 w-4" />
-            </motion.button>
+            </button>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

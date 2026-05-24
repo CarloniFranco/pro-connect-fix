@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { CreditCard, ShieldCheck, ArrowLeft, Loader2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -57,9 +56,9 @@ const PaymentSetup = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 py-12">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
+       
+       
         className="w-full max-w-md"
       >
         <button
@@ -110,7 +109,7 @@ const PaymentSetup = () => {
             Al continuar aceptás los términos del servicio y autorizás el débito mensual recurrente vía Mercado Pago.
           </p>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

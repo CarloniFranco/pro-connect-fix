@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { Check, Sparkles, Calendar, Users, Brain, Search, Headphones, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -67,9 +66,9 @@ const PlanSelection = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 py-12">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
+       
+       
         className="text-center mb-8"
       >
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary">
@@ -81,13 +80,13 @@ const PlanSelection = () => {
         <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
           Seleccioná la suscripción que mejor se adapte a tu negocio
         </p>
-      </motion.div>
+      </div>
 
       {/* Annual toggle */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.15 }}
+      <div
+       
+       
+       
         className="flex items-center gap-3 mb-8"
       >
         <Label htmlFor="billing-toggle" className={`text-sm font-medium ${!annual ? "text-foreground" : "text-muted-foreground"}`}>
@@ -97,7 +96,7 @@ const PlanSelection = () => {
         <Label htmlFor="billing-toggle" className={`text-sm font-medium ${annual ? "text-foreground" : "text-muted-foreground"}`}>
           Anual <span className="text-xs font-bold text-primary ml-1">-20%</span>
         </Label>
-      </motion.div>
+      </div>
 
       <div className="grid w-full max-w-2xl grid-cols-1 gap-6 sm:grid-cols-2">
         {plans.map((plan, i) => {
@@ -112,11 +111,11 @@ const PlanSelection = () => {
             : null;
 
           return (
-            <motion.div
+            <div
               key={plan.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
+             
+             
+             
               className={`relative flex flex-col rounded-2xl border-2 p-6 shadow-md transition-all ${
                 plan.accent
                   ? "border-primary bg-card shadow-lg"
@@ -180,15 +179,15 @@ const PlanSelection = () => {
               >
                 Elegir {plan.name}
               </Button>
-            </motion.div>
+            </div>
           );
         })}
       </div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
+      <div
+       
+       
+       
         className="mt-8 max-w-lg rounded-xl bg-primary/5 border border-primary/20 p-4 text-center"
       >
         <p className="text-sm font-semibold text-primary">
@@ -197,7 +196,7 @@ const PlanSelection = () => {
         <p className="text-sm text-muted-foreground mt-1">
           3 meses 100% bonificados. Empezá a pagar recién en el cuarto mes.
         </p>
-      </motion.div>
+      </div>
     </div>
   );
 };

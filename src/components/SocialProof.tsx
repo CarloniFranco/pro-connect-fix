@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import { Star, Shield, Sparkles, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -104,12 +103,12 @@ const SocialProof = () => {
         </p>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
           {items.map((item, i) => (
-            <motion.div
+            <div
               key={item.label}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.08 }}
+             
+             
+             
+             
               className="flex flex-col items-center rounded-2xl border border-border bg-card p-4 text-center shadow-sm transition-shadow hover:shadow-md md:p-6"
             >
               <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary md:h-12 md:w-12">
@@ -121,7 +120,7 @@ const SocialProof = () => {
               <div className="mt-1 text-xs text-muted-foreground md:text-sm">
                 {item.label}
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
