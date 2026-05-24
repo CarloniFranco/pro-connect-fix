@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Wrench, User, LogOut, ChevronDown, ClipboardList, Briefcase, CreditCard, BarChart3, Heart, ShieldCheck } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
+import FelixLogo from "@/components/FelixLogo";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -61,10 +62,8 @@ const Navbar = () => {
     <nav className="fixed left-0 right-0 top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md" style={{ paddingTop: "env(safe-area-inset-top)" }}>
       <div className="container mx-auto flex h-14 max-w-4xl items-center justify-between gap-2 px-3 sm:px-4">
         <button onClick={() => navigate("/")} className="flex shrink-0 items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shadow-sm">
-            <Wrench className="h-4 w-4 text-primary-foreground" />
-          </div>
-          <span className="font-display text-xl font-bold text-foreground">
+          <FelixLogo className="h-9 w-9" wink />
+          <span className="font-display text-xl font-bold tracking-tight text-foreground">
             FIX
           </span>
         </button>
