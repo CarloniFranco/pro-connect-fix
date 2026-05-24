@@ -62,7 +62,7 @@ const Navbar = () => {
     <nav className="fixed left-0 right-0 top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md" style={{ paddingTop: "env(safe-area-inset-top)" }}>
       <div className="container mx-auto flex h-14 max-w-4xl items-center justify-between gap-2 px-3 sm:px-4">
         <button onClick={() => navigate("/")} className="flex shrink-0 items-center gap-2">
-          <FelixLogo className="h-9 w-9" animate />
+          <FelixLogo className="h-9 w-9" />
           <span className="font-display text-xl font-bold tracking-tight text-foreground">
             FIX
           </span>
