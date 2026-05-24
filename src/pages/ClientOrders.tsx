@@ -215,14 +215,21 @@ const ClientOrders = () => {
     if (proIds.length > 0) {
       const { data: pros } = await supabase
         .from("professional_profiles")
-        .select("user_id, full_name, phone")
+        .select("user_id, full_name")
         .in("user_id", proIds);
       const names: Record<string, string> = {};
       const phones: Record<string, string | null> = {};
       (pros || []).forEach((p) => {
         names[p.user_id] = p.full_name;
-        phones[p.user_id] = (p as any).phone || null;
       });
+      // Cargar teléfonos vía RPC segura (solo si hay relación cliente↔pro)
+      const phoneResults = await Promise.all(
+        proIds.map(async (pid) => {
+          const { data: ph } = await supabase.rpc("get_professional_phone", { p_professional_id: pid });
+          return { pid, phone: (ph as string) || null };
+        })
+      );
+      phoneResults.forEach(({ pid, phone }) => { phones[pid] = phone; });
       setProNames(names);
       setProPhones(phones);
     }
