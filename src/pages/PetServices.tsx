@@ -23,7 +23,7 @@ const PetServices = () => {
         </button>
 
         <h1 className="mb-2 font-display text-3xl font-bold text-foreground md:text-4xl">
-          🐾 Servicios para Mascotas
+          Servicios para Mascotas
         </h1>
         <p className="mb-8 text-muted-foreground">Cuidado y bienestar animal</p>
 
