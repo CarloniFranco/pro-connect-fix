@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import {
   ArrowLeft,
   Star,
@@ -362,22 +361,22 @@ const ProfessionalsList = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto max-w-7xl px-4 pt-24 pb-16">
-        <motion.button
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
+        <button
+         
+         
           onClick={() => navigate(-1)}
           className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline"
         >
           <ArrowLeft className="h-4 w-4" /> Volver
-        </motion.button>
+        </button>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+        <h1
+         
+         
           className="mb-2 font-display text-2xl font-bold text-foreground md:text-3xl"
         >
           Profesionales de {category}
-        </motion.h1>
+        </h1>
         <p className="mb-6 text-muted-foreground">Ordenados por ranking de calidad</p>
 
         {/* Toolbar: filtros + toggle vista */}
@@ -576,11 +575,11 @@ const ProfessionalsList = () => {
               };
 
               return (
-                <motion.div
+                <div
                   key={pro.id}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: Math.min(i * 0.04, 0.4) }}
+                 
+                 
+                 
                   onClick={() => goToPro(pro.user_id)}
                   className={`group flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-lg ${
                     isUnavailable ? "opacity-70" : ""
@@ -667,7 +666,7 @@ const ProfessionalsList = () => {
                       </div>
                     )}
                   </div>
-                </motion.div>
+                </div>
               );
             })}
           </div>

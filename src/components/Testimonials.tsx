@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import { Star, Quote } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -89,12 +88,12 @@ const Testimonials = () => {
 
         <div className="grid gap-4 md:grid-cols-3 md:gap-6">
           {testimonials.map((t, i) => (
-            <motion.figure
+            <figure
               key={`${t.name}-${i}`}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
+             
+             
+             
+             
               className="relative flex flex-col rounded-2xl border-2 border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg md:p-6"
             >
               <Quote className="absolute right-4 top-4 h-6 w-6 text-primary/15" />
@@ -115,7 +114,7 @@ const Testimonials = () => {
                   </div>
                 </div>
               </figcaption>
-            </motion.figure>
+            </figure>
           ))}
         </div>
       </div>

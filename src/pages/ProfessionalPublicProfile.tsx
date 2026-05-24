@@ -1,5 +1,4 @@
 import { useEffect, useState, useMemo } from "react";
-import { motion } from "framer-motion";
 import { ArrowLeft, Star, Zap, Shield, Award, MessageSquare, User, MapPin, Clock, CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -233,19 +232,19 @@ const ProfessionalPublicProfile = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto max-w-2xl px-3 pt-20 pb-12 sm:px-4 sm:pt-24 sm:pb-16">
-        <motion.button
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
+        <button
+         
+         
           onClick={() => navigate(-1)}
           className="mb-3 inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline"
         >
           <ArrowLeft className="h-4 w-4" /> Volver
-        </motion.button>
+        </button>
 
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+        <div
+         
+         
           className="rounded-2xl border-2 border-border bg-card p-4 shadow-md mb-3"
         >
           <div className="flex items-start gap-3">
@@ -275,14 +274,14 @@ const ProfessionalPublicProfile = () => {
             <FavoriteButton professionalId={profile.user_id} size="md" stopPropagation={false} />
           </div>
           {/* WhatsApp se habilita recién después de reservar el turno (ver Mis Pedidos) */}
-        </motion.div>
+        </div>
 
         {/* LOCATION */}
         {(profile.address || profile.neighborhood) && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
+          <div
+           
+           
+           
             className="rounded-2xl border-2 border-border bg-card p-3 shadow-md mb-3"
           >
             <div className="flex items-start justify-between gap-3">
@@ -306,15 +305,15 @@ const ProfessionalPublicProfile = () => {
                 Cómo llegar →
               </a>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Description */}
         {profile.descripcion && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08 }}
+          <div
+           
+           
+           
             className="rounded-2xl border-2 border-border bg-card p-4 shadow-md mb-3"
           >
             <p className={`text-sm text-muted-foreground leading-relaxed ${descExpanded ? "" : "line-clamp-3"}`}>
@@ -328,14 +327,14 @@ const ProfessionalPublicProfile = () => {
                 {descExpanded ? "Ver menos" : "Ver más"}
               </button>
             )}
-          </motion.div>
+          </div>
         )}
 
         {/* AVAILABILITY GRID — día visualizado (filtrado o hoy) */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+        <div
+         
+         
+         
           className="rounded-2xl border-2 border-border bg-card p-4 shadow-md mb-3"
         >
           <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
@@ -443,13 +442,13 @@ const ProfessionalPublicProfile = () => {
               Iniciá sesión para reservar
             </Button>
           ) : null}
-        </motion.div>
+        </div>
 
         {/* Score Breakdown */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+        <div
+         
+         
+         
           className="rounded-2xl border-2 border-border bg-card p-4 shadow-md mb-3"
         >
           <h2 className="text-base font-bold text-card-foreground mb-3">Métricas de Ranking</h2>
@@ -467,16 +466,16 @@ const ProfessionalPublicProfile = () => {
               </div>
             ))}
           </div>
-        </motion.div>
+        </div>
 
         {/* Portfolio / Book de trabajos */}
         {profile?.user_id && <PortfolioGallery professionalId={profile.user_id} />}
 
         {/* Reviews */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+        <div
+         
+         
+         
           className="rounded-2xl border-2 border-border bg-card p-4 shadow-md"
         >
           <h2 className="text-base font-bold text-card-foreground mb-3 flex items-center gap-2">
@@ -504,7 +503,7 @@ const ProfessionalPublicProfile = () => {
               ))}
             </div>
           )}
-        </motion.div>
+        </div>
       </div>
 
       {/* Service Request Modal */}

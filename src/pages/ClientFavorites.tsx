@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { ArrowLeft, Heart, MapPin, Star, Shield, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -122,11 +121,11 @@ const ClientFavorites = () => {
                 const locationLabel =
                   [pro.locality, pro.province].filter(Boolean).join(", ") || pro.neighborhood;
                 return (
-                  <motion.div
+                  <div
                     key={pro.id}
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: Math.min(i * 0.04, 0.4) }}
+                   
+                   
+                   
                     onClick={() => navigate(`/profesional/${pro.user_id}`)}
                     className="group flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-lg"
                   >
@@ -176,7 +175,7 @@ const ClientFavorites = () => {
                         </div>
                       )}
                     </div>
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
