@@ -73,8 +73,8 @@ const FelixLogo = ({ className, wink = false, animate = false, color, withShadow
         <circle cx="48" cy="54" r="8" fill="#FFFFFF" />
         <circle cx="49.5" cy="55" r="3.4" fill="#0F0B2E" />
 
-        {/* Ojo derecho (guiña si wink=true) */}
-        {wink ? (
+        {/* Ojo derecho (guiña si isWinking) */}
+        {isWinking ? (
           <path
             d="M 64 54 Q 72 50 80 54"
             stroke="#FFFFFF"
