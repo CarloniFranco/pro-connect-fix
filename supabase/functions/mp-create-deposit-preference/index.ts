@@ -2,7 +2,7 @@
 // Called by the client when creating a service request.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders, json, mpFetch, getProMpToken, APP_URL } from "../_shared/mp.ts";
+import { corsHeaders, json, mpFetch, getProMpToken, getAppReturnUrl } from "../_shared/mp.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -22,8 +22,9 @@ serve(async (req) => {
     if (authErr || !claims?.claims?.sub) return json({ error: "Unauthorized" }, 401);
     const userId = claims.claims.sub as string;
 
-    const { service_request_id } = await req.json();
+    const { service_request_id, return_origin } = await req.json();
     if (!service_request_id) return json({ error: "service_request_id required" }, 400);
+    const appReturnUrl = getAppReturnUrl(req, return_origin);
 
     const { data: sr, error: sErr } = await admin
       .from("service_requests")
@@ -70,9 +71,9 @@ serve(async (req) => {
           kind: "deposit",
         },
         back_urls: {
-          success: `${APP_URL}/sena/confirmada?deposit=success&request=${sr.id}`,
-          failure: `${APP_URL}/sena/confirmada?deposit=failure&request=${sr.id}`,
-          pending: `${APP_URL}/sena/confirmada?deposit=pending&request=${sr.id}`,
+          success: `${appReturnUrl}/sena/confirmada?deposit=success&request=${sr.id}`,
+          failure: `${appReturnUrl}/sena/confirmada?deposit=failure&request=${sr.id}`,
+          pending: `${appReturnUrl}/sena/confirmada?deposit=pending&request=${sr.id}`,
         },
         auto_return: "approved",
         notification_url: `${SUPABASE_URL}/functions/v1/mp-webhook?pro=${sr.professional_id}&sr=${sr.id}`,
