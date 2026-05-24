@@ -767,6 +767,10 @@ export type Database = {
       }
     }
     Functions: {
+      get_professional_phone: {
+        Args: { p_professional_id: string }
+        Returns: string
+      }
       get_professional_score: {
         Args: { p_professional_id: string }
         Returns: Json
