@@ -31,7 +31,7 @@ const HeroSection = () => {
             >
               <FelixLogo
                 className="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28"
-                wink
+                animate
               />
             </motion.div>
             <motion.h1
