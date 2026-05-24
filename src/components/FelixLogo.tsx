@@ -17,7 +17,7 @@ interface FelixLogoProps {
  * Felix — la mascota de FIX.
  * X violeta con carita amistosa. SVG vectorial, escala perfecta.
  */
-const FelixLogo = ({ className, wink = false, animate = false, color, withShadow = false }: FelixLogoProps) => {
+const FelixLogo = ({ className, wink = true, animate = false, color, withShadow = false }: FelixLogoProps) => {
   // Por defecto, si animate, Felix queda con el ojo guiñado.
   const [isWinking, setIsWinking] = useState(animate ? true : wink);
   const fill = color ?? "hsl(var(--primary))";
