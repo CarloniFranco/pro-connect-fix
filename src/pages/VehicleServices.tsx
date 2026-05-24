@@ -23,7 +23,7 @@ const VehicleServices = () => {
         </button>
 
         <h1 className="mb-2 font-display text-3xl font-bold text-foreground md:text-4xl">
-          🚗 Servicios para tu Vehículo
+          Servicios para tu Vehículo
         </h1>
         <p className="mb-8 text-muted-foreground">Elegí el servicio que necesitás</p>
 
