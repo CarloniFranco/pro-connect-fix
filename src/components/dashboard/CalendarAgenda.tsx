@@ -106,14 +106,23 @@ const CalendarAgenda = () => {
             (blocks as any[]).filter((b) => b.service_request_id).map((b) => b.service_request_id)
           ),
         ];
-        let srMap: Record<string, { client_name: string; service_type: string }> = {};
+        let srMap: Record<string, { client_name: string; service_type: string; status: string; deposit_paid: boolean | null }> = {};
         if (srIds.length > 0) {
           const { data: srs } = await supabase
             .from("service_requests")
-            .select("id, client_name, service_type")
+            .select("id, client_name, service_type, status, deposit_paid")
             .in("id", srIds);
           if (srs) (srs as any[]).forEach((sr) => (srMap[sr.id] = sr));
         }
+
+        // Filtrar bloques cuya solicitud ya está confirmada/finalizada para evitar duplicados
+        const visibleBlocks = (blocks as any[]).filter((b) => {
+          if (!b.service_request_id) return true;
+          const sr = srMap[b.service_request_id];
+          if (!sr) return true;
+          if (sr.deposit_paid) return false;
+          return !["aceptada", "en_servicio", "finalizada", "rechazada_cliente", "rechazada_profesional"].includes(sr.status);
+        });
 
         // Group by service_request_id + slot_date, take min slot_time
         const grouped = new Map<string, any>();
