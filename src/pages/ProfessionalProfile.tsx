@@ -58,11 +58,12 @@ const ProfessionalProfile = () => {
       .maybeSingle();
 
     if (data) {
+      const { data: phoneData } = await supabase.rpc("get_professional_phone", { p_professional_id: user.id });
       setExistingProfile(true);
       setFullName(data.full_name);
       setRubro(data.rubro);
       setDescripcion(data.descripcion);
-      setPhone((data as any).phone || "");
+      setPhone((phoneData as string) || "");
       setWorkStations((data as any).work_stations || 1);
       if (data.photo_url) setPhotoPreview(data.photo_url);
       if (data.rubro && data.descripcion) {
