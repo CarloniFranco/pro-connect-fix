@@ -126,7 +126,7 @@ const CalendarAgenda = () => {
 
         // Group by service_request_id + slot_date, take min slot_time
         const grouped = new Map<string, any>();
-        (blocks as any[]).forEach((b) => {
+        visibleBlocks.forEach((b) => {
           const key = `${b.service_request_id || b.id}-${b.slot_date}`;
           const existing = grouped.get(key);
           if (!existing || b.slot_time < existing.slot_time) {
