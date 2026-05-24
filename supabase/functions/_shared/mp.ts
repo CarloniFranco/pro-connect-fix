@@ -49,4 +49,4 @@ export function json(data: unknown, status = 200) {
   });
 }
 
-export const APP_URL = Deno.env.get("APP_PUBLIC_URL") ?? "https://pro-connect-fix.lovable.app";
+export const APP_URL = Deno.env.get("APP_PUBLIC_URL") ?? "https://somofix.lovable.app";

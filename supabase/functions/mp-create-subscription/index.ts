@@ -41,7 +41,7 @@ serve(async (req) => {
         reason: plan.name,
         external_reference: `sub:${userId}:${plan_id}`,
         payer_email: email,
-        back_url: `${APP_URL}/pro-subscription?sub=success`,
+        back_url: `${APP_URL}/mi-suscripcion?sub=success`,
         auto_recurring: {
           frequency: 1,
           frequency_type: "months",
