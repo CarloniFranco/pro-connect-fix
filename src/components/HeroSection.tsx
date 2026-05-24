@@ -8,12 +8,6 @@ const HeroSection = () => {
 
   return (
     <section className="relative overflow-hidden bg-background px-4 pb-16 pt-20 sm:pb-20 sm:pt-24 md:pb-28 md:pt-36">
-      {/* Geometric accents — sutiles sobre lavanda */}
-      <div className="absolute inset-0 opacity-100 pointer-events-none">
-        <div className="absolute left-[10%] top-[20%] h-24 w-24 rounded-2xl border-2 border-primary/15 rotate-12" />
-        <div className="absolute right-[12%] top-[30%] h-16 w-16 rounded-full border-2 border-primary/10" />
-        <div className="absolute left-[40%] bottom-[15%] h-20 w-20 rounded-xl border-2 border-primary/10 -rotate-6" />
-      </div>
 
       <div className="container relative z-10 mx-auto max-w-3xl text-center">
         <motion.div
