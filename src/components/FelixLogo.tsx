@@ -1,9 +1,12 @@
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 interface FelixLogoProps {
   className?: string;
   /** wink the right eye (firma state) */
   wink?: boolean;
+  /** continuously wink every few seconds */
+  animate?: boolean;
   /** override fill color (defaults to hsl(var(--primary))) */
   color?: string;
   /** show ground shadow under Felix */
@@ -14,8 +17,23 @@ interface FelixLogoProps {
  * Felix — la mascota de FIX.
  * X violeta con carita amistosa. SVG vectorial, escala perfecta.
  */
-const FelixLogo = ({ className, wink = false, color, withShadow = false }: FelixLogoProps) => {
+const FelixLogo = ({ className, wink = false, animate = false, color, withShadow = false }: FelixLogoProps) => {
+  const [isWinking, setIsWinking] = useState(wink);
   const fill = color ?? "hsl(var(--primary))";
+
+  useEffect(() => {
+    if (!animate) {
+      setIsWinking(wink);
+      return;
+    }
+    const winkSequence = () => {
+      setIsWinking(true);
+      setTimeout(() => setIsWinking(false), 350);
+    };
+    winkSequence();
+    const interval = setInterval(winkSequence, 4200); // ~4.2s loop, offset per instance
+    return () => clearInterval(interval);
+  }, [animate, wink]);
 
   return (
     <svg
