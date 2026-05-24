@@ -91,7 +91,7 @@ const Dashboard = () => {
         <div className="container mx-auto flex h-14 max-w-4xl items-center justify-between gap-2 px-3 sm:px-4">
           <button onClick={() => navigate("/")} className="flex shrink-0 items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg">
-              <FelixLogo className="h-7 w-7" />
+              <FelixLogo className="h-7 w-7" animate />
             </div>
             <span className="font-display text-lg font-bold text-foreground">FIX</span>
           </button>
