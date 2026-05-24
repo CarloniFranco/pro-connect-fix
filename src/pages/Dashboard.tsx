@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Wrench, User, LogOut, Loader2, Power, ChevronDown, Briefcase, ClipboardList, CreditCard, BarChart3, ShieldCheck, CheckCircle2, XCircle } from "lucide-react";
+import { User, LogOut, Loader2, Power, ChevronDown, Briefcase, ClipboardList, CreditCard, BarChart3, ShieldCheck, CheckCircle2, XCircle } from "lucide-react";
+import FelixLogo from "@/components/FelixLogo";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
