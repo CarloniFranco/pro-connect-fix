@@ -57,10 +57,10 @@
     /* Categorías — familia violeta/lavanda */
     --vehicle: 243 75% 59%;
     --vehicle-foreground: 250 60% 97%;
-    --pet: 252 70% 78%;
-    --pet-foreground: 248 55% 15%;
-    --home-cat: 235 70% 55%;
-    --home-cat-foreground: 250 60% 97%;
+    --pet: 158 64% 42%;
+    --pet-foreground: 0 0% 100%;
+    --home-cat: 0 75% 60%;
+    --home-cat-foreground: 0 0% 100%;
     --personal-cat: 280 60% 62%;
     --personal-cat-foreground: 250 60% 97%;
 
