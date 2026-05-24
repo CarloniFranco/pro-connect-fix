@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { CheckCircle2, Calendar, Clock, Wrench, AlertTriangle, ShieldCheck, Loader2, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import FelixLogo from "@/components/FelixLogo";
 
 interface ServiceRequestData {
   id: string;
