@@ -16,7 +16,7 @@ const HeroSection = () => {
         >
           <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 border border-primary/10">
             <span className="text-sm font-medium text-primary">
-              Tu problema, resuelto.
+              Tu problema, <strong className="font-bold">resuelto</strong>.
             </span>
           </div>
 

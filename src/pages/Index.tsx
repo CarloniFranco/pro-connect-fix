@@ -30,7 +30,7 @@ const Index = () => {
           <p className="font-display text-lg font-bold text-foreground">FIX</p>
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          © 2026 FIX · Tu problema, resuelto.
+          © 2026 FIX · Tu problema, <strong className="font-bold">resuelto</strong>.
         </p>
         <Link to="/terminos" className="mt-2 inline-block text-xs text-primary hover:underline font-semibold">
           Términos y Condiciones
