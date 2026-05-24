@@ -245,7 +245,7 @@ export default function ServiceRequestForm({
     // Crear preferencia de pago en Mercado Pago y redirigir al checkout
     const { data: prefData, error: prefErr } = await supabase.functions.invoke(
       "mp-create-deposit-preference",
-      { body: { service_request_id: inserted.id } }
+      { body: { service_request_id: inserted.id, return_origin: window.location.origin } }
     );
 
     setLoading(false);
@@ -257,7 +257,7 @@ export default function ServiceRequestForm({
     }
 
     toast.success("Redirigiendo a Mercado Pago para pagar la seña…");
-    window.location.href = prefData.init_point as string;
+    window.location.assign(prefData.init_point as string);
   };
 
   const noServicesConfigured = proServices.length === 0 || vehicleTypes.length === 0;
