@@ -7,12 +7,12 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative overflow-hidden bg-primary px-4 pb-16 pt-20 sm:pb-20 sm:pt-24 md:pb-28 md:pt-36">
-      {/* Geometric accents */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute left-[10%] top-[20%] h-24 w-24 rounded-2xl border-2 border-primary-foreground/40 rotate-12" />
-        <div className="absolute right-[12%] top-[30%] h-16 w-16 rounded-full border-2 border-primary-foreground/30" />
-        <div className="absolute left-[40%] bottom-[15%] h-20 w-20 rounded-xl border-2 border-primary-foreground/20 -rotate-6" />
+    <section className="relative overflow-hidden bg-background px-4 pb-16 pt-20 sm:pb-20 sm:pt-24 md:pb-28 md:pt-36">
+      {/* Geometric accents — sutiles sobre lavanda */}
+      <div className="absolute inset-0 opacity-100 pointer-events-none">
+        <div className="absolute left-[10%] top-[20%] h-24 w-24 rounded-2xl border-2 border-primary/15 rotate-12" />
+        <div className="absolute right-[12%] top-[30%] h-16 w-16 rounded-full border-2 border-primary/10" />
+        <div className="absolute left-[40%] bottom-[15%] h-20 w-20 rounded-xl border-2 border-primary/10 -rotate-6" />
       </div>
 
       <div className="container relative z-10 mx-auto max-w-3xl text-center">
@@ -21,8 +21,8 @@ const HeroSection = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary-foreground/10 px-4 py-2 backdrop-blur-sm">
-            <span className="text-sm font-medium text-primary-foreground/85">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 border border-primary/10">
+            <span className="text-sm font-medium text-primary">
               Tu problema, resuelto.
             </span>
           </div>
@@ -37,7 +37,6 @@ const HeroSection = () => {
             >
               <FelixLogo
                 className="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28"
-                color="hsl(var(--primary-foreground))"
                 wink
               />
             </motion.div>
@@ -45,13 +44,13 @@ const HeroSection = () => {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
-              className="font-display text-6xl font-bold tracking-tight text-primary-foreground sm:text-7xl md:text-8xl"
+              className="font-display text-6xl font-bold tracking-tight text-foreground sm:text-7xl md:text-8xl"
             >
               FIX
             </motion.h1>
           </div>
 
-          <p className="mx-auto mb-8 max-w-md text-base font-medium text-primary-foreground/75 sm:mb-12 sm:text-lg md:text-xl">
+          <p className="mx-auto mb-8 max-w-md text-base font-medium text-muted-foreground sm:mb-12 sm:text-lg md:text-xl">
             ¿Qué tipo de servicio necesitás?
           </p>
         </motion.div>
@@ -72,15 +71,15 @@ const HeroSection = () => {
               whileHover={{ y: -3 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => navigate(cat.route)}
-              className="group flex flex-col items-center gap-2 rounded-xl bg-primary-foreground/10 p-4 border border-primary-foreground/15 backdrop-blur-sm transition-colors hover:bg-primary-foreground/15 md:gap-3 md:p-6"
+              className="group flex flex-col items-center gap-2 rounded-xl bg-card p-4 border border-border shadow-sm transition-all hover:border-primary/30 hover:shadow-md md:gap-3 md:p-6"
             >
-              <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${cat.bg} shadow-md md:h-14 md:w-14`}>
+              <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${cat.bg} shadow-sm md:h-14 md:w-14`}>
                 <cat.icon className={`h-6 w-6 ${cat.fg} md:h-7 md:w-7`} />
               </div>
-              <span className="font-display text-base font-bold text-primary-foreground md:text-lg">
+              <span className="font-display text-base font-bold text-foreground md:text-lg">
                 {cat.label}
               </span>
-              <span className="text-[10px] text-primary-foreground/65 md:text-xs">
+              <span className="text-[10px] text-muted-foreground md:text-xs">
                 {cat.desc}
               </span>
             </motion.button>
