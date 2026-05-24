@@ -59,7 +59,7 @@ const HeroSection = () => {
         <div className="mx-auto grid max-w-2xl grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
           {[
             { label: "Vehículo", desc: "Lavadero, Taller", icon: Car, bg: "bg-vehicle", fg: "text-vehicle-foreground", route: "/servicios/vehiculo", delay: 0.2 },
-            { label: "Hogar", desc: "Plomería, Gas y más", icon: Home, bg: "bg-pet shadow-sm md:h-14 md:w-14 bg-teal-300", fg: "text-home-cat-foreground", route: "/servicios/hogar", delay: 0.25 },
+            { label: "Hogar", desc: "Plomería, Gas y más", icon: Home, bg: "bg-pet bg-teal-300", fg: "text-home-cat-foreground", route: "/servicios/hogar", delay: 0.25 },
             { label: "Personal", desc: "Peluquería, Estética", icon: Scissors, bg: "bg-personal-cat", fg: "text-personal-cat-foreground", route: "/servicios/personal", delay: 0.3 },
             { label: "Mascotas", desc: "Paseo, Peluquería", icon: PawPrint, bg: "bg-pet", fg: "text-pet-foreground", route: "/servicios/mascotas", delay: 0.35 },
           ].map((cat) => (
