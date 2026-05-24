@@ -7,6 +7,7 @@ import HowItWorks from "@/components/HowItWorks";
 import SocialProof from "@/components/SocialProof";
 import Testimonials from "@/components/Testimonials";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import FelixLogo from "@/components/FelixLogo";
 
 
 const Index = () => {
@@ -24,11 +25,12 @@ const Index = () => {
       <Testimonials />
       <ProCTA />
       <footer className="border-t border-border px-4 py-8 text-center">
-        <p className="font-display text-lg font-bold text-foreground">
-          FI<span className="inline-block animate-[spin_0.7s_ease-out_0.3s_both]">X</span>
-        </p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          © 2026 FIX. Todos los derechos reservados.
+        <div className="flex items-center justify-center gap-2">
+          <FelixLogo className="h-7 w-7" wink />
+          <p className="font-display text-lg font-bold text-foreground">FIX</p>
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          © 2026 FIX · Tu problema, resuelto.
         </p>
         <Link to="/terminos" className="mt-2 inline-block text-xs text-primary hover:underline font-semibold">
           Términos y Condiciones

@@ -6,60 +6,67 @@
 
 @layer base {
   :root {
-    --background: 210 20% 97%;
-    --foreground: 215 25% 15%;
+    /* === FIX brand · Felix system · Lavanda claro === */
+    --background: 250 60% 97%;          /* lavanda muy clara */
+    --foreground: 248 55% 12%;          /* navy violeta oscuro */
 
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card-foreground: 248 55% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover-foreground: 248 55% 12%;
 
-    --primary: 245 50% 35%;
-    --primary-foreground: 210 20% 97%;
+    /* Violeta Felix — protagonista */
+    --primary: 243 75% 59%;             /* #4F46E5 */
+    --primary-foreground: 250 60% 97%;
+    --primary-glow: 252 85% 72%;
 
-    --secondary: 168 45% 38%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 250 55% 92%;
+    --secondary-foreground: 248 55% 12%;
 
-    --muted: 210 15% 92%;
-    --muted-foreground: 215 15% 50%;
+    --muted: 250 40% 94%;
+    --muted-foreground: 248 20% 45%;
 
-    --accent: 38 60% 52%;
-    --accent-foreground: 215 25% 12%;
+    --accent: 252 70% 50%;
+    --accent-foreground: 250 60% 97%;
 
-    --destructive: 0 65% 50%;
+    --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 15% 88%;
-    --input: 210 15% 88%;
-    --ring: 245 50% 35%;
+    --border: 250 35% 88%;
+    --input: 250 35% 88%;
+    --ring: 243 75% 59%;
 
-    --radius: 0.625rem;
+    --radius: 0.875rem;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 250 60% 97%;
+    --sidebar-foreground: 248 40% 25%;
+    --sidebar-primary: 243 75% 59%;
+    --sidebar-primary-foreground: 250 60% 97%;
+    --sidebar-accent: 250 55% 92%;
+    --sidebar-accent-foreground: 248 55% 12%;
+    --sidebar-border: 250 35% 88%;
+    --sidebar-ring: 243 75% 59%;
 
-    --warm-surface: 210 12% 94%;
+    --warm-surface: 250 55% 94%;
     --pipe-green: 168 45% 38%;
     --coin-gold: 38 60% 52%;
     --brick: 30 25% 55%;
-    --sky: 245 40% 60%;
+    --sky: 243 75% 65%;
 
-    /* Category brand colors */
-    --vehicle: 265 55% 55%;            /* Profesional violet */
-    --vehicle-foreground: 0 0% 100%;
-    --pet: 200 75% 75%;                /* Soft pastel sky blue */
-    --pet-foreground: 215 35% 20%;
-    --home-cat: 168 45% 38%;           /* Reuse teal */
-    --home-cat-foreground: 0 0% 100%;
-    --personal-cat: 340 65% 62%;       /* Warm rose */
-    --personal-cat-foreground: 0 0% 100%;
+    /* Categorías — familia violeta/lavanda */
+    --vehicle: 243 75% 59%;
+    --vehicle-foreground: 250 60% 97%;
+    --pet: 252 70% 78%;
+    --pet-foreground: 248 55% 15%;
+    --home-cat: 235 70% 55%;
+    --home-cat-foreground: 250 60% 97%;
+    --personal-cat: 280 60% 62%;
+    --personal-cat-foreground: 250 60% 97%;
+
+    --gradient-felix: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-lavanda: linear-gradient(180deg, hsl(250 60% 98%), hsl(250 55% 92%));
+    --shadow-felix: 0 12px 32px -12px hsl(var(--primary) / 0.45);
   }
 
   .dark {
