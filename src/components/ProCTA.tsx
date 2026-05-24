@@ -12,7 +12,7 @@ const ProCTA = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary to-accent p-6 text-center shadow-[var(--shadow-felix)] md:p-10"
+          className="relative overflow-hidden rounded-2xl border-primary/20 bg-gradient-to-br from-primary to-accent p-6 text-center shadow-[var(--shadow-felix)] md:p-10 border-slate-600 border-4"
         >
 
           <div className="relative z-10">
