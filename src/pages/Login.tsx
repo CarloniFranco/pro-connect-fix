@@ -67,7 +67,7 @@ const Login = () => {
         <div className="rounded-2xl border border-border bg-card p-6 shadow-lg md:p-8">
           <div className="mb-6 text-center">
             <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary">
-              <Wrench className="h-8 w-8 text-primary-foreground" />
+              <FelixLogo className="h-10 w-10" color="#FFFFFF" />
             </div>
             <h1 className="font-display text-2xl font-bold text-foreground">
               Ingresá a FIX
