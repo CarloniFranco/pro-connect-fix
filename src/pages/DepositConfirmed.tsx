@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { CheckCircle2, Calendar, Clock, Wrench, AlertTriangle, ShieldCheck, Loader2, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import FelixLogo from "@/components/FelixLogo";
 
 interface ServiceRequestData {
   id: string;
@@ -108,9 +109,7 @@ export default function DepositConfirmed() {
       <div className="container mx-auto max-w-xl px-4 py-8">
         {/* Logo FIX */}
         <div className="mb-6 flex items-center justify-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-md">
-            <Wrench className="h-5 w-5 text-primary-foreground" />
-          </div>
+          <FelixLogo className="h-10 w-10" />
           <span className="font-display text-2xl font-bold text-foreground">FIX</span>
         </div>
 
@@ -119,15 +118,13 @@ export default function DepositConfirmed() {
           {isFailure ? (
             <>
               <div className="mb-4 flex justify-center">
-                <div className="rounded-full bg-destructive/10 p-3">
-                  <AlertTriangle className="h-10 w-10 text-destructive" />
-                </div>
+                <FelixLogo className="h-28 w-28" mood="sad" />
               </div>
               <h1 className="text-center font-display text-2xl font-bold text-foreground">
                 No pudimos procesar el pago
               </h1>
               <p className="mt-2 text-center text-sm text-muted-foreground">
-                Tu pago de la seña no se completó. Podés volver a intentarlo desde tus pedidos.
+                A Felix le da pena: tu pago de la seña no se completó. Podés volver a intentarlo desde tus pedidos.
               </p>
             </>
           ) : isPending ? (
@@ -147,15 +144,13 @@ export default function DepositConfirmed() {
           ) : (
             <>
               <div className="mb-4 flex justify-center">
-                <div className="rounded-full bg-secondary/15 p-3">
-                  <CheckCircle2 className="h-10 w-10 text-secondary" />
-                </div>
+                <FelixLogo className="h-28 w-28" mood="happy" />
               </div>
               <h1 className="text-center font-display text-2xl font-bold text-foreground">
                 ¡Tu turno está confirmado!
               </h1>
               <p className="mt-2 text-center text-sm text-muted-foreground">
-                Recibimos tu seña correctamente. Reservamos el lugar para vos.
+                ¡Felix está festejando! Recibimos tu seña y reservamos el lugar para vos.
               </p>
             </>
           )}
