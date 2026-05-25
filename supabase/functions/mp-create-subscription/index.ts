@@ -8,12 +8,20 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-// Planes — alineados con PlanSelection (ajustá montos según corresponda)
-const PLANS: Record<string, { name: string; amount: number }> = {
-  basico: { name: "FIX Básico", amount: 4990 },
-  pro: { name: "FIX Pro", amount: 9990 },
-  premium: { name: "FIX Premium", amount: 19990 },
+// Planes — los montos se leen desde app_config (plan_price_basico / plan_price_premium).
+// Estos valores son sólo fallback si la config no existe.
+const PLAN_DEFAULTS: Record<string, { name: string; amount: number; key: string }> = {
+  basico: { name: "FIX Básico", amount: 6999, key: "plan_price_basico" },
+  premium: { name: "FIX Premium", amount: 14000, key: "plan_price_premium" },
 };
+
+async function resolvePlanAmount(planId: string): Promise<number> {
+  const def = PLAN_DEFAULTS[planId];
+  if (!def) return 0;
+  const { data } = await admin.from("app_config").select("value").eq("key", def.key).maybeSingle();
+  const n = Number((data as any)?.value);
+  return Number.isFinite(n) && n > 0 ? n : def.amount;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
