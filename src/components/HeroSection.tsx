@@ -37,7 +37,7 @@ const HeroSection = () => {
              
              
              
-              className="font-display text-6xl font-bold tracking-tight text-foreground sm:text-7xl md:text-8xl"
+              className="font-display text-6xl font-bold tracking-tight text-primary sm:text-7xl md:text-8xl"
             >
               FIX
             </h1>
