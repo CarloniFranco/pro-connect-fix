@@ -36,6 +36,7 @@ const items = [
   { title: "Clientes", url: "/admin/clientes", icon: Users },
   { title: "Pedidos", url: "/admin/pedidos", icon: ClipboardList },
   { title: "Suscripciones", url: "/admin/suscripciones", icon: CreditCard },
+  { title: "Precios de planes", url: "/admin/precios", icon: DollarSign },
   { title: "Broadcast", url: "/admin/broadcast", icon: Megaphone },
 ];
 
