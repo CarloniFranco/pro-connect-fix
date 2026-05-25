@@ -27,25 +27,27 @@ const FelixLogo = ({
   mood = "neutral",
   withShadow = false,
 }: FelixLogoProps) => {
-  const [isWinking, setIsWinking] = useState(wink);
+  const [isWinking, setIsWinking] = useState(animate ? false : wink);
 
   useEffect(() => {
     if (!animate) {
       setIsWinking(wink);
       return;
     }
-    // Guiño rápido cada ~4s
-    const tick = () => {
-      setIsWinking(true);
-      setTimeout(() => setIsWinking(false), 350);
-    };
-    const initial = setTimeout(tick, 1500);
-    const interval = setInterval(tick, 4000);
+    // Arranca con ojos abiertos 3s, después guiña y queda guiñado.
+    // Cada 45s: abre 3s y vuelve a guiñar.
+    setIsWinking(false);
+    const initial = setTimeout(() => setIsWinking(true), 3000);
+    const interval = setInterval(() => {
+      setIsWinking(false);
+      setTimeout(() => setIsWinking(true), 3000);
+    }, 45000);
     return () => {
       clearTimeout(initial);
       clearInterval(interval);
     };
   }, [animate, wink]);
+
 
   const moodAnim =
     mood === "happy"
