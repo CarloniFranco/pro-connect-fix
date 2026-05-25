@@ -39,6 +39,7 @@ import AdminProfessionals from "./pages/AdminProfessionals.tsx";
 import AdminClients from "./pages/AdminClients.tsx";
 import AdminOrders from "./pages/AdminOrders.tsx";
 import AdminSubscriptions from "./pages/AdminSubscriptions.tsx";
+import AdminPlanPrices from "./pages/AdminPlanPrices.tsx";
 import AdminBroadcast from "./pages/AdminBroadcast.tsx";
 import MercadoPagoConnect from "./pages/MercadoPagoConnect.tsx";
 import MercadoPagoCallback from "./pages/MercadoPagoCallback.tsx";
