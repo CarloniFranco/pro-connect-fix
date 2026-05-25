@@ -169,7 +169,7 @@ const Register = () => {
                 onClick={() => setRole("professional")}
                 className="flex flex-col items-center gap-3 rounded-xl border-2 border-border p-6 transition-all hover:border-accent hover:bg-accent/5"
               >
-                <Briefcase className="h-8 w-8 text-accent-foreground" />
+                <Briefcase className="h-8 w-8 text-accent-foreground text-[#4738cc]" />
                 <span className="text-sm font-semibold text-foreground">Quiero ser Profesional</span>
                 <span className="text-xs text-muted-foreground text-center">
                   Ofrezco mis servicios
