@@ -30,10 +30,7 @@ import {
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 
-const PLAN_PRICES: Record<string, number> = {
-  basico: 6999,
-  premium: 14000,
-};
+import { usePlanPrices } from "@/hooks/usePlanPrices";
 
 const ProSubscription = () => {
   const navigate = useNavigate();
