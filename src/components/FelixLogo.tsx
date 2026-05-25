@@ -61,10 +61,26 @@ const FelixLogo = ({
   return (
     <div className={cn("relative inline-block", className)}>
       <img
-        src={src}
+        src={felixOpen}
         alt="Felix, la mascota de FIX"
-        className={cn("block w-full h-full object-contain transition-opacity", moodAnim)}
+        className={cn(
+          "block w-full h-full object-contain transition-opacity duration-200",
+          moodAnim,
+          isWinking ? "opacity-0" : "opacity-100"
+        )}
         draggable={false}
+        decoding="async"
+      />
+      <img
+        src={felixWink}
+        aria-hidden
+        className={cn(
+          "absolute inset-0 block w-full h-full object-contain transition-opacity duration-200",
+          moodAnim,
+          isWinking ? "opacity-100" : "opacity-0"
+        )}
+        draggable={false}
+        decoding="async"
       />
       {withShadow && (
         <span
