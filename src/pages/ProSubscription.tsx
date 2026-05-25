@@ -122,7 +122,7 @@ const ProSubscription = () => {
   }
 
   const isPremium = plan === "premium";
-  const monthlyPrice = PLAN_PRICES[plan || "basico"] || 6999;
+  const monthlyPrice = isPremium ? prices.premium : prices.basico;
 
   let firstBillingLabel = "—";
   if (createdAt) {
