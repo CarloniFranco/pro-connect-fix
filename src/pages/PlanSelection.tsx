@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, Sparkles, Calendar, Users, Brain, Search, Headphones, Rocket } from "lucide-react";
+import { Check, Sparkles, Calendar, Users, Brain, Search, Headphones, Rocket, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
