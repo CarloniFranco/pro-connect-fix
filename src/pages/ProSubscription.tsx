@@ -43,6 +43,7 @@ const ProSubscription = () => {
   const [sendingTest, setSendingTest] = useState(false);
   const [emailNotifEnabled, setEmailNotifEnabled] = useState(true);
   const [savingPref, setSavingPref] = useState(false);
+  const { prices } = usePlanPrices();
 
   const handleToggleEmailNotifications = async (enabled: boolean) => {
     if (!user) return;
