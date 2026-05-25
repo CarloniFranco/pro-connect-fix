@@ -72,7 +72,7 @@ const Navbar = () => {
 
         {user ? (
           <div className="flex min-w-0 items-center gap-1">
-            {!isAdmin && !isPro && (
+            {!isAdmin && isPro === false && (
               <button
                 onClick={() => navigate("/mis-pedidos")}
                 title="Ver mis pedidos"
