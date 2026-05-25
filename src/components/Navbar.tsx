@@ -63,8 +63,9 @@ const Navbar = () => {
       <div className="container mx-auto flex h-14 max-w-4xl items-center justify-between gap-2 px-3 sm:px-4">
         <button onClick={() => navigate("/")} className="flex shrink-0 items-center gap-2">
           <FelixLogo className="h-9 w-9" />
-          <span className="font-display text-xl font-bold tracking-tight text-foreground">
-            FIX
+          <span className="font-display text-xl font-bold tracking-tight">
+            <span className="text-foreground">FI</span>
+            <span className="text-primary">X</span>
           </span>
         </button>
 
