@@ -30,13 +30,14 @@ const Navbar = () => {
     }
     supabase
       .from("professional_profiles")
-      .select("full_name")
+      .select("full_name, plan")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         if (data) {
           setUserName(data.full_name);
           setIsPro(true);
+          setPlan((data as any).plan ?? null);
           return;
         }
         setIsPro(false);
