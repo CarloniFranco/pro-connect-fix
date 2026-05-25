@@ -1,14 +1,48 @@
 import { supabase } from "@/integrations/supabase/client";
 
 /**
+ * Routes a professional without an active subscription is still allowed to access.
+ * Everything else must redirect them to /seleccionar-plan.
+ */
+export const PRO_NO_SUB_ALLOWED_ROUTES = [
+  "/seleccionar-plan",
+  "/configurar-pago",
+  "/mi-suscripcion",
+  "/perfil-profesional",
+  "/mp-oauth-callback",
+  "/conectar-mercadopago",
+  "/terminos",
+  "/reset-password",
+];
+
+export const isProNoSubAllowedRoute = (pathname: string) =>
+  PRO_NO_SUB_ALLOWED_ROUTES.some((p) => pathname === p || pathname.startsWith(p + "/"));
+
+/**
+ * Checks if the user has an active (paid) professional subscription.
+ * Considers both the env where the row was created (live/sandbox).
+ */
+export const hasActiveProSubscription = async (userId: string): Promise<boolean> => {
+  for (const env of ["live", "sandbox"] as const) {
+    const { data } = await supabase.rpc("has_active_subscription", {
+      user_uuid: userId,
+      check_env: env,
+    });
+    if (data === true) return true;
+  }
+  return false;
+};
+
+/**
  * Determines the correct redirect path based on user profile state.
- * - Professional with complete profile → /dashboard
- * - Professional without rubro → /perfil-profesional (onboarding)
+ * - Admin → /admin/dashboard
+ * - Pro without rubro → /perfil-profesional (onboarding)
+ * - Pro with rubro but without active subscription → /seleccionar-plan
+ * - Pro with rubro and active subscription → /dashboard
  * - Client with profile → / (home)
  * - No profile → onboarding based on role metadata
  */
 export const getRedirectPath = async (userId: string, fallbackRole?: string | null): Promise<string> => {
-  // Admins go straight to the admin panel (no pro/client onboarding)
   const { data: adminRole } = await supabase
     .from("user_roles")
     .select("role")
@@ -26,6 +60,8 @@ export const getRedirectPath = async (userId: string, fallbackRole?: string | nu
 
   if (proProfile) {
     if (!proProfile.rubro) return "/perfil-profesional";
+    const hasSub = await hasActiveProSubscription(userId);
+    if (!hasSub) return "/seleccionar-plan";
     return "/dashboard";
   }
 
