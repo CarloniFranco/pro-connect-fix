@@ -41,7 +41,7 @@ const FelixLogo = ({
     const interval = setInterval(() => {
       setIsWinking(false);
       setTimeout(() => setIsWinking(true), 3000);
-    }, 45000);
+    }, 15000);
     return () => {
       clearTimeout(initial);
       clearInterval(interval);
