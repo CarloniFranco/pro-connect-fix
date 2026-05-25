@@ -132,6 +132,16 @@ const PlanSelection = () => {
         </div>
       </div>
 
+      <div className="mb-6 w-full max-w-2xl text-center">
+        <Button variant="outline" size="sm" onClick={() => runSync(false)} disabled={syncing} className="gap-2">
+          {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+          {syncing ? "Verificando pago…" : "Ya pagué — verificar suscripción"}
+        </Button>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Si ya pagaste en Mercado Pago y seguís viendo esta pantalla, tocá acá para sincronizar.
+        </p>
+      </div>
+
       {/* Annual toggle */}
       <div
        
