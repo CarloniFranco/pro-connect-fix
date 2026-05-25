@@ -30,10 +30,7 @@ import {
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 
-const PLAN_PRICES: Record<string, number> = {
-  basico: 6999,
-  premium: 14000,
-};
+import { usePlanPrices } from "@/hooks/usePlanPrices";
 
 const ProSubscription = () => {
   const navigate = useNavigate();
@@ -46,6 +43,7 @@ const ProSubscription = () => {
   const [sendingTest, setSendingTest] = useState(false);
   const [emailNotifEnabled, setEmailNotifEnabled] = useState(true);
   const [savingPref, setSavingPref] = useState(false);
+  const { prices } = usePlanPrices();
 
   const handleToggleEmailNotifications = async (enabled: boolean) => {
     if (!user) return;
@@ -124,7 +122,7 @@ const ProSubscription = () => {
   }
 
   const isPremium = plan === "premium";
-  const monthlyPrice = PLAN_PRICES[plan || "basico"] || 6999;
+  const monthlyPrice = isPremium ? prices.premium : prices.basico;
 
   let firstBillingLabel = "—";
   if (createdAt) {
