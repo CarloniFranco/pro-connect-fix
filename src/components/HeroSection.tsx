@@ -34,12 +34,10 @@ const HeroSection = () => {
               />
             </div>
             <h1
-             
-             
-             
-              className="font-display text-6xl font-bold tracking-tight text-primary sm:text-7xl md:text-8xl"
+              className="font-display text-6xl font-bold tracking-tight sm:text-7xl md:text-8xl"
             >
-              FIX
+              <span className="text-foreground">FI</span>
+              <span className="text-primary">X</span>
             </h1>
           </div>
 
