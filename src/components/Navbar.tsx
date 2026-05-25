@@ -19,12 +19,12 @@ const Navbar = () => {
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
   const [userName, setUserName] = useState("");
-  const [isPro, setIsPro] = useState(false);
+  const [isPro, setIsPro] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!user) {
       setUserName("");
-      setIsPro(false);
+      setIsPro(null);
       return;
     }
     supabase
@@ -38,6 +38,7 @@ const Navbar = () => {
           setIsPro(true);
           return;
         }
+        setIsPro(false);
         supabase
           .from("client_profiles")
           .select("full_name")
