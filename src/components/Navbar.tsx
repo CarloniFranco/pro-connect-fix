@@ -20,6 +20,7 @@ const Navbar = () => {
   const { isAdmin } = useIsAdmin();
   const [userName, setUserName] = useState("");
   const [isPro, setIsPro] = useState<boolean | null>(null);
+  const [plan, setPlan] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
