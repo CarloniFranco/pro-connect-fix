@@ -50,6 +50,9 @@ const PlanSelection = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [annual, setAnnual] = useState(false);
+  const { prices } = usePlanPrices();
+
+  const plans = PLAN_META.map((p) => ({ ...p, monthlyPrice: prices[p.id] }));
 
   const handleSelect = (planId: string) => {
     if (!user) return;
