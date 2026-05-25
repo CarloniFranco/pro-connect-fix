@@ -20,6 +20,7 @@ const Navbar = () => {
   const { isAdmin } = useIsAdmin();
   const [userName, setUserName] = useState("");
   const [isPro, setIsPro] = useState<boolean | null>(null);
+  const [plan, setPlan] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -29,13 +30,14 @@ const Navbar = () => {
     }
     supabase
       .from("professional_profiles")
-      .select("full_name")
+      .select("full_name, plan")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         if (data) {
           setUserName(data.full_name);
           setIsPro(true);
+          setPlan((data as any).plan ?? null);
           return;
         }
         setIsPro(false);
@@ -120,10 +122,12 @@ const Navbar = () => {
                     <ClipboardList className="mr-2 h-4 w-4" />
                     Historial de Trabajos
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/indicadores")}>
-                    <BarChart3 className="mr-2 h-4 w-4" />
-                    Indicadores
-                  </DropdownMenuItem>
+                  {plan === "premium" && (
+                    <DropdownMenuItem onClick={() => navigate("/indicadores")}>
+                      <BarChart3 className="mr-2 h-4 w-4" />
+                      Indicadores
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={() => navigate("/mi-suscripcion")}>
                     <CreditCard className="mr-2 h-4 w-4" />
                     Mi Suscripción

@@ -31,6 +31,7 @@ const Dashboard = () => {
   const [stationsVersion, setStationsVersion] = useState(0);
   const [mpConnected, setMpConnected] = useState<boolean | null>(null);
   const [verified, setVerified] = useState<boolean | null>(null);
+  const [plan, setPlan] = useState<string | null>(null);
   const { isAdmin } = useIsAdmin();
 
   useEffect(() => {
@@ -41,7 +42,7 @@ const Dashboard = () => {
     if (!user) return;
     supabase
       .from("professional_profiles")
-      .select("full_name, available, mp_connected, verified")
+      .select("full_name, available, mp_connected, verified, plan")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -49,6 +50,7 @@ const Dashboard = () => {
         if (data?.available !== undefined && data?.available !== null) setAvailable(data.available);
         setMpConnected(!!(data as any)?.mp_connected);
         setVerified(!!(data as any)?.verified);
+        setPlan((data as any)?.plan ?? null);
       });
   }, [user]);
 
@@ -119,10 +121,12 @@ const Dashboard = () => {
                   <ClipboardList className="mr-2 h-4 w-4" />
                   Historial de Trabajos
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/indicadores")}>
-                  <BarChart3 className="mr-2 h-4 w-4" />
-                  Indicadores
-                </DropdownMenuItem>
+                {plan === "premium" && (
+                  <DropdownMenuItem onClick={() => navigate("/indicadores")}>
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    Indicadores
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={() => navigate("/mi-suscripcion")}>
                   <CreditCard className="mr-2 h-4 w-4" />
                   Mi Suscripción
