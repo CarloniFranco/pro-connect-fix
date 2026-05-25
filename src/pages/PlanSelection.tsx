@@ -54,8 +54,43 @@ const PlanSelection = () => {
   const { user } = useAuth();
   const [annual, setAnnual] = useState(false);
   const { prices } = usePlanPrices();
+  const [syncing, setSyncing] = useState(false);
 
   const plans = PLAN_META.map((p) => ({ ...p, monthlyPrice: prices[p.id] }));
+
+  const runSync = async (silent = false) => {
+    if (!user) return;
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("mp-sync-subscription");
+      if (error) {
+        if (!silent) toast.error("No se pudo verificar el pago. Probá de nuevo en unos segundos.");
+        return;
+      }
+      const active = await hasActiveProSubscription(user.id);
+      if (active) {
+        toast.success("¡Suscripción activada! Redirigiendo…");
+        setTimeout(() => navigate("/dashboard", { replace: true }), 600);
+        return;
+      }
+      if (!silent) {
+        if (data?.found) {
+          toast.info(`Tu pago figura como "${data.status}". Cuando MP lo confirme tu cuenta se activará.`);
+        } else {
+          toast.info("Todavía no encontramos un pago confirmado.");
+        }
+      }
+    } catch (e) {
+      if (!silent) toast.error("Error verificando el pago.");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) runSync(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const handleSelect = (planId: string) => {
     if (!user) return;
