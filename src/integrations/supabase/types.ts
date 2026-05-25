@@ -645,6 +645,21 @@ export type Database = {
       }
     }
     Views: {
+      plan_prices: {
+        Row: {
+          amount: number | null
+          key: string | null
+        }
+        Insert: {
+          amount?: never
+          key?: string | null
+        }
+        Update: {
+          amount?: never
+          key?: string | null
+        }
+        Relationships: []
+      }
       professional_profiles_public: {
         Row: {
           created_at: string | null
