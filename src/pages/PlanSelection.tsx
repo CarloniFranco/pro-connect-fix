@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePlanPrices } from "@/hooks/usePlanPrices";
 
-const plans = [
+const PLAN_META = [
   {
-    id: "basico",
+    id: "basico" as const,
     name: "Básica",
-    monthlyPrice: 6999,
     icon: Calendar,
     features: [
       "Gestión de agenda",
@@ -20,9 +20,8 @@ const plans = [
     accent: false,
   },
   {
-    id: "premium",
+    id: "premium" as const,
     name: "Premium",
-    monthlyPrice: 14000,
     icon: Sparkles,
     features: [
       "Todo lo de la suscripción Básica",
