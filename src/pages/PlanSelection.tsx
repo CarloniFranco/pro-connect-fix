@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, Sparkles, Calendar, Users, Brain, Search, Headphones, Rocket, AlertCircle } from "lucide-react";
+import { Check, Sparkles, Calendar, Users, Brain, Search, Headphones, Rocket, AlertCircle, RefreshCw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlanPrices } from "@/hooks/usePlanPrices";
+import { supabase } from "@/integrations/supabase/client";
+import { hasActiveProSubscription } from "@/lib/redirectUser";
+import { toast } from "sonner";
 
 const PLAN_META = [
   {
@@ -51,8 +54,43 @@ const PlanSelection = () => {
   const { user } = useAuth();
   const [annual, setAnnual] = useState(false);
   const { prices } = usePlanPrices();
+  const [syncing, setSyncing] = useState(false);
 
   const plans = PLAN_META.map((p) => ({ ...p, monthlyPrice: prices[p.id] }));
+
+  const runSync = async (silent = false) => {
+    if (!user) return;
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("mp-sync-subscription");
+      if (error) {
+        if (!silent) toast.error("No se pudo verificar el pago. Probá de nuevo en unos segundos.");
+        return;
+      }
+      const active = await hasActiveProSubscription(user.id);
+      if (active) {
+        toast.success("¡Suscripción activada! Redirigiendo…");
+        setTimeout(() => navigate("/dashboard", { replace: true }), 600);
+        return;
+      }
+      if (!silent) {
+        if (data?.found) {
+          toast.info(`Tu pago figura como "${data.status}". Cuando MP lo confirme tu cuenta se activará.`);
+        } else {
+          toast.info("Todavía no encontramos un pago confirmado.");
+        }
+      }
+    } catch (e) {
+      if (!silent) toast.error("Error verificando el pago.");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) runSync(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const handleSelect = (planId: string) => {
     if (!user) return;
@@ -92,6 +130,16 @@ const PlanSelection = () => {
             Tu cuenta queda bloqueada hasta completar el pago del plan en Mercado Pago. Si abandonás el pago, no podés acceder al panel ni recibir pedidos.
           </p>
         </div>
+      </div>
+
+      <div className="mb-6 w-full max-w-2xl text-center">
+        <Button variant="outline" size="sm" onClick={() => runSync(false)} disabled={syncing} className="gap-2">
+          {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+          {syncing ? "Verificando pago…" : "Ya pagué — verificar suscripción"}
+        </Button>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Si ya pagaste en Mercado Pago y seguís viendo esta pantalla, tocá acá para sincronizar.
+        </p>
       </div>
 
       {/* Annual toggle */}
