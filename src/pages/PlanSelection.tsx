@@ -84,6 +84,16 @@ const PlanSelection = () => {
         </p>
       </div>
 
+      <div className="mb-6 flex w-full max-w-2xl items-start gap-3 rounded-xl border border-amber-300/50 bg-amber-50 p-4 text-amber-900">
+        <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0" />
+        <div className="text-sm">
+          <p className="font-semibold">Para activar tu cuenta profesional necesitás un plan</p>
+          <p className="mt-0.5 text-xs">
+            Tu cuenta queda bloqueada hasta completar el pago del plan en Mercado Pago. Si abandonás el pago, no podés acceder al panel ni recibir pedidos.
+          </p>
+        </div>
+      </div>
+
       {/* Annual toggle */}
       <div
        
