@@ -786,6 +786,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      release_expired_slots_sql: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
