@@ -42,7 +42,7 @@ const Dashboard = () => {
     if (!user) return;
     supabase
       .from("professional_profiles")
-      .select("full_name, available, mp_connected, verified")
+      .select("full_name, available, mp_connected, verified, plan")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -50,6 +50,7 @@ const Dashboard = () => {
         if (data?.available !== undefined && data?.available !== null) setAvailable(data.available);
         setMpConnected(!!(data as any)?.mp_connected);
         setVerified(!!(data as any)?.verified);
+        setPlan((data as any)?.plan ?? null);
       });
   }, [user]);
 
