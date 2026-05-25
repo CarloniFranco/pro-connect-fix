@@ -27,7 +27,10 @@ const Index = () => {
       <footer className="border-t border-border px-4 py-8 text-center">
         <div className="flex items-center justify-center gap-2">
           <FelixLogo className="h-7 w-7" wink />
-          <p className="font-display text-lg font-bold text-foreground">FIX</p>
+          <p className="font-display text-lg font-bold">
+            <span className="text-foreground">FI</span>
+            <span className="text-primary">X</span>
+          </p>
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
           © 2026 FIX · Tu problema, <strong className="font-bold">resuelto</strong>.
