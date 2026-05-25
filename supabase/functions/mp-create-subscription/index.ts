@@ -38,22 +38,23 @@ serve(async (req) => {
     const email = claims.claims.email as string;
 
     const { plan_id } = await req.json();
-    const plan = PLANS[plan_id];
-    if (!plan) return json({ error: "Invalid plan_id" }, 400);
+    const def = PLAN_DEFAULTS[plan_id];
+    if (!def) return json({ error: "Invalid plan_id" }, 400);
+    const amount = await resolvePlanAmount(plan_id);
 
     const environment = (Deno.env.get("MP_ENV") ?? "live") as string;
 
     const preapproval = await mpFetch("/preapproval", {
       method: "POST",
       body: JSON.stringify({
-        reason: plan.name,
+        reason: def.name,
         external_reference: `sub:${userId}:${plan_id}`,
         payer_email: email,
         back_url: `${APP_URL}/mi-suscripcion?sub=success`,
         auto_recurring: {
           frequency: 1,
           frequency_type: "months",
-          transaction_amount: plan.amount,
+          transaction_amount: amount,
           currency_id: "ARS",
         },
         notification_url: `${SUPABASE_URL}/functions/v1/mp-webhook`,
@@ -68,7 +69,7 @@ serve(async (req) => {
         provider_subscription_id: preapproval.id,
         provider_customer_id: email,
         product_id: plan_id,
-        price_id: String(plan.amount),
+        price_id: String(amount),
         status: preapproval.status ?? "pending",
         init_point: preapproval.init_point,
         environment,
