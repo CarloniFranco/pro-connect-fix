@@ -7,6 +7,7 @@ import {
   Users,
   ClipboardList,
   CreditCard,
+  DollarSign,
   Megaphone,
   LogOut,
   Wrench,
