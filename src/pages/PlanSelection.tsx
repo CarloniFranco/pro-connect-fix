@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, Sparkles, Calendar, Users, Brain, Search, Headphones, Rocket, AlertCircle } from "lucide-react";
+import { Check, Sparkles, Calendar, Users, Brain, Search, Headphones, Rocket, AlertCircle, RefreshCw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlanPrices } from "@/hooks/usePlanPrices";
+import { supabase } from "@/integrations/supabase/client";
+import { hasActiveProSubscription } from "@/lib/redirectUser";
+import { toast } from "sonner";
 
 const PLAN_META = [
   {
