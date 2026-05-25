@@ -7,15 +7,26 @@ import HowItWorks from "@/components/HowItWorks";
 import SocialProof from "@/components/SocialProof";
 import Testimonials from "@/components/Testimonials";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useAuth } from "@/contexts/AuthContext";
+import { useProSubscriptionGate } from "@/hooks/useProSubscriptionGate";
 import FelixLogo from "@/components/FelixLogo";
 
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { isAdmin, loading } = useIsAdmin();
+  const { loading: subLoading, isPro, hasActive } = useProSubscriptionGate(user?.id);
   useEffect(() => {
-    if (!loading && isAdmin) navigate("/admin/dashboard", { replace: true });
-  }, [isAdmin, loading, navigate]);
+    if (loading) return;
+    if (isAdmin) {
+      navigate("/admin/dashboard", { replace: true });
+      return;
+    }
+    if (!subLoading && isPro && !hasActive) {
+      navigate("/seleccionar-plan", { replace: true });
+    }
+  }, [isAdmin, loading, subLoading, isPro, hasActive, navigate]);
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
