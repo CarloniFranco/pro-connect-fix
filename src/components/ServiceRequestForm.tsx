@@ -230,8 +230,8 @@ export default function ServiceRequestForm({
     }
 
     // Bloquear el slot reservado (pending hasta confirmación de pago vía webhook MP).
-    // Expira en 10 min si el cliente no completa el pago para liberar el turno rápido.
-    const slotExpiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    // Expira en 5 min si el cliente no completa el pago para liberar el turno rápido.
+    const slotExpiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
     const { error: slotError } = await supabase.from("blocked_slots").insert({
       professional_id: professionalId,
       service_request_id: inserted.id,
