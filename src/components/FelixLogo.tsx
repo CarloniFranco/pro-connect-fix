@@ -102,25 +102,29 @@ const FelixLogo = ({
           </>
         ) : (
           <>
-            {/* Ojo izquierdo grande */}
-            <circle cx="48" cy="55" r="9" fill="#FFFFFF" />
-            <circle cx="49" cy="56" r="5" fill="#0F0B2E" />
-            <circle cx="50.5" cy="54.5" r="1.6" fill="#FFFFFF" />
+            {/* Círculo de la cara centrado en la X */}
+            <circle cx="60" cy="60" r="20" fill={fill} />
+
+            {/* Ojo izquierdo grande con pupila y brillo */}
+            <circle cx="52" cy="58" r="6.5" fill="#FFFFFF" />
+            <circle cx="52.5" cy="59" r="4" fill="#0F0B2E" />
+            <circle cx="54" cy="57" r="1.4" fill="#FFFFFF" />
 
             {/* Ojo derecho (guiña si isWinking) */}
             {isWinking ? (
-              <path d="M 64 55 Q 72 50 80 55" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+              <path d="M 62 58 Q 68 54 74 58" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" fill="none" />
             ) : (
               <>
-                <circle cx="72" cy="55" r="9" fill="#FFFFFF" />
-                <circle cx="73" cy="56" r="5" fill="#0F0B2E" />
-                <circle cx="74.5" cy="54.5" r="1.6" fill="#FFFFFF" />
+                <circle cx="68" cy="58" r="6.5" fill="#FFFFFF" />
+                <circle cx="68.5" cy="59" r="4" fill="#0F0B2E" />
+                <circle cx="70" cy="57" r="1.4" fill="#FFFFFF" />
               </>
             )}
 
-            {/* Sonrisa */}
-            <path d="M 50 70 Q 60 78 70 70" stroke="#FFFFFF" strokeWidth="3.2" strokeLinecap="round" fill="none" />
+            {/* Sonrisa simple */}
+            <path d="M 54 70 Q 60 75 66 70" stroke="#FFFFFF" strokeWidth="2.8" strokeLinecap="round" fill="none" />
           </>
+
 
         )}
       </g>
