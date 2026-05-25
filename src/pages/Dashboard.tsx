@@ -31,6 +31,7 @@ const Dashboard = () => {
   const [stationsVersion, setStationsVersion] = useState(0);
   const [mpConnected, setMpConnected] = useState<boolean | null>(null);
   const [verified, setVerified] = useState<boolean | null>(null);
+  const [plan, setPlan] = useState<string | null>(null);
   const { isAdmin } = useIsAdmin();
 
   useEffect(() => {
