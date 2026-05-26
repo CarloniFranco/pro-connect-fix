@@ -50,8 +50,10 @@ serve(async (req) => {
 
     const nextPayment = best.next_payment_date ? new Date(best.next_payment_date).toISOString() : null;
     const amount = best.auto_recurring?.transaction_amount;
+    // En suscripciones de Mercado Pago, "authorized" significa pago activo y confirmado.
+    const isActive = best.status === "authorized" || best.status === "active";
 
-    await admin.from("subscriptions").upsert(
+    const { error: upsertError } = await admin.from("subscriptions").upsert(
       {
         user_id: userId,
         provider: "mercadopago",
@@ -66,8 +68,12 @@ serve(async (req) => {
       },
       { onConflict: "user_id" }
     );
+    if (upsertError) {
+      console.error("upsert subscription failed", upsertError);
+      return json({ error: "db_upsert_failed", detail: upsertError.message }, 500);
+    }
 
-    return json({ ok: true, found: true, status: best.status, plan: best.plan_id });
+    return json({ ok: true, found: true, active: isActive, status: best.status, plan: best.plan_id });
   } catch (e) {
     console.error("mp-sync-subscription error", e);
     return json({ error: String(e) }, 500);
