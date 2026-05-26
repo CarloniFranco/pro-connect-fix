@@ -67,7 +67,7 @@ const PlanSelection = () => {
         if (!silent) toast.error("No se pudo verificar el pago. Probá de nuevo en unos segundos.");
         return;
       }
-      const active = await hasActiveProSubscription(user.id);
+      const active = (data?.active === true) || (await hasActiveProSubscription(user.id));
       if (active) {
         toast.success("¡Suscripción activada! Redirigiendo…");
         setTimeout(() => navigate("/dashboard", { replace: true }), 600);
