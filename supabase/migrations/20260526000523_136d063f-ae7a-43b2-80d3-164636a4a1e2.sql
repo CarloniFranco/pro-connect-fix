@@ -1,0 +1,2 @@
+DELETE FROM public.subscriptions a USING public.subscriptions b WHERE a.id < b.id AND a.user_id = b.user_id;
+CREATE UNIQUE INDEX IF NOT EXISTS subscriptions_user_id_key ON public.subscriptions(user_id);
