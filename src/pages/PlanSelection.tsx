@@ -96,7 +96,21 @@ const PlanSelection = () => {
   };
 
   useEffect(() => {
-    if (user) runSync(true);
+    if (!user) return;
+    (async () => {
+      const active = await hasActiveProSubscription(user.id);
+      setAlreadyActive(active);
+      if (active) {
+        const { data } = await supabase
+          .from("subscriptions")
+          .select("product_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        setCurrentPlan((data?.product_id as string) ?? null);
+      } else {
+        runSync(true);
+      }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
