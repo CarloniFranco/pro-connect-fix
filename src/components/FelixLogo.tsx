@@ -14,6 +14,8 @@ interface FelixLogoProps {
   mood?: FelixMood;
   color?: string;
   withShadow?: boolean;
+  /** cuántas veces repite la animación de celebración (happy) */
+  celebrateCount?: number;
 }
 
 /**
@@ -26,6 +28,7 @@ const FelixLogo = ({
   animate = false,
   mood = "neutral",
   withShadow = false,
+  celebrateCount,
 }: FelixLogoProps) => {
   const [isWinking, setIsWinking] = useState(animate ? false : wink);
 
@@ -56,6 +59,11 @@ const FelixLogo = ({
       ? "animate-felix-sway origin-top"
       : "";
 
+  const celebrateStyle: React.CSSProperties | undefined =
+    mood === "happy" && celebrateCount != null
+      ? { animationIterationCount: celebrateCount }
+      : undefined;
+
   const src = isWinking ? felixWink : felixOpen;
 
   return (
@@ -63,6 +71,7 @@ const FelixLogo = ({
       <img
         src={felixOpen}
         alt="Felix, la mascota de FIX"
+        style={celebrateStyle}
         className={cn(
           "block w-full h-full object-contain transition-opacity duration-200",
           moodAnim,
@@ -74,6 +83,7 @@ const FelixLogo = ({
       <img
         src={felixWink}
         aria-hidden
+        style={celebrateStyle}
         className={cn(
           "absolute inset-0 block w-full h-full object-contain transition-opacity duration-200",
           moodAnim,
