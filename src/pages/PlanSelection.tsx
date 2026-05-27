@@ -55,6 +55,8 @@ const PlanSelection = () => {
   const [annual, setAnnual] = useState(false);
   const { prices } = usePlanPrices();
   const [syncing, setSyncing] = useState(false);
+  const [alreadyActive, setAlreadyActive] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState<string | null>(null);
 
   const plans = PLAN_META.map((p) => ({ ...p, monthlyPrice: prices[p.id] }));
 
@@ -69,6 +71,12 @@ const PlanSelection = () => {
       }
       const active = (data?.active === true) || (await hasActiveProSubscription(user.id));
       if (active) {
+        // Si ya tenía suscripción activa antes de entrar, está acá para hacer upgrade.
+        // No redirigir automáticamente: dejarlo elegir el nuevo plan.
+        if (alreadyActive) {
+          if (!silent) toast.info("Ya tenés una suscripción activa. Elegí el plan al que querés cambiarte.");
+          return;
+        }
         toast.success("¡Suscripción activada! Redirigiendo…");
         setTimeout(() => navigate("/dashboard", { replace: true }), 600);
         return;
