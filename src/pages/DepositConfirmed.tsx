@@ -144,7 +144,7 @@ export default function DepositConfirmed() {
           ) : (
             <>
               <div className="mb-4 flex justify-center">
-                <FelixLogo className="h-28 w-28" mood="happy" />
+                <FelixLogo className="h-28 w-28" mood="happy" celebrateCount={3} />
               </div>
               <h1 className="text-center font-display text-2xl font-bold text-foreground">
                 ¡Tu turno está confirmado!
