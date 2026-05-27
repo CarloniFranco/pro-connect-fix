@@ -272,8 +272,13 @@ const PlanSelection = () => {
                 onClick={() => handleSelect(plan.id)}
                 variant={plan.accent ? "default" : "outline"}
                 className="w-full"
+                disabled={alreadyActive && currentPlan === plan.id}
               >
-                Elegir {plan.name}
+                {alreadyActive && currentPlan === plan.id
+                  ? "Tu plan actual"
+                  : alreadyActive
+                  ? `Cambiarme a ${plan.name}`
+                  : `Elegir ${plan.name}`}
               </Button>
             </div>
           );
