@@ -55,8 +55,6 @@ const PlanSelection = () => {
   const [annual, setAnnual] = useState(false);
   const { prices } = usePlanPrices();
   const [syncing, setSyncing] = useState(false);
-  const [alreadyActive, setAlreadyActive] = useState(false);
-  const [currentPlan, setCurrentPlan] = useState<string | null>(null);
 
   const plans = PLAN_META.map((p) => ({ ...p, monthlyPrice: prices[p.id] }));
 
@@ -71,12 +69,6 @@ const PlanSelection = () => {
       }
       const active = (data?.active === true) || (await hasActiveProSubscription(user.id));
       if (active) {
-        // Si ya tenía suscripción activa antes de entrar, está acá para hacer upgrade.
-        // No redirigir automáticamente: dejarlo elegir el nuevo plan.
-        if (alreadyActive) {
-          if (!silent) toast.info("Ya tenés una suscripción activa. Elegí el plan al que querés cambiarte.");
-          return;
-        }
         toast.success("¡Suscripción activada! Redirigiendo…");
         setTimeout(() => navigate("/dashboard", { replace: true }), 600);
         return;
@@ -96,21 +88,7 @@ const PlanSelection = () => {
   };
 
   useEffect(() => {
-    if (!user) return;
-    (async () => {
-      const active = await hasActiveProSubscription(user.id);
-      setAlreadyActive(active);
-      if (active) {
-        const { data } = await supabase
-          .from("subscriptions")
-          .select("product_id")
-          .eq("user_id", user.id)
-          .maybeSingle();
-        setCurrentPlan((data?.product_id as string) ?? null);
-      } else {
-        runSync(true);
-      }
-    })();
+    if (user) runSync(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
@@ -144,39 +122,25 @@ const PlanSelection = () => {
         </p>
       </div>
 
-      {alreadyActive ? (
-        <div className="mb-6 flex w-full max-w-2xl items-start gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 text-foreground">
-          <Sparkles className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
-          <div className="text-sm">
-            <p className="font-semibold">Ya tenés un plan activo{currentPlan ? ` (${currentPlan})` : ""}</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Podés cambiarte a otro plan cuando quieras. El cobro se ajusta en tu próxima renovación.
-            </p>
-          </div>
+      <div className="mb-6 flex w-full max-w-2xl items-start gap-3 rounded-xl border border-amber-300/50 bg-amber-50 p-4 text-amber-900">
+        <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0" />
+        <div className="text-sm">
+          <p className="font-semibold">Para activar tu cuenta profesional necesitás un plan</p>
+          <p className="mt-0.5 text-xs">
+            Tu cuenta queda bloqueada hasta completar el pago del plan en Mercado Pago. Si abandonás el pago, no podés acceder al panel ni recibir pedidos.
+          </p>
         </div>
-      ) : (
-        <>
-          <div className="mb-6 flex w-full max-w-2xl items-start gap-3 rounded-xl border border-amber-300/50 bg-amber-50 p-4 text-amber-900">
-            <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0" />
-            <div className="text-sm">
-              <p className="font-semibold">Para activar tu cuenta profesional necesitás un plan</p>
-              <p className="mt-0.5 text-xs">
-                Tu cuenta queda bloqueada hasta completar el pago del plan en Mercado Pago. Si abandonás el pago, no podés acceder al panel ni recibir pedidos.
-              </p>
-            </div>
-          </div>
+      </div>
 
-          <div className="mb-6 w-full max-w-2xl text-center">
-            <Button variant="outline" size="sm" onClick={() => runSync(false)} disabled={syncing} className="gap-2">
-              {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-              {syncing ? "Verificando pago…" : "Ya pagué — verificar suscripción"}
-            </Button>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Si ya pagaste en Mercado Pago y seguís viendo esta pantalla, tocá acá para sincronizar.
-            </p>
-          </div>
-        </>
-      )}
+      <div className="mb-6 w-full max-w-2xl text-center">
+        <Button variant="outline" size="sm" onClick={() => runSync(false)} disabled={syncing} className="gap-2">
+          {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+          {syncing ? "Verificando pago…" : "Ya pagué — verificar suscripción"}
+        </Button>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Si ya pagaste en Mercado Pago y seguís viendo esta pantalla, tocá acá para sincronizar.
+        </p>
+      </div>
 
       {/* Annual toggle */}
       <div
@@ -272,13 +236,8 @@ const PlanSelection = () => {
                 onClick={() => handleSelect(plan.id)}
                 variant={plan.accent ? "default" : "outline"}
                 className="w-full"
-                disabled={alreadyActive && currentPlan === plan.id}
               >
-                {alreadyActive && currentPlan === plan.id
-                  ? "Tu plan actual"
-                  : alreadyActive
-                  ? `Cambiarme a ${plan.name}`
-                  : `Elegir ${plan.name}`}
+                Elegir {plan.name}
               </Button>
             </div>
           );
