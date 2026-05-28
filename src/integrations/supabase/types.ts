@@ -571,6 +571,8 @@ export type Database = {
           environment: string
           id: string
           init_point: string | null
+          pending_price: number | null
+          pending_price_effective_at: string | null
           price_id: string | null
           product_id: string | null
           provider: string
@@ -590,6 +592,8 @@ export type Database = {
           environment?: string
           id?: string
           init_point?: string | null
+          pending_price?: number | null
+          pending_price_effective_at?: string | null
           price_id?: string | null
           product_id?: string | null
           provider?: string
@@ -609,6 +613,8 @@ export type Database = {
           environment?: string
           id?: string
           init_point?: string | null
+          pending_price?: number | null
+          pending_price_effective_at?: string | null
           price_id?: string | null
           product_id?: string | null
           provider?: string
