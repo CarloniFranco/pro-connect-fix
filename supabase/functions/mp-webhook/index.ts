@@ -129,14 +129,16 @@ serve(async (req) => {
       if (!userId) return json({ ok: true, skipped: "no user_id in external_reference" });
 
       const status = pre.status; // authorized | paused | cancelled | pending
+      const storedStatus = status === "authorized" ? "active" : status;
       const nextPayment = pre.next_payment_date ? new Date(pre.next_payment_date).toISOString() : null;
 
       await admin.from("subscriptions").update({
-        status,
+        status: storedStatus,
+        current_period_start: storedStatus === "active" ? new Date().toISOString() : null,
         current_period_end: nextPayment,
       }).eq("provider_subscription_id", dataId);
 
-      return json({ ok: true, kind: "preapproval", status });
+      return json({ ok: true, kind: "preapproval", status: storedStatus });
     }
 
     return json({ ok: true, skipped: `unhandled event ${eventType}` });
