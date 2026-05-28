@@ -2,7 +2,17 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, Search, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Loader2, Search, CheckCircle2, XCircle, ExternalLink, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Pro {
@@ -23,6 +33,8 @@ const AdminProfessionals = () => {
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState<string | null>(null);
+  const [toDelete, setToDelete] = useState<Pro | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -64,6 +76,23 @@ const AdminProfessionals = () => {
     setActing(null);
     if (error) return toast.error("No se pudo actualizar");
     toast.success(p.available ? "Profesional suspendido" : "Profesional reactivado");
+    load();
+  };
+
+  const handleDelete = async () => {
+    if (!toDelete) return;
+    setDeleting(true);
+    const { data, error } = await supabase.functions.invoke("admin-delete-user", {
+      body: { target_user_id: toDelete.user_id },
+    });
+    setDeleting(false);
+    if (error || (data as any)?.error) {
+      console.error("delete error", error, data);
+      toast.error((data as any)?.error || "No se pudo eliminar la cuenta");
+      return;
+    }
+    toast.success("Cuenta eliminada");
+    setToDelete(null);
     load();
   };
 
@@ -121,6 +150,14 @@ const AdminProfessionals = () => {
                       <Button size="sm" variant={p.available ? "destructive" : "default"} disabled={acting === p.user_id} onClick={() => toggleAvailable(p)}>
                         {acting === p.user_id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : p.available ? "Suspender" : "Reactivar"}
                       </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => setToDelete(p)}
+                        title="Eliminar cuenta permanentemente"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -132,6 +169,39 @@ const AdminProfessionals = () => {
           </table>
         </div>
       )}
+
+      <AlertDialog open={!!toDelete} onOpenChange={(open) => !open && setToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar esta cuenta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vas a borrar permanentemente la cuenta de{" "}
+              <strong>{toDelete?.full_name || "este profesional"}</strong> y todos sus datos
+              (perfil, suscripciones, pedidos, reseñas, credenciales). Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Eliminando…
+                </>
+              ) : (
+                "Eliminar cuenta"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

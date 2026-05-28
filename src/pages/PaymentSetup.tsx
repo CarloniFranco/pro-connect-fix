@@ -34,17 +34,22 @@ const PaymentSetup = () => {
       const { data, error } = await supabase.functions.invoke("mp-create-subscription", {
         body: { plan_id: state.planId },
       });
+      const detail = (data as any)?.error || (data as any)?.detail;
       if (error || !data?.init_point) {
         console.error("MP subscription error:", error, data);
-        toast.error("No se pudo iniciar la suscripción en Mercado Pago.");
+        toast.error(
+          detail
+            ? `Mercado Pago: ${typeof detail === "string" ? detail : JSON.stringify(detail)}`
+            : "No se pudo iniciar la suscripción en Mercado Pago. Probá de nuevo en unos minutos."
+        );
         setLoading(false);
         return;
       }
       toast.success("Redirigiendo a Mercado Pago…");
       window.location.href = data.init_point as string;
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      toast.error("Ocurrió un error. Intentá de nuevo.");
+      toast.error(e?.message ? `Error: ${e.message}` : "Ocurrió un error. Intentá de nuevo.");
       setLoading(false);
     }
   };
