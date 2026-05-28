@@ -24,34 +24,30 @@ serve(async (req) => {
 
     const environment = (Deno.env.get("MP_ENV") ?? "live") as string;
 
-    // Buscar preapprovals creados con external_reference que arranque con sub:<userId>:
-    // El endpoint /preapproval/search acepta el filtro external_reference exacto, así que
-    // probamos los planes conocidos.
-    const planIds = ["basico", "premium"];
-    let best: any = null;
-    for (const planId of planIds) {
-      const ref = `sub:${userId}:${planId}`;
-      try {
-        const res: any = await mpFetch(
-          `/preapproval/search?external_reference=${encodeURIComponent(ref)}&limit=20`
-        );
-        const items: any[] = res?.results ?? [];
-        for (const it of items) {
-          if (!best) { best = { ...it, plan_id: planId }; continue; }
-          const rank = (s: string) => s === "authorized" ? 3 : s === "paused" ? 2 : s === "pending" ? 1 : 0;
-          if (rank(it.status) > rank(best.status)) best = { ...it, plan_id: planId };
-        }
-      } catch (e) {
-        console.warn("search preapproval failed", planId, e);
-      }
-    }
+    const { data: localSub, error: subError } = await admin
+      .from("subscriptions")
+      .select("provider_subscription_id, product_id, status, current_period_start")
+      .eq("user_id", userId)
+      .eq("provider", "mercadopago")
+      .maybeSingle();
+    if (subError) return json({ error: "db_read_failed", detail: subError.message }, 500);
+    if (!localSub?.provider_subscription_id) return json({ ok: true, found: false, active: false });
 
-    if (!best) return json({ ok: true, found: false });
+    const best: any = await mpFetch(`/preapproval/${localSub.provider_subscription_id}`);
+    const expectedRef = `sub:${userId}:${localSub.product_id}`;
+    if (best.external_reference !== expectedRef) {
+      console.warn("preapproval external_reference mismatch", { expectedRef, got: best.external_reference });
+      return json({ ok: true, found: false, active: false });
+    }
 
     const nextPayment = best.next_payment_date ? new Date(best.next_payment_date).toISOString() : null;
     const amount = best.auto_recurring?.transaction_amount;
-    // En suscripciones de Mercado Pago, "authorized" significa pago activo y confirmado.
-    const isActive = best.status === "authorized" || best.status === "active";
+    const shouldActivate = localSub.status === "pending" && best.status === "authorized";
+    const storedStatus = shouldActivate ? "active" : best.status;
+    const periodStart = shouldActivate
+      ? (localSub.current_period_start ?? new Date().toISOString())
+      : localSub.current_period_start;
+    const isActive = storedStatus === "active" && !!periodStart && !!nextPayment && new Date(nextPayment) > new Date();
 
     const { error: upsertError } = await admin.from("subscriptions").upsert(
       {
@@ -59,11 +55,12 @@ serve(async (req) => {
         provider: "mercadopago",
         provider_subscription_id: best.id,
         provider_customer_id: best.payer_email ?? null,
-        product_id: best.plan_id,
+        product_id: localSub.product_id,
         price_id: amount != null ? String(amount) : null,
-        status: best.status,
+        status: storedStatus,
         init_point: best.init_point ?? null,
         environment,
+        current_period_start: periodStart,
         current_period_end: nextPayment,
       },
       { onConflict: "user_id" }
@@ -73,7 +70,7 @@ serve(async (req) => {
       return json({ error: "db_upsert_failed", detail: upsertError.message }, 500);
     }
 
-    return json({ ok: true, found: true, active: isActive, status: best.status, plan: best.plan_id });
+    return json({ ok: true, found: true, active: isActive, status: storedStatus, plan: localSub.product_id });
   } catch (e) {
     console.error("mp-sync-subscription error", e);
     return json({ error: String(e) }, 500);
