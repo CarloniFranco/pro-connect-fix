@@ -4,19 +4,37 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Loader2, Save, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 
-const KEYS = {
+type PlanKey = "basico" | "premium";
+
+const KEYS: Record<PlanKey, string> = {
   basico: "plan_price_basico",
   premium: "plan_price_premium",
-} as const;
+};
+
+const LABELS: Record<PlanKey, string> = {
+  basico: "Básico",
+  premium: "Premium",
+};
 
 const AdminPlanPrices = () => {
   const [basico, setBasico] = useState("");
   const [premium, setPremium] = useState("");
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState<"basico" | "premium" | null>(null);
+  const [saving, setSaving] = useState<PlanKey | null>(null);
+  const [dialog, setDialog] = useState<{ plan: PlanKey; price: number; count: number } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -36,21 +54,46 @@ const AdminPlanPrices = () => {
     })();
   }, []);
 
-  const save = async (which: "basico" | "premium", raw: string) => {
+  const requestSave = async (which: PlanKey, raw: string) => {
     const amount = Number(raw);
     if (!Number.isFinite(amount) || amount <= 0) {
       toast.error("Ingresá un monto válido en pesos");
       return;
     }
     setSaving(which);
-    const { error } = await supabase
-      .from("app_config")
-      .upsert({ key: KEYS[which], value: String(Math.round(amount)) }, { onConflict: "key" });
-    setSaving(null);
-    if (error) {
-      toast.error("No se pudo guardar: " + error.message);
-    } else {
-      toast.success(`Precio del plan ${which === "basico" ? "Básico" : "Premium"} actualizado`);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-update-plan-price", {
+        body: { action: "count", plan_id: which },
+      });
+      if (error) throw error;
+      setDialog({ plan: which, price: Math.round(amount), count: Number(data?.count ?? 0) });
+    } catch (e: any) {
+      toast.error("No se pudo verificar suscriptos: " + (e?.message ?? "error"));
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const confirmApply = async () => {
+    if (!dialog) return;
+    const { plan, price } = dialog;
+    setDialog(null);
+    setSaving(plan);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-update-plan-price", {
+        body: { action: "apply", plan_id: plan, new_price: price },
+      });
+      if (error) throw error;
+      const notified = Number((data as any)?.notified ?? 0);
+      toast.success(
+        notified > 0
+          ? `Precio actualizado. Notificamos a ${notified} profesional${notified === 1 ? "" : "es"}.`
+          : "Precio actualizado.",
+      );
+    } catch (e: any) {
+      toast.error("No se pudo aplicar el cambio: " + (e?.message ?? "error"));
+    } finally {
+      setSaving(null);
     }
   };
 
@@ -62,6 +105,35 @@ const AdminPlanPrices = () => {
     );
   }
 
+  const renderCard = (plan: PlanKey, value: string, setValue: (v: string) => void) => (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg">Plan {LABELS[plan]}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <Label htmlFor={plan}>Monto mensual (ARS)</Label>
+        <div className="flex gap-2">
+          <Input
+            id={plan}
+            type="number"
+            inputMode="numeric"
+            min={1}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+          />
+          <Button
+            onClick={() => requestSave(plan, value)}
+            disabled={saving === plan}
+            className="gap-2"
+          >
+            {saving === plan ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            Guardar
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="container mx-auto max-w-2xl px-4 py-6">
       <h2 className="font-display text-2xl font-bold flex items-center gap-2">
@@ -69,57 +141,36 @@ const AdminPlanPrices = () => {
         Precios de Suscripción
       </h2>
       <p className="text-sm text-muted-foreground mt-1">
-        Cambiá los montos mensuales en ARS. Los nuevos profesionales que se suscriban verán y pagarán este precio en Mercado Pago.
-        Las suscripciones ya activas mantienen el monto con el que fueron creadas.
+        Cambiá los montos mensuales en ARS. Los nuevos profesionales pagan el nuevo precio desde el momento.
+        A los ya suscriptos les avisamos por notificación y email, y el nuevo monto les aplica recién en el próximo ciclo de facturación.
       </p>
 
       <div className="mt-6 space-y-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Plan Básico</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Label htmlFor="basico">Monto mensual (ARS)</Label>
-            <div className="flex gap-2">
-              <Input
-                id="basico"
-                type="number"
-                inputMode="numeric"
-                min={1}
-                value={basico}
-                onChange={(e) => setBasico(e.target.value)}
-              />
-              <Button onClick={() => save("basico", basico)} disabled={saving === "basico"} className="gap-2">
-                {saving === "basico" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                Guardar
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Plan Premium</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Label htmlFor="premium">Monto mensual (ARS)</Label>
-            <div className="flex gap-2">
-              <Input
-                id="premium"
-                type="number"
-                inputMode="numeric"
-                min={1}
-                value={premium}
-                onChange={(e) => setPremium(e.target.value)}
-              />
-              <Button onClick={() => save("premium", premium)} disabled={saving === "premium"} className="gap-2">
-                {saving === "premium" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                Guardar
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {renderCard("basico", basico, setBasico)}
+        {renderCard("premium", premium, setPremium)}
       </div>
+
+      <AlertDialog open={!!dialog} onOpenChange={(o) => !o && setDialog(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar cambio de precio</AlertDialogTitle>
+            <AlertDialogDescription>
+              {dialog && (
+                <>
+                  Este cambio de precio afectará a <strong>{dialog.count}</strong>{" "}
+                  profesional{dialog.count === 1 ? "" : "es"} actualmente suscripto{dialog.count === 1 ? "" : "s"} al plan{" "}
+                  <strong>{LABELS[dialog.plan]}</strong>. Recibirán una notificación informando que el nuevo precio
+                  (${dialog.price.toLocaleString("es-AR")}) se aplicará en su próximo ciclo. ¿Confirmás el cambio?
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmApply}>Confirmar cambio</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

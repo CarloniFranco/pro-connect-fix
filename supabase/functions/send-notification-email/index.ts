@@ -69,6 +69,7 @@ const EMAIL_ENABLED_TYPES = new Set([
   // Profesional
   "nueva_solicitud",      // le entra un turno/solicitud
   "cliente_cancelo",      // le cancelan un turno
+  "cambio_precio_plan",   // cambio de precio de su plan
   // Cliente
   "pedido_confirmado",    // su pedido quedó confirmado (con o sin seña)
   "servicio_finalizado",  // su servicio terminó
