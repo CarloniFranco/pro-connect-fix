@@ -56,6 +56,10 @@ const Dashboard = () => {
 
   const toggleAvailable = async (checked: boolean) => {
     if (!user) return;
+    if (checked && !verified) {
+      toast.error("Tu cuenta está pendiente de verificación por el equipo de FIX.");
+      return;
+    }
     setTogglingAvailable(true);
     setAvailable(checked);
     const { error } = await supabase
@@ -196,10 +200,19 @@ const Dashboard = () => {
             <Switch
               checked={available}
               onCheckedChange={toggleAvailable}
-              disabled={togglingAvailable}
+              disabled={togglingAvailable || verified === false}
             />
           </div>
         </div>
+
+        {verified === false && (
+          <div className="rounded-2xl border border-amber-300/50 bg-amber-50 p-4 text-amber-900">
+            <p className="text-sm font-semibold">Tu cuenta está pendiente de verificación</p>
+            <p className="mt-1 text-xs">
+              Estamos revisando tu DNI y tus datos. Mientras tanto no aparecés en búsquedas ni podés recibir pedidos. Te avisamos por mail apenas tu cuenta quede habilitada.
+            </p>
+          </div>
+        )}
 
         {mpConnected === false && (
           <button

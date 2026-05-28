@@ -28,6 +28,7 @@ import ProfessionalPublicProfile from "./pages/ProfessionalPublicProfile.tsx";
 import TermsAndConditions from "./pages/TermsAndConditions.tsx";
 import PlanSelection from "./pages/PlanSelection.tsx";
 import PaymentSetup from "./pages/PaymentSetup.tsx";
+import IdentityVerification from "./pages/IdentityVerification.tsx";
 
 import DepositConfirmed from "./pages/DepositConfirmed.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
@@ -87,6 +88,7 @@ const App = () => (
             <Route path="/indicadores" element={<PrivateRoute><ProIndicators /></PrivateRoute>} />
             <Route path="/seleccionar-plan" element={<PrivateRoute><PlanSelection /></PrivateRoute>} />
             <Route path="/configurar-pago" element={<PrivateRoute><PaymentSetup /></PrivateRoute>} />
+            <Route path="/verificar-identidad" element={<PrivateRoute><IdentityVerification /></PrivateRoute>} />
             <Route path="/conectar-mercadopago" element={<PrivateRoute><MercadoPagoConnect /></PrivateRoute>} />
             <Route path="/mp-oauth-callback" element={<PrivateRoute><MercadoPagoCallback /></PrivateRoute>} />
             <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />

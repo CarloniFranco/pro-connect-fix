@@ -9,8 +9,16 @@ export const PRO_NO_SUB_ALLOWED_ROUTES = [
   "/configurar-pago",
   "/mi-suscripcion",
   "/perfil-profesional",
+  "/verificar-identidad",
   "/mp-oauth-callback",
   "/conectar-mercadopago",
+  "/terminos",
+  "/reset-password",
+];
+
+export const PRO_NO_DNI_ALLOWED_ROUTES = [
+  "/verificar-identidad",
+  "/perfil-profesional",
   "/terminos",
   "/reset-password",
 ];
@@ -18,9 +26,11 @@ export const PRO_NO_SUB_ALLOWED_ROUTES = [
 export const isProNoSubAllowedRoute = (pathname: string) =>
   PRO_NO_SUB_ALLOWED_ROUTES.some((p) => pathname === p || pathname.startsWith(p + "/"));
 
+export const isProNoDniAllowedRoute = (pathname: string) =>
+  PRO_NO_DNI_ALLOWED_ROUTES.some((p) => pathname === p || pathname.startsWith(p + "/"));
+
 /**
  * Checks if the user has an active (paid) professional subscription.
- * Considers both the env where the row was created (live/sandbox).
  */
 export const hasActiveProSubscription = async (userId: string): Promise<boolean> => {
   for (const env of ["live", "sandbox"] as const) {
@@ -34,13 +44,20 @@ export const hasActiveProSubscription = async (userId: string): Promise<boolean>
 };
 
 /**
+ * Returns true if the professional has already submitted their DNI for review (or is verified).
+ */
+export const hasSubmittedDni = async (userId: string): Promise<boolean> => {
+  const { data } = await supabase
+    .from("professional_verification")
+    .select("dni_verification_status")
+    .eq("user_id", userId)
+    .maybeSingle();
+  const s = data?.dni_verification_status;
+  return s === "en_revision" || s === "verificado";
+};
+
+/**
  * Determines the correct redirect path based on user profile state.
- * - Admin → /admin/dashboard
- * - Pro without rubro → /perfil-profesional (onboarding)
- * - Pro with rubro but without active subscription → /seleccionar-plan
- * - Pro with rubro and active subscription → /dashboard
- * - Client with profile → / (home)
- * - No profile → onboarding based on role metadata
  */
 export const getRedirectPath = async (userId: string, fallbackRole?: string | null): Promise<string> => {
   const { data: adminRole } = await supabase
@@ -60,6 +77,8 @@ export const getRedirectPath = async (userId: string, fallbackRole?: string | nu
 
   if (proProfile) {
     if (!proProfile.rubro) return "/perfil-profesional";
+    const dniOk = await hasSubmittedDni(userId);
+    if (!dniOk) return "/verificar-identidad";
     const hasSub = await hasActiveProSubscription(userId);
     if (!hasSub) return "/seleccionar-plan";
     return "/dashboard";

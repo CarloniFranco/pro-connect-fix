@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, Sparkles, Calendar, Users, Brain, Search, Headphones, Rocket, AlertCircle, RefreshCw, Loader2 } from "lucide-react";
+import { Check, Sparkles, Calendar, Users, Brain, Search, Headphones, Rocket, AlertCircle, RefreshCw, Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -106,6 +106,15 @@ const PlanSelection = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 py-12">
+      <div className="w-full max-w-2xl mb-2">
+        <button
+          onClick={() => navigate("/verificar-identidad")}
+          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Volver
+        </button>
+      </div>
       <div
        
        

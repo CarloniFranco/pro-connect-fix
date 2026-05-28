@@ -42,24 +42,49 @@ serve(async (req) => {
     if (!def) return json({ error: "Invalid plan_id" }, 400);
     const amount = await resolvePlanAmount(plan_id);
 
+    if (!Deno.env.get("MP_ACCESS_TOKEN")) {
+      return json({ error: "MP_ACCESS_TOKEN no está configurado en el servidor" }, 500);
+    }
+
     const environment = (Deno.env.get("MP_ENV") ?? "live") as string;
 
-    const preapproval = await mpFetch("/preapproval", {
-      method: "POST",
-      body: JSON.stringify({
-        reason: def.name,
-        external_reference: `sub:${userId}:${plan_id}`,
-        payer_email: email,
-        back_url: `${APP_URL}/mi-suscripcion?sub=success`,
-        auto_recurring: {
-          frequency: 1,
-          frequency_type: "months",
-          transaction_amount: amount,
-          currency_id: "ARS",
-        },
-        notification_url: `${SUPABASE_URL}/functions/v1/mp-webhook`,
-      }),
-    });
+    let preapproval: any;
+    try {
+      preapproval = await mpFetch("/preapproval", {
+        method: "POST",
+        body: JSON.stringify({
+          reason: def.name,
+          external_reference: `sub:${userId}:${plan_id}`,
+          payer_email: email,
+          back_url: `${APP_URL}/mi-suscripcion?sub=success`,
+          auto_recurring: {
+            frequency: 1,
+            frequency_type: "months",
+            transaction_amount: amount,
+            currency_id: "ARS",
+          },
+          notification_url: `${SUPABASE_URL}/functions/v1/mp-webhook`,
+        }),
+      });
+    } catch (mpErr: any) {
+      const raw = String(mpErr?.message || mpErr || "");
+      // Try to extract MP message field for a friendlier error
+      let friendly = raw;
+      const m = raw.match(/MP API \d+: (.+)$/);
+      if (m) {
+        try {
+          const parsed = JSON.parse(m[1]);
+          friendly = parsed?.message || parsed?.error || raw;
+        } catch { /* keep raw */ }
+      }
+      console.error("MP preapproval create failed", raw);
+      return json({ error: friendly, detail: raw }, 502);
+    }
+
+    if (!preapproval?.init_point) {
+      console.error("MP preapproval missing init_point", preapproval);
+      return json({ error: "Mercado Pago no devolvió un link de pago.", detail: preapproval }, 502);
+    }
 
     // Upsert pending subscription row
     await admin.from("subscriptions").upsert(

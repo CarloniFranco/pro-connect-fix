@@ -66,10 +66,8 @@ const ProfessionalProfile = () => {
       setPhone((phoneData as string) || "");
       setWorkStations((data as any).work_stations || 1);
       if (data.photo_url) setPhotoPreview(data.photo_url);
-      if (data.rubro && data.descripcion) {
-        navigate("/dashboard");
-        return;
-      }
+      // Profile already filled — gate routing happens in PrivateRoute,
+      // so just let them edit if they want. Do not auto-redirect.
     } else {
       setFullName(user.user_metadata?.full_name || "");
     }
@@ -156,8 +154,8 @@ const ProfessionalProfile = () => {
           .upsert({ user_id: user.id, matricula_url: matriculaUrl }, { onConflict: "user_id" });
       }
 
-      toast.success("¡Perfil guardado! Tu verificación está en proceso.");
-      navigate("/seleccionar-plan");
+      toast.success("¡Perfil guardado! Ahora verificá tu identidad.");
+      navigate("/verificar-identidad");
     } catch (error: any) {
       console.error("Profile save error:", error);
       toast.error("Error inesperado al guardar el perfil. Intentá nuevamente.");
