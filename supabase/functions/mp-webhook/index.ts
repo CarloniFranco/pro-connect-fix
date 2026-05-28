@@ -128,8 +128,16 @@ serve(async (req) => {
       const [, userId] = extRef.split(":");
       if (!userId) return json({ ok: true, skipped: "no user_id in external_reference" });
 
+      const { data: existingSub } = await admin
+        .from("subscriptions")
+        .select("status")
+        .eq("provider_subscription_id", dataId)
+        .maybeSingle();
+
       const status = pre.status; // authorized | paused | cancelled | pending
-      const storedStatus = status === "authorized" ? "active" : status;
+      const storedStatus = status === "authorized" && ["pending", "active"].includes(existingSub?.status)
+        ? "active"
+        : status;
       const nextPayment = pre.next_payment_date ? new Date(pre.next_payment_date).toISOString() : null;
 
       await admin.from("subscriptions").update({
