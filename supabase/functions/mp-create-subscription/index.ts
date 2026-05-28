@@ -42,9 +42,15 @@ serve(async (req) => {
     if (!def) return json({ error: "Invalid plan_id" }, 400);
     const amount = await resolvePlanAmount(plan_id);
 
-    if (!Deno.env.get("MP_ACCESS_TOKEN")) {
+    const mpToken = Deno.env.get("MP_ACCESS_TOKEN");
+    if (!mpToken) {
       return json({ error: "MP_ACCESS_TOKEN no está configurado en el servidor" }, 500);
     }
+    // Diagnóstico (sin exponer el token completo)
+    const tokenPrefix = mpToken.slice(0, 8);
+    const tokenIsTest = mpToken.startsWith("TEST-");
+    const tokenIsProd = mpToken.startsWith("APP_USR-");
+    console.log("MP token diag:", { tokenPrefix, tokenIsTest, tokenIsProd, payer_email: email, userId, plan_id, amount });
 
     const environment = (Deno.env.get("MP_ENV") ?? "live") as string;
 
