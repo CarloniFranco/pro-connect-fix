@@ -88,7 +88,21 @@ const PlanSelection = () => {
   };
 
   useEffect(() => {
-    if (user) runSync(true);
+    if (!user) return;
+    // Solo verificar automáticamente si el usuario vuelve desde Mercado Pago
+    // (la URL trae parámetros del callback). En carga normal NO hacemos polling
+    // para evitar redirecciones automáticas sin que el usuario haya pagado.
+    const params = new URLSearchParams(window.location.search);
+    const isMpCallback =
+      params.has("payment_id") ||
+      params.has("preapproval_id") ||
+      params.has("collection_id") ||
+      params.has("status") ||
+      params.has("external_reference") ||
+      params.has("from") && params.get("from") === "mp";
+    if (isMpCallback) {
+      runSync(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
